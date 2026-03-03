@@ -1,13 +1,34 @@
 import { api } from "./axios";
 
-export type Clinic = {
-  id: number;
+// Tipo de clínica que coincide con los campos aceptados por la API
+export interface Clinic {
+  id?: number;
   name: string;
   address?: string;
   phone?: string;
-};
+  email?: string;
+  status?: boolean;
+}
+
+// Datos del administrador que se crea junto con la clínica
+export interface ClinicAdmin {
+  name: string;
+  email: string;
+  password: string;
+  phone?: string;
+}
 
 export async function getPublicClinics() {
   const { data } = await api.get("/public/clinics");
-  return data; // luego lo tipamos según la respuesta real
+  return data;
+}
+
+export async function getSuperClinics() {
+  const { data } = await api.get("/super/clinics");
+  return data;
+}
+
+export async function createClinic(payload: { clinic: Clinic; admin: ClinicAdmin }) {
+  const { data } = await api.post("/super/clinics", payload);
+  return data;
 }

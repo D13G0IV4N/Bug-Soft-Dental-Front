@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import styles from "./clinics.module.css";
-import { getPublicClinics } from "../../api/clinics";
 
-type Clinic = {
+import { getSuperClinics } from "../../api/clinics";
+import CreateClinicModal from "./CreateClinicModal";
+
+type ClinicCard = {
   id: number;
   name?: string;
   nombre?: string;
@@ -11,30 +13,36 @@ type Clinic = {
 };
 
 export default function ClinicsPage() {
-  const [clinics, setClinics] = useState<Clinic[]>([]);
+  const [clinics, setClinics] = useState<ClinicCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    (async () => {
-      try {
-        setError("");
-        const data: any = await getPublicClinics();
-        console.log("Clinics response:", data);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
-        const list = data?.data?.data ?? data?.data ?? data ?? [];
-        setClinics(Array.isArray(list) ? list : []);
-      } catch (e: any) {
-        console.error("Clinics error:", e?.response?.data || e);
-        setError(
-          e?.response?.data?.message ||
-            e?.message ||
-            "No se pudieron cargar las clínicas"
-        );
-      } finally {
-        setLoading(false);
-      }
-    })();
+  async function fetchClinics() {
+    try {
+      setLoading(true);
+      setError("");
+
+      const data: any = await getSuperClinics();
+      console.log("Clinics response:", data);
+
+      const list = data?.data?.data ?? data?.data ?? data ?? [];
+      setClinics(Array.isArray(list) ? list : []);
+    } catch (e: any) {
+      console.error("Clinics error:", e?.response?.data || e);
+      setError(
+        e?.response?.data?.message ||
+          e?.message ||
+          "No se pudieron cargar las clínicas"
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchClinics();
   }, []);
 
   const count = clinics.length;
@@ -50,19 +58,15 @@ export default function ClinicsPage() {
             </p>
           </div>
 
-          {/* ✅ ESTE BOTÓN SIEMPRE SALE */}
           <div className={styles.actions}>
             <button
               className={styles.btnPrimary}
-              onClick={() => alert("Aquí va el modal/form de Crear Clínica")}
+              onClick={() => setShowCreateModal(true)}
             >
               + Crear clínica
             </button>
 
-            <button
-              className={styles.btnGhost}
-              onClick={() => window.location.reload()}
-            >
+            <button className={styles.btnGhost} onClick={fetchClinics}>
               Actualizar
             </button>
           </div>
@@ -76,7 +80,6 @@ export default function ClinicsPage() {
             </div>
           </div>
 
-          {/* LOADING */}
           {loading && (
             <div className={styles.skeletonRow}>
               <div className={styles.skeleton} />
@@ -85,7 +88,6 @@ export default function ClinicsPage() {
             </div>
           )}
 
-          {/* ERROR */}
           {!loading && error && (
             <div className={styles.empty}>
               <div className={styles.emptyBox}>
@@ -98,7 +100,6 @@ export default function ClinicsPage() {
             </div>
           )}
 
-          {/* EMPTY */}
           {!loading && !error && clinics.length === 0 && (
             <div className={styles.empty}>
               <div className={styles.emptyBox}>
@@ -111,7 +112,6 @@ export default function ClinicsPage() {
             </div>
           )}
 
-          {/* DATA */}
           {!loading && !error && clinics.length > 0 && (
             <div className={styles.grid}>
               {clinics.map((c) => (
@@ -134,6 +134,13 @@ export default function ClinicsPage() {
           )}
         </div>
       </div>
+
+      {showCreateModal && (
+        <CreateClinicModal
+          onClose={() => setShowCreateModal(false)}
+          onCreated={fetchClinics}
+        />
+      )}
     </div>
   );
 }
