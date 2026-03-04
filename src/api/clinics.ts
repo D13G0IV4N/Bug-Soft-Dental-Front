@@ -32,3 +32,13 @@ export async function createClinic(payload: { clinic: Clinic; admin: ClinicAdmin
   const { data } = await api.post("/super/clinics", payload);
   return data;
 }
+
+export async function updateClinic(id: number, clinic: Partial<Clinic>) {
+  const { data } = await api.put(`/super/clinics/${id}`, clinic);
+  return data;
+}
+
+export async function deleteClinic(id: number) {
+  const { data } = await api.delete(`/super/clinics/${id}`);
+  return data;
+}

@@ -3,6 +3,7 @@ import styles from "./clinics.module.css";
 
 import { getSuperClinics } from "../../api/clinics";
 import CreateClinicModal from "./CreateClinicModal";
+import EditClinicModal from "./EditClinicModal";
 
 type ClinicCard = {
   id: number;
@@ -10,6 +11,9 @@ type ClinicCard = {
   nombre?: string;
   address?: string;
   direccion?: string;
+  phone?: string;
+  email?: string;
+  status?: boolean;
 };
 
 export default function ClinicsPage() {
@@ -18,6 +22,13 @@ export default function ClinicsPage() {
   const [error, setError] = useState("");
 
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedClinic, setSelectedClinic] = useState<ClinicCard | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+
+  function handleViewClinic(clinic: ClinicCard) {
+    setSelectedClinic(clinic);
+    setShowEditModal(true);
+  }
 
   async function fetchClinics() {
     try {
@@ -124,7 +135,7 @@ export default function ClinicsPage() {
                   </p>
                   <button
                     className={styles.cardBtn}
-                    onClick={() => alert(`Abrir clínica ${c.id}`)}
+                    onClick={() => handleViewClinic(c)}
                   >
                     Ver clínica
                   </button>
@@ -139,6 +150,14 @@ export default function ClinicsPage() {
         <CreateClinicModal
           onClose={() => setShowCreateModal(false)}
           onCreated={fetchClinics}
+        />
+      )}
+
+      {showEditModal && selectedClinic && (
+        <EditClinicModal
+          clinic={selectedClinic}
+          onClose={() => setShowEditModal(false)}
+          onUpdated={fetchClinics}
         />
       )}
     </div>
