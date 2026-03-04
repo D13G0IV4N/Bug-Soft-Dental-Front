@@ -1,6 +1,8 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import LoginPage from "./pages/Login/LoginPage";
 import ClinicsPage from "./pages/Clinics/ClinicsPage";
+import DentistsPage from "./pages/Dentists/DentistsPage";
+import PatientsPage from "./pages/Patients/PatientsPage";
 
 function HomeRedirect() {
   const token = localStorage.getItem("authToken");
@@ -16,6 +18,8 @@ export default function App() {
 
       <Route path="/login" element={<LoginPage />} />
       <Route path="/clinics" element={<ClinicsPage />} />
+      <Route path="/clinics/:clinicId/dentists" element={<DentistsPage />} />
+      <Route path="/clinics/:clinicId/patients" element={<PatientsPage />} />
 
       {/* ✅ cualquier ruta rara -> home */}
       <Route path="*" element={<Navigate to="/" replace />} />

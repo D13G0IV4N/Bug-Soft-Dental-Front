@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "./clinics.module.css";
 
 import { getSuperClinics } from "../../api/clinics";
@@ -17,6 +18,7 @@ type ClinicCard = {
 };
 
 export default function ClinicsPage() {
+  const navigate = useNavigate();
   const [clinics, setClinics] = useState<ClinicCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -73,12 +75,13 @@ export default function ClinicsPage() {
             <button
               className={styles.btnPrimary}
               onClick={() => setShowCreateModal(true)}
+              disabled={loading}
             >
               + Crear clínica
             </button>
 
-            <button className={styles.btnGhost} onClick={fetchClinics}>
-              Actualizar
+            <button className={styles.btnGhost} onClick={fetchClinics} disabled={loading}>
+              {loading ? "Actualizando..." : "Actualizar"}
             </button>
           </div>
         </div>
@@ -133,12 +136,29 @@ export default function ClinicsPage() {
                   <p className={styles.cardText}>
                     {c.address || c.direccion || "Sin dirección"}
                   </p>
-                  <button
-                    className={styles.cardBtn}
-                    onClick={() => handleViewClinic(c)}
-                  >
-                    Ver clínica
-                  </button>
+                  <div className={styles.actions}>
+                    <button
+                      className={styles.cardBtn}
+                      onClick={() => handleViewClinic(c)}
+                      disabled={loading}
+                    >
+                      Ver detalles
+                    </button>
+                    <button
+                      className={styles.btnGhost}
+                      onClick={() => navigate(`/clinics/${c.id}/dentists`)}
+                      disabled={loading}
+                    >
+                      Ver dentistas
+                    </button>
+                    <button
+                      className={styles.btnGhost}
+                      onClick={() => navigate(`/clinics/${c.id}/patients`)}
+                      disabled={loading}
+                    >
+                      Ver pacientes
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
