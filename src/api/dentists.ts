@@ -12,6 +12,7 @@ export interface Dentist {
   // extras
   specialty?: string | null;
   licenseNumber?: string | null;
+  color?: string | null;
 }
 
 /**
@@ -37,6 +38,7 @@ function mapToDentist(u: any): Dentist {
     status: typeof u?.status === "boolean" ? u.status : !!u?.status,
     specialty: profile?.specialty ?? u?.specialty ?? null,
     licenseNumber: profile?.license_number ?? profile?.licenseNumber ?? u?.license_number ?? null,
+    color: profile?.color ?? u?.color ?? null,
   };
 }
 
@@ -67,11 +69,13 @@ export async function createDentist(clinicId: number | string, dentist: Dentist)
     // por si el backend lo acepta directo:
     specialty: dentist.specialty ?? null,
     license_number: dentist.licenseNumber ?? null,
+    color: dentist.color ?? null,
 
     // por si lo espera como perfil:
     dentist_profile: {
       specialty: dentist.specialty ?? null,
       license_number: dentist.licenseNumber ?? null,
+      color: dentist.color ?? null,
     },
   };
 
@@ -101,10 +105,12 @@ export async function updateDentist(
   // extras
   if (dentist.specialty !== undefined) payload.specialty = dentist.specialty;
   if (dentist.licenseNumber !== undefined) payload.license_number = dentist.licenseNumber;
+  if (dentist.color !== undefined) payload.color = dentist.color;
 
   payload.dentist_profile = {
     specialty: dentist.specialty ?? null,
     license_number: dentist.licenseNumber ?? null,
+    color: dentist.color ?? null,
   };
 
   const { data } = await api.patch(`${BASE(clinicId)}/${userId}`, payload);
