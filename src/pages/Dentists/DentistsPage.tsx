@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+
 import styles from "./dentists.module.css";
 
-import { getDentistsByClinic } from "../../api/dentists";
-import type { Dentist } from "../../api/dentists";
+import { getDentistsByClinic, type Dentist } from "../../api/dentists";
+
 import CreateDentistModal from "./CreateDentistModal";
 import EditDentistModal from "./EditDentistModal";
+import DentistDetailsModal from "./DentistDetailsModal";
 
 export default function DentistsPage() {
   const navigate = useNavigate();
@@ -15,23 +17,21 @@ export default function DentistsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [selectedDentist, setSelectedDentist] = useState<Dentist | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+  const [selected, setSelected] = useState<Dentist | null>(null);
+
+  const [showDetails, setShowDetails] = useState(false);
+  const [details, setDetails] = useState<Dentist | null>(null);
 
   async function fetchDentists() {
-    if (!clinicId) {
-      setError("No se encontró el ID de clínica.");
-      setDentists([]);
-      setLoading(false);
-      return;
-    }
+    if (!clinicId) return;
 
     try {
       setLoading(true);
       setError("");
 
-      const data: any = await getDentistsByClinic(clinicId);
-      const list = data?.data?.data ?? data?.data ?? data ?? [];
+      const list = await getDentistsByClinic(clinicId);
       setDentists(Array.isArray(list) ? list : []);
     } catch (e: any) {
       console.error("Dentists error:", e?.response?.data || e);
@@ -55,26 +55,26 @@ export default function DentistsPage() {
         <div className={styles.header}>
           <div>
             <h1 className={styles.h1}>Dentistas</h1>
-            <p className={styles.sub}>Clínica #{clinicId ?? "-"}</p>
+            <p className={styles.sub}>Clínica #{clinicId}</p>
           </div>
 
           <div className={styles.actions}>
             <button
               className={styles.btnGhost}
               onClick={() => navigate("/clinics")}
-              disabled={loading}
             >
               ← Volver a clínicas
             </button>
+
             <button
               className={styles.btnPrimary}
-              onClick={() => setShowCreateModal(true)}
-              disabled={loading || !clinicId}
+              onClick={() => setShowCreate(true)}
             >
               + Crear dentista
             </button>
-            <button className={styles.btnGhost} onClick={fetchDentists} disabled={loading}>
-              {loading ? "Actualizando..." : "Actualizar"}
+
+            <button className={styles.btnGhost} onClick={fetchDentists}>
+              Actualizar
             </button>
           </div>
         </div>
@@ -109,7 +109,7 @@ export default function DentistsPage() {
               <div className={styles.emptyBox}>
                 <p className={styles.emptyTitle}>Aún no hay dentistas</p>
                 <p className={styles.emptyText}>
-                  Crea el primer dentista con el botón de arriba.
+                  Crea uno con el botón de arriba.
                 </p>
               </div>
             </div>
@@ -117,23 +117,45 @@ export default function DentistsPage() {
 
           {!loading && !error && dentists.length > 0 && (
             <div className={styles.grid}>
-              {dentists.map((dentist, index) => (
-                <div
-                  key={dentist.id ?? `${dentist.name}-${index}`}
-                  className={styles.card}
-                >
-                  <h3 className={styles.cardTitle}>{dentist.name}</h3>
+              {dentists.map((d) => (
+                <div key={d.id} className={styles.card}>
+                  <h3 className={styles.cardTitle}>
+                    {d.name || `Dentista #${d.id}`}
+                  </h3>
+
                   <p className={styles.cardText}>
-                    Especialidad: {dentist.specialty || "Sin especialidad"}
+                    {d.email ? `Correo: ${d.email}` : "Sin correo"}
+                    <br />
+                    {d.phone ? `Tel: ${d.phone}` : "Sin teléfono"}
+                    <br />
+                    {d.specialty ? `Especialidad: ${d.specialty}` : "Sin especialidad"}
+                    <br />
+                    {d.licenseNumber ? `Licencia: ${d.licenseNumber}` : "Sin licencia"}
                   </p>
-                  <p className={styles.cardText}>Correo: {dentist.email || "Sin correo"}</p>
-                  <p className={styles.cardText}>Teléfono: {dentist.phone || "Sin teléfono"}</p>
-                  <button
-                    className={styles.cardBtn}
-                    onClick={() => setSelectedDentist(dentist)}
-                  >
-                    Editar
-                  </button>
+
+                  <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
+                    <button
+                      className={styles.btnPrimary}
+                      style={{ flex: 1, height: 40, borderRadius: 12 }}
+                      onClick={() => {
+                        setSelected(d);
+                        setShowEdit(true);
+                      }}
+                    >
+                      Editar
+                    </button>
+
+                    <button
+                      className={styles.btnGhost}
+                      style={{ height: 40, borderRadius: 12 }}
+                      onClick={() => {
+                        setDetails(d);
+                        setShowDetails(true);
+                      }}
+                    >
+                      Ver
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -141,20 +163,31 @@ export default function DentistsPage() {
         </div>
       </div>
 
-      {showCreateModal && clinicId && (
+      {/* Modal crear */}
+      {showCreate && clinicId && (
         <CreateDentistModal
           clinicId={clinicId}
-          onClose={() => setShowCreateModal(false)}
+          onClose={() => setShowCreate(false)}
           onCreated={fetchDentists}
         />
       )}
 
-      {selectedDentist && clinicId && (
+      {/* Modal editar */}
+      {showEdit && selected && clinicId && (
         <EditDentistModal
           clinicId={clinicId}
-          dentist={selectedDentist}
-          onClose={() => setSelectedDentist(null)}
+          dentist={selected}
+          onClose={() => setShowEdit(false)}
           onUpdated={fetchDentists}
+        />
+      )}
+
+      {/* ✅ Modal detalles */}
+      {showDetails && details && clinicId && (
+        <DentistDetailsModal
+          clinicId={clinicId}
+          dentist={details}
+          onClose={() => setShowDetails(false)}
         />
       )}
     </div>

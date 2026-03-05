@@ -1,8 +1,7 @@
 import { useState } from "react";
 import styles from "./dentists.module.css";
 
-import { createDentist } from "../../api/dentists";
-import type { Dentist } from "../../api/dentists";
+import { createDentist, type Dentist } from "../../api/dentists";
 
 interface Props {
   clinicId: string;
@@ -13,10 +12,12 @@ interface Props {
 export default function CreateDentistModal({ clinicId, onClose, onCreated }: Props) {
   const [dentist, setDentist] = useState<Dentist>({
     name: "",
-    phone: "",
     email: "",
-    specialty: "",
+    password: "",
+    phone: "",
     status: true,
+    specialty: "",
+    licenseNumber: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -33,21 +34,43 @@ export default function CreateDentistModal({ clinicId, onClose, onCreated }: Pro
       onClose();
     } catch (err: any) {
       console.error("Create dentist error:", err?.response?.data || err);
-      setError(
-        err?.response?.data?.message || err?.message || "No se pudo crear el dentista"
-      );
+      setError(err?.response?.data?.message || err?.message || "No se pudo crear el dentista");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className={styles.modalOverlay} onClick={onClose}>
-      <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.modalHeader}>
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.45)",
+        display: "grid",
+        placeItems: "center",
+        zIndex: 9999,
+        padding: 16,
+      }}
+      onClick={onClose}
+    >
+      <div
+        className={styles.card}
+        style={{
+          width: "100%",
+          maxWidth: 720,
+          padding: 18,
+          borderRadius: 14,
+          background: "#0f172a",
+          border: "1px solid rgba(255,255,255,0.08)",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
           <div>
-            <h2 className={styles.modalTitle}>Crear dentista</h2>
-            <p className={styles.modalText}>Completa los datos para registrar el dentista.</p>
+            <h2 style={{ margin: 0, fontSize: 20, color: "white" }}>Crear dentista</h2>
+            <p style={{ margin: "6px 0 0", opacity: 0.8, color: "white" }}>
+              Completa los datos para registrar el dentista.
+            </p>
           </div>
 
           <button className={styles.btnGhost} type="button" onClick={onClose} disabled={loading}>
@@ -55,61 +78,99 @@ export default function CreateDentistModal({ clinicId, onClose, onCreated }: Pro
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className={styles.formGrid}>
-          <div className={styles.formFieldFull}>
-            <label>Nombre *</label>
-            <input
-              value={dentist.name}
-              onChange={(e) => setDentist({ ...dentist, name: e.target.value })}
-              required
-              placeholder="Dr. Juan Pérez"
-              className={styles.input}
-            />
+        <form onSubmit={handleSubmit} style={{ marginTop: 16 }}>
+          <div style={{ display: "grid", gap: 10, gridTemplateColumns: "1fr 1fr" }}>
+            <div style={{ gridColumn: "1 / -1" }}>
+              <label style={{ color: "white", opacity: 0.9 }}>Nombre *</label>
+              <input
+                value={dentist.name}
+                onChange={(e) => setDentist({ ...dentist, name: e.target.value })}
+                required
+                placeholder="Dr. Carrillo Gama"
+                style={inputStyle}
+              />
+            </div>
+
+            <div>
+              <label style={{ color: "white", opacity: 0.9 }}>Teléfono</label>
+              <input
+                value={dentist.phone ?? ""}
+                onChange={(e) => setDentist({ ...dentist, phone: e.target.value })}
+                placeholder="3312345678"
+                style={inputStyle}
+              />
+            </div>
+
+            <div>
+              <label style={{ color: "white", opacity: 0.9 }}>Correo *</label>
+              <input
+                type="email"
+                value={dentist.email ?? ""}
+                onChange={(e) => setDentist({ ...dentist, email: e.target.value })}
+                placeholder="correo@gmail.com"
+                required
+                style={inputStyle}
+              />
+            </div>
+
+            <div style={{ gridColumn: "1 / -1" }}>
+              <label style={{ color: "white", opacity: 0.9 }}>Contraseña *</label>
+              <input
+                type="password"
+                value={dentist.password ?? ""}
+                onChange={(e) => setDentist({ ...dentist, password: e.target.value })}
+                placeholder="********"
+                required
+                style={inputStyle}
+              />
+            </div>
+
+            <div>
+              <label style={{ color: "white", opacity: 0.9 }}>Especialidad</label>
+              <input
+                value={dentist.specialty ?? ""}
+                onChange={(e) => setDentist({ ...dentist, specialty: e.target.value })}
+                placeholder="Ortodoncia / Endodoncia..."
+                style={inputStyle}
+              />
+            </div>
+
+            <div>
+              <label style={{ color: "white", opacity: 0.9 }}>Número de licencia</label>
+              <input
+                value={dentist.licenseNumber ?? ""}
+                onChange={(e) => setDentist({ ...dentist, licenseNumber: e.target.value })}
+                placeholder="LIC-123456"
+                style={inputStyle}
+              />
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input
+                type="checkbox"
+                checked={dentist.status ?? true}
+                onChange={(e) => setDentist({ ...dentist, status: e.target.checked })}
+              />
+              <span style={{ color: "white", opacity: 0.9 }}>Activo</span>
+            </div>
           </div>
 
-          <div>
-            <label>Teléfono</label>
-            <input
-              value={dentist.phone ?? ""}
-              onChange={(e) => setDentist({ ...dentist, phone: e.target.value })}
-              placeholder="33 0000 0000"
-              className={styles.input}
-            />
-          </div>
+          {error && (
+            <div
+              style={{
+                background: "rgba(239,68,68,0.15)",
+                border: "1px solid rgba(239,68,68,0.35)",
+                padding: 10,
+                borderRadius: 10,
+                color: "white",
+                marginTop: 12,
+              }}
+            >
+              {error}
+            </div>
+          )}
 
-          <div>
-            <label>Correo</label>
-            <input
-              type="email"
-              value={dentist.email ?? ""}
-              onChange={(e) => setDentist({ ...dentist, email: e.target.value })}
-              placeholder="dentista@correo.com"
-              className={styles.input}
-            />
-          </div>
-
-          <div className={styles.formFieldFull}>
-            <label>Especialidad</label>
-            <input
-              value={dentist.specialty ?? ""}
-              onChange={(e) => setDentist({ ...dentist, specialty: e.target.value })}
-              placeholder="Ortodoncia"
-              className={styles.input}
-            />
-          </div>
-
-          <div className={styles.checkboxField}>
-            <input
-              type="checkbox"
-              checked={dentist.status ?? true}
-              onChange={(e) => setDentist({ ...dentist, status: e.target.checked })}
-            />
-            <span>Activo</span>
-          </div>
-
-          {error && <div className={styles.formError}>{error}</div>}
-
-          <div className={styles.formActions}>
+          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 14 }}>
             <button type="button" className={styles.btnGhost} onClick={onClose} disabled={loading}>
               Cancelar
             </button>
@@ -122,3 +183,14 @@ export default function CreateDentistModal({ clinicId, onClose, onCreated }: Pro
     </div>
   );
 }
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  padding: "10px 12px",
+  borderRadius: 10,
+  outline: "none",
+  border: "1px solid rgba(255,255,255,0.12)",
+  background: "rgba(255,255,255,0.06)",
+  color: "white",
+  marginTop: 6,
+};
