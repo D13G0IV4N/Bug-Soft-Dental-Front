@@ -64,6 +64,20 @@ export default function DentistDetailsModal({ clinicId, dentist, onClose }: Prop
           <div>
             <b>Número de licencia:</b> {dentist.licenseNumber || "—"}
           </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <b>Color:</b>
+            <span
+              style={{
+                width: 16,
+                height: 16,
+                borderRadius: 999,
+                border: "1px solid rgba(255,255,255,0.35)",
+                background: dentist.color || "#2f86e6",
+                display: "inline-block",
+              }}
+            />
+            <span>{dentist.color || "#2f86e6"}</span>
+          </div>
           <div>
             <b>Estado:</b> {dentist.status ? "Activo" : "Inactivo"}
           </div>

@@ -18,6 +18,7 @@ export default function CreateDentistModal({ clinicId, onClose, onCreated }: Pro
     status: true,
     specialty: "",
     licenseNumber: "",
+    color: "#2f86e6",
   });
 
   const [loading, setLoading] = useState(false);
@@ -145,6 +146,28 @@ export default function CreateDentistModal({ clinicId, onClose, onCreated }: Pro
               />
             </div>
 
+            <div>
+              <label style={{ color: "white", opacity: 0.9 }}>Color</label>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6 }}>
+                <input
+                  type="color"
+                  value={dentist.color || "#2f86e6"}
+                  onChange={(e) => setDentist({ ...dentist, color: e.target.value })}
+                  style={colorInputStyle}
+                />
+                <div
+                  style={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: 999,
+                    border: "1px solid rgba(255,255,255,0.25)",
+                    background: dentist.color || "#2f86e6",
+                  }}
+                />
+                <small style={{ color: "white", opacity: 0.75 }}>{dentist.color || "#2f86e6"}</small>
+              </div>
+            </div>
+
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <input
                 type="checkbox"
@@ -193,4 +216,15 @@ const inputStyle: React.CSSProperties = {
   background: "rgba(255,255,255,0.06)",
   color: "white",
   marginTop: 6,
+};
+
+const colorInputStyle: React.CSSProperties = {
+  width: "100%",
+  maxWidth: 90,
+  height: 40,
+  borderRadius: 10,
+  border: "1px solid rgba(255,255,255,0.12)",
+  background: "rgba(255,255,255,0.06)",
+  padding: 4,
+  cursor: "pointer",
 };
