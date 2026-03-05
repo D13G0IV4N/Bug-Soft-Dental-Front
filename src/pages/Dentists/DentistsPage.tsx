@@ -18,6 +18,12 @@ export default function DentistsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedDentist, setSelectedDentist] = useState<Dentist | null>(null);
 
+  function handleLogout() {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
+    navigate("/login", { replace: true });
+  }
+
   async function fetchDentists() {
     if (!clinicId) {
       setError("No se encontró el ID de clínica.");
@@ -75,6 +81,9 @@ export default function DentistsPage() {
             </button>
             <button className={styles.btnGhost} onClick={fetchDentists} disabled={loading}>
               {loading ? "Actualizando..." : "Actualizar"}
+            </button>
+            <button className={styles.btnGhost} onClick={handleLogout}>
+              Cerrar sesión
             </button>
           </div>
         </div>

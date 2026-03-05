@@ -32,6 +32,12 @@ export default function ClinicsPage() {
     setShowEditModal(true);
   }
 
+  function handleLogout() {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
+    navigate("/login", { replace: true });
+  }
+
   async function fetchClinics() {
     try {
       setLoading(true);
@@ -82,6 +88,10 @@ export default function ClinicsPage() {
 
             <button className={styles.btnGhost} onClick={fetchClinics} disabled={loading}>
               {loading ? "Actualizando..." : "Actualizar"}
+            </button>
+
+            <button className={styles.btnGhost} onClick={handleLogout} disabled={loading}>
+              Cerrar sesión
             </button>
           </div>
         </div>
