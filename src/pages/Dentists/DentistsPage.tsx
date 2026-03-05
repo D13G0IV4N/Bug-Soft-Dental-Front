@@ -24,6 +24,12 @@ export default function DentistsPage() {
   const [showDetails, setShowDetails] = useState(false);
   const [details, setDetails] = useState<Dentist | null>(null);
 
+  function handleLogout() {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
+    navigate("/login", { replace: true });
+  }
+
   async function fetchDentists() {
     if (!clinicId) return;
 
@@ -75,6 +81,9 @@ export default function DentistsPage() {
 
             <button className={styles.btnGhost} onClick={fetchDentists}>
               Actualizar
+            </button>
+            <button className={styles.btnGhost} onClick={handleLogout} disabled={loading}>
+              Cerrar sesión
             </button>
           </div>
         </div>
