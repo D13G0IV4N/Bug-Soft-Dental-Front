@@ -59,73 +59,104 @@ export default function LoginPage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.cardWrap}>
-        <div className={styles.topBar} />
-
-        <div className={styles.content}>
-          <div className={styles.header}>
-            <div className={styles.logo}>🦷</div>
-            <h1 className={styles.title}>Bug&Soft Dental</h1>
-            <p className={styles.subtitle}>
-              Inicia sesión para acceder a tu agenda.
-            </p>
+      <div className={styles.layout}>
+        <section className={styles.brandPanel} aria-hidden="true">
+          <div className={styles.brandBadge}>Plataforma clínica</div>
+          <h1 className={styles.brandTitle}>Bug&Soft Dental</h1>
+          <p className={styles.brandText}>
+            Gestiona pacientes, citas y equipo clínico desde una experiencia
+            segura y diseñada para el día a día odontológico.
+          </p>
+          <div className={styles.brandMetrics}>
+            <div>
+              <strong>+120</strong>
+              <span>Centros activos</span>
+            </div>
+            <div>
+              <strong>99.9%</strong>
+              <span>Disponibilidad</span>
+            </div>
           </div>
+        </section>
 
-          <form className={styles.form} onSubmit={onSubmit}>
-            <div className={styles.row}>
-              <div className={styles.label}>Correo</div>
-              <input
-                className={styles.input}
-                type="email"
-                placeholder="ej. recepcion@clinica.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-                required
-              />
+        <section className={styles.cardWrap}>
+          <div className={styles.topBar} />
+
+          <div className={styles.content}>
+            <div className={styles.header}>
+              <div className={styles.logo} aria-hidden="true">
+                <svg viewBox="0 0 24 24" role="img">
+                  <path d="M7.9 2.7A3.7 3.7 0 0 0 4.2 6.4c0 1.7.5 2.8 1.1 4 .7 1.4 1.5 2.8 1.5 5.1 0 2.1 1.4 3.8 3.3 3.8 1.3 0 2-1 2-2.6v-2.1h.3v2.1c0 1.6.7 2.6 2 2.6 1.9 0 3.3-1.7 3.3-3.8 0-2.3.8-3.7 1.5-5.1.6-1.2 1.1-2.3 1.1-4a3.7 3.7 0 0 0-3.7-3.7c-1 0-1.9.4-2.5 1a3.4 3.4 0 0 0-4.2 0 3.5 3.5 0 0 0-2.5-1Z" />
+                </svg>
+              </div>
+              <h2 className={styles.title}>Bienvenido de nuevo</h2>
+              <p className={styles.subtitle}>
+                Inicia sesión para acceder a tu agenda y operación clínica.
+              </p>
             </div>
 
-            <div className={styles.row}>
-              <div className={styles.label}>Contraseña</div>
-              <input
-                className={styles.input}
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-                required
-              />
-            </div>
+            <form className={styles.form} onSubmit={onSubmit}>
+              <div className={styles.row}>
+                <label className={styles.label} htmlFor="email">
+                  Correo
+                </label>
+                <input
+                  id="email"
+                  className={styles.input}
+                  type="email"
+                  placeholder="ej. recepcion@clinica.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                  required
+                />
+              </div>
 
-            <div className={styles.metaRow}>
-              <a
-                className={styles.link}
-                href="#"
-                onClick={(e) => e.preventDefault()}
-              >
-                ¿Olvidaste tu contraseña?
-              </a>
-              <a
-                className={styles.link}
-                href="#"
-                onClick={(e) => e.preventDefault()}
-              >
-                Crear cuenta
-              </a>
-            </div>
+              <div className={styles.row}>
+                <label className={styles.label} htmlFor="password">
+                  Contraseña
+                </label>
+                <input
+                  id="password"
+                  className={styles.input}
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                  required
+                />
+              </div>
 
-            <button className={styles.btn} type="submit">
-              Entrar
-            </button>
+              <div className={styles.metaRow}>
+                <a
+                  className={styles.link}
+                  href="#"
+                  onClick={(e) => e.preventDefault()}
+                >
+                  ¿Olvidaste tu contraseña?
+                </a>
+                <a
+                  className={styles.link}
+                  href="#"
+                  onClick={(e) => e.preventDefault()}
+                >
+                  Crear cuenta
+                </a>
+              </div>
 
-            <div className={styles.footer}>
-              <span>Salud • Dental</span>
-              <span>•</span>
-              <span>Bug&Soft Hub</span>
-            </div>
-          </form>
-        </div>
+              <button className={styles.btn} type="submit">
+                Entrar
+              </button>
+
+              <div className={styles.footer}>
+                <span>Salud • Dental</span>
+                <span>•</span>
+                <span>Bug&Soft Hub</span>
+              </div>
+            </form>
+          </div>
+        </section>
       </div>
     </div>
   );
