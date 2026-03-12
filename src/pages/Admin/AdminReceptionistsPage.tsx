@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import styles from "../Dentists/dentists.module.css";
 import {
   createReceptionist,
   deleteReceptionist,
@@ -8,6 +7,7 @@ import {
   updateReceptionist,
   type AdminClinicUser,
 } from "../../api/admin";
+import styles from "./admin.module.css";
 
 type ReceptionistForm = {
   name: string;
@@ -98,25 +98,42 @@ export default function AdminReceptionistsPage() {
   return (
     <>
       <div className={styles.panelTop}>
-        <div className={styles.panelTitle}>Recepcionistas</div>
+        <div>
+          <h2 className={styles.panelTitle}>Recepcionistas</h2>
+          <p className={styles.panelSub}>Controla acceso del equipo de recepción.</p>
+        </div>
         <div className={styles.actions}>
           <button className={styles.btnPrimary} onClick={() => { setEditing(null); setForm(emptyForm); setShowModal(true); }}>+ Crear recepcionista</button>
-          <button className={styles.btnGhost} onClick={fetchItems} disabled={loading}>Actualizar</button>
+          <button className={styles.btnSoft} onClick={fetchItems} disabled={loading}>Actualizar</button>
         </div>
       </div>
 
-      {loading && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Cargando...</p></div></div>}
+      {loading && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Cargando recepcionistas...</p></div></div>}
       {!loading && error && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Error</p><p className={styles.emptyText}>{error}</p></div></div>}
 
       {!loading && !error && (
         <div className={styles.tableWrap}>
           <table className={styles.table}>
-            <thead><tr><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Estatus</th><th>Acciones</th></tr></thead>
+            <thead><tr><th>Nombre</th><th>Contacto</th><th>Estatus</th><th>Acciones</th></tr></thead>
             <tbody>
               {items.map((item) => (
                 <tr key={item.id}>
-                  <td>{item.name}</td><td>{item.email}</td><td>{item.phone || "-"}</td><td>{item.status === false ? "Inactivo" : "Activo"}</td>
-                  <td><div className={styles.tableActions}><button className={styles.btnPrimary} onClick={() => openEdit(item)}>Editar</button><button className={styles.btnDanger} onClick={() => onDelete(item)}>Eliminar</button></div></td>
+                  <td><p className={styles.rowTitle}>{item.name}</p></td>
+                  <td>
+                    <p className={styles.rowTitle}>{item.email}</p>
+                    <p className={styles.rowSub}>{item.phone || "Sin teléfono"}</p>
+                  </td>
+                  <td>
+                    <span className={`${styles.pill} ${item.status === false ? styles.pillOff : styles.pillOn}`}>
+                      {item.status === false ? "Inactivo" : "Activo"}
+                    </span>
+                  </td>
+                  <td>
+                    <div className={styles.tableActions}>
+                      <button className={styles.btnGhost} onClick={() => openEdit(item)}>Editar</button>
+                      <button className={styles.btnDanger} onClick={() => onDelete(item)}>Eliminar</button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -127,14 +144,17 @@ export default function AdminReceptionistsPage() {
       {showModal && (
         <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>
           <div className={styles.modalCard} onClick={(event) => event.stopPropagation()}>
-            <h3>{editing ? "Editar recepcionista" : "Crear recepcionista"}</h3>
+            <div className={styles.modalHead}>
+              <h3 className={styles.modalTitle}>{editing ? "Editar recepcionista" : "Crear recepcionista"}</h3>
+              <p className={styles.modalText}>Completa los datos para mantener el equipo actualizado.</p>
+            </div>
             <form className={styles.formGrid} onSubmit={onSubmit}>
-              <label>Nombre<input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></label>
-              <label>Correo<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label>
-              <label>Teléfono<input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></label>
-              <label>Contraseña {editing ? "(opcional)" : ""}<input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required={!editing} /></label>
+              <label className={styles.field}>Nombre<input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></label>
+              <label className={styles.field}>Correo<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label>
+              <label className={styles.field}>Teléfono<input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></label>
+              <label className={styles.field}>Contraseña {editing ? "(opcional)" : ""}<input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required={!editing} /></label>
               <label className={styles.checkboxField}><input type="checkbox" checked={form.status} onChange={(e) => setForm({ ...form, status: e.target.checked })} /> Activo</label>
-              <div className={styles.actions}><button type="button" className={styles.btnGhost} onClick={() => setShowModal(false)}>Cancelar</button><button type="submit" className={styles.btnPrimary} disabled={saving}>{saving ? "Guardando..." : "Guardar"}</button></div>
+              <div className={styles.formActions}><button type="button" className={styles.btnGhost} onClick={() => setShowModal(false)}>Cancelar</button><button type="submit" className={styles.btnPrimary} disabled={saving}>{saving ? "Guardando..." : "Guardar"}</button></div>
             </form>
           </div>
         </div>

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import styles from "../Dentists/dentists.module.css";
 import {
   createAdminUser,
   deleteAdminUser,
@@ -8,6 +7,7 @@ import {
   updateAdminUser,
   type AdminClinicUser,
 } from "../../api/admin";
+import styles from "./admin.module.css";
 
 type UserFormState = {
   name: string;
@@ -117,34 +117,47 @@ export default function AdminUsersPage() {
   return (
     <>
       <div className={styles.panelTop}>
-        <div className={styles.panelTitle}>Usuarios de mi clínica</div>
+        <div>
+          <h2 className={styles.panelTitle}>Usuarios de mi clínica</h2>
+          <p className={styles.panelSub}>Administra roles internos y estado de acceso.</p>
+        </div>
         <div className={styles.actions}>
           <button className={styles.btnPrimary} onClick={openCreate}>+ Crear usuario</button>
-          <button className={styles.btnGhost} onClick={fetchUsers} disabled={loading}>Actualizar</button>
+          <button className={styles.btnSoft} onClick={fetchUsers} disabled={loading}>Actualizar</button>
         </div>
       </div>
 
-      {loading && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Cargando...</p></div></div>}
+      {loading && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Cargando usuarios...</p></div></div>}
       {!loading && error && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Error</p><p className={styles.emptyText}>{error}</p></div></div>}
-      {!loading && !error && users.length === 0 && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Sin usuarios</p></div></div>}
+      {!loading && !error && users.length === 0 && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Sin usuarios</p><p className={styles.emptyText}>Crea el primer usuario para comenzar.</p></div></div>}
 
       {!loading && !error && users.length > 0 && (
         <div className={styles.tableWrap}>
           <table className={styles.table}>
             <thead>
-              <tr><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Rol</th><th>Estatus</th><th>Acciones</th></tr>
+              <tr><th>Nombre</th><th>Contacto</th><th>Rol</th><th>Estatus</th><th>Acciones</th></tr>
             </thead>
             <tbody>
               {users.map((user) => (
                 <tr key={user.id}>
-                  <td>{user.name}</td>
-                  <td>{user.email}</td>
-                  <td>{user.phone || "-"}</td>
-                  <td>{user.role}</td>
-                  <td>{user.status === false ? "Inactivo" : "Activo"}</td>
+                  <td>
+                    <p className={styles.rowTitle}>{user.name}</p>
+                  </td>
+                  <td>
+                    <p className={styles.rowTitle}>{user.email}</p>
+                    <p className={styles.rowSub}>{user.phone || "Sin teléfono"}</p>
+                  </td>
+                  <td>
+                    <span className={`${styles.pill} ${styles.pillRole}`}>{user.role}</span>
+                  </td>
+                  <td>
+                    <span className={`${styles.pill} ${user.status === false ? styles.pillOff : styles.pillOn}`}>
+                      {user.status === false ? "Inactivo" : "Activo"}
+                    </span>
+                  </td>
                   <td>
                     <div className={styles.tableActions}>
-                      <button className={styles.btnPrimary} onClick={() => openEdit(user)}>Editar</button>
+                      <button className={styles.btnGhost} onClick={() => openEdit(user)}>Editar</button>
                       <button className={styles.btnDanger} onClick={() => onDelete(user)}>Eliminar</button>
                     </div>
                   </td>
@@ -158,23 +171,27 @@ export default function AdminUsersPage() {
       {showModal && (
         <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>
           <div className={styles.modalCard} onClick={(event) => event.stopPropagation()}>
-            <h3>{editing ? "Editar usuario" : "Crear usuario"}</h3>
+            <div className={styles.modalHead}>
+              <h3 className={styles.modalTitle}>{editing ? "Editar usuario" : "Crear usuario"}</h3>
+              <p className={styles.modalText}>Completa la información para {editing ? "actualizar" : "registrar"} el usuario.</p>
+            </div>
+
             <form className={styles.formGrid} onSubmit={onSubmit}>
-              <label>Nombre<input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></label>
-              <label>Correo<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label>
-              <label>Teléfono<input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></label>
-              <label>Rol
+              <label className={styles.field}>Nombre<input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></label>
+              <label className={styles.field}>Correo<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label>
+              <label className={styles.field}>Teléfono<input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></label>
+              <label className={styles.field}>Rol
                 <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
                   <option value="dentist">Dentista</option>
                   <option value="receptionist">Recepcionista</option>
                   <option value="client">Paciente/Cliente</option>
                 </select>
               </label>
-              <label>Contraseña {editing ? "(opcional)" : ""}
+              <label className={styles.field}>Contraseña {editing ? "(opcional)" : ""}
                 <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required={!editing} />
               </label>
               <label className={styles.checkboxField}><input type="checkbox" checked={form.status} onChange={(e) => setForm({ ...form, status: e.target.checked })} /> Activo</label>
-              <div className={styles.actions}>
+              <div className={styles.formActions}>
                 <button type="button" className={styles.btnGhost} onClick={() => setShowModal(false)} disabled={saving}>Cancelar</button>
                 <button type="submit" className={styles.btnPrimary} disabled={saving}>{saving ? "Guardando..." : "Guardar"}</button>
               </div>
