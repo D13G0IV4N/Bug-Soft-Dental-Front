@@ -247,6 +247,39 @@
   animation: shimmer 1.2s ease-in-out infinite;
 }
 
+.tableWrap{
+  overflow: auto;
+}
+
+.table{
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 880px;
+}
+
+.table th,
+.table td{
+  text-align: left;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--stroke);
+  vertical-align: middle;
+}
+
+.table th{
+  font-size: 12px;
+  letter-spacing: .2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.tableActions{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 @keyframes shimmer{
   0% { background-position: 0% 0; }
   100% { background-position: 200% 0; }

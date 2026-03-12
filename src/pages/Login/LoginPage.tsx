@@ -31,8 +31,8 @@ export default function LoginPage() {
       const user = res?.data?.user ?? res?.user;
       if (user) localStorage.setItem("user", JSON.stringify(user));
 
-      // ✅ redirigir a gestión de clínicas
-      navigate("/clinics", { replace: true });
+      const nextPath = user?.role === "super_admin" ? "/clinics" : "/patients";
+      navigate(nextPath, { replace: true });
     } catch (err: any) {
       console.log("=== LOGIN ERROR (RAW) ===", err);
 
