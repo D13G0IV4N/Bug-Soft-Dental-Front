@@ -185,11 +185,12 @@ export default function ClinicDetailPage() {
 
           <div className={styles.actions}>
             <button className={styles.btnGhost} onClick={() => navigate("/clinics")}>← Volver</button>
+            
+            <button className={styles.btnGhost} onClick={() => navigate(`/clinics/${clinicId}/dentists`)}>Dentistas</button>
+
             <button className={styles.btnGhost} onClick={() => navigate(`/clinics/${clinicId}/patients`)}>
               Pacientes
             </button>
-            <button className={styles.btnGhost} onClick={fetchClinic} disabled={loading}>Actualizar clínica</button>
-            <button className={styles.btnGhost} onClick={fetchUsers} disabled={usersLoading}>Actualizar usuarios</button>
             <button className={styles.btnGhost} onClick={handleLogout}>Cerrar sesión</button>
           </div>
         </div>

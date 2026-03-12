@@ -14,10 +14,8 @@ export default function LoginPage() {
     e.preventDefault();
 
     try {
-      // ✅ AQUÍ FALTABA: hacer la petición
       const res: any = await login({ email, password });
 
-      // ✅ token viene como data.token
       const token = res?.data?.token;
       if (!token) {
         console.log("LOGIN RES:", res);
@@ -27,24 +25,14 @@ export default function LoginPage() {
 
       localStorage.setItem("authToken", token);
 
-      // ✅ user normalmente viene en data.user (ajusta si tu backend lo manda distinto)
       const user = res?.data?.user ?? res?.user;
       if (user) localStorage.setItem("user", JSON.stringify(user));
 
-      const nextPath = user?.role === "super_admin" ? "/clinics" : "/patients";
-      navigate(nextPath, { replace: true });
+      navigate("/clinics", { replace: true });
     } catch (err: any) {
       console.log("=== LOGIN ERROR (RAW) ===", err);
 
-      const status = err?.response?.status;
       const data = err?.response?.data;
-      const url = (err?.config?.baseURL || "") + (err?.config?.url || "");
-
-      console.log("URL:", url);
-      console.log("STATUS:", status);
-      console.log("DATA:", data);
-      console.log("MESSAGE:", err?.message);
-      console.log("CODE:", err?.code);
 
       const msg =
         data?.message ||
@@ -74,8 +62,11 @@ export default function LoginPage() {
 
           <form className={styles.form} onSubmit={onSubmit}>
             <div className={styles.row}>
-              <div className={styles.label}>Correo</div>
+              <label className={styles.label} htmlFor="email">
+                Correo
+              </label>
               <input
+                id="email"
                 className={styles.input}
                 type="email"
                 placeholder="ej. recepcion@clinica.com"
@@ -87,9 +78,13 @@ export default function LoginPage() {
             </div>
 
             <div className={styles.row}>
-              <div className={styles.label}>Contraseña</div>
+              <label className={styles.label} htmlFor="password">
+                Contraseña
+              </label>
+
               <div className={styles.passwordWrap}>
                 <input
+                  id="password"
                   className={styles.input}
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
@@ -98,10 +93,13 @@ export default function LoginPage() {
                   autoComplete="current-password"
                   required
                 />
+
                 <button
                   type="button"
                   className={styles.passwordToggle}
-                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  aria-label={
+                    showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                  }
                   onClick={() => setShowPassword((prev) => !prev)}
                 >
                   {showPassword ? (
@@ -125,6 +123,7 @@ export default function LoginPage() {
               >
                 ¿Olvidaste tu contraseña?
               </a>
+
               <a
                 className={styles.link}
                 href="#"
