@@ -7,7 +7,12 @@ import ClinicDetailPage from "./pages/Clinics/ClinicDetailPage";
 
 function HomeRedirect() {
   const token = localStorage.getItem("authToken");
-  return <Navigate to={token ? "/clinics" : "/login"} replace />;
+  const userRaw = localStorage.getItem("user");
+  const user = userRaw ? JSON.parse(userRaw) : null;
+  const role = user?.role;
+
+  if (!token) return <Navigate to="/login" replace />;
+  return <Navigate to={role === "super_admin" ? "/clinics" : "/patients"} replace />;
 }
 
 function ProtectedLayout() {
@@ -27,6 +32,7 @@ export default function App() {
         <Route path="/clinics/:clinicId" element={<ClinicDetailPage />} />
         <Route path="/clinics/:clinicId/dentists" element={<DentistsPage />} />
         <Route path="/clinics/:clinicId/patients" element={<PatientsPage />} />
+        <Route path="/patients" element={<PatientsPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
