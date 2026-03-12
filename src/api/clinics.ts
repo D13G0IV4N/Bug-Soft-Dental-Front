@@ -8,6 +8,8 @@ export interface Clinic {
   phone?: string;
   email?: string;
   status?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 // Datos del administrador que se crea junto con la clínica
@@ -18,6 +20,10 @@ export interface ClinicAdmin {
   phone?: string;
 }
 
+function normalizeData(response: any) {
+  return response?.data?.data ?? response?.data ?? response;
+}
+
 export async function getPublicClinics() {
   const { data } = await api.get("/public/clinics");
   return data;
@@ -25,7 +31,12 @@ export async function getPublicClinics() {
 
 export async function getSuperClinics() {
   const { data } = await api.get("/super/clinics");
-  return data;
+  return normalizeData(data);
+}
+
+export async function getSuperClinicById(id: number | string) {
+  const { data } = await api.get(`/super/clinics/${id}`);
+  return normalizeData(data);
 }
 
 export async function createClinic(payload: { clinic: Clinic; admin: ClinicAdmin }) {

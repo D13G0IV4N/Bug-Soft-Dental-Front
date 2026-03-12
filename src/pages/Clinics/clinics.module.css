@@ -100,12 +100,49 @@
   cursor: not-allowed;
 }
 
+.btnDanger{
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(220, 38, 38, 0.4);
+  color: #991b1b;
+  background: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.statsGrid{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.statCard{
+  border: 1px solid var(--stroke);
+  border-radius: 14px;
+  background: #fff;
+  padding: 12px 14px;
+}
+
+.statCard p{
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.statCard strong{
+  display: block;
+  margin-top: 6px;
+  font-size: 22px;
+}
+
 .panel{
   border: 1px solid var(--stroke);
   border-radius: 18px;
   background: rgba(255,255,255,.8);
   box-shadow: var(--shadow);
   overflow: hidden;
+  margin-bottom: 14px;
 }
 
 .panelTop{
@@ -140,6 +177,31 @@
   padding: 14px;
 }
 
+.cardTopRow{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.statusOn,
+.statusOff{
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.statusOn{
+  color: #166534;
+  background: #dcfce7;
+}
+
+.statusOff{
+  color: #7f1d1d;
+  background: #fee2e2;
+}
+
 .cardTitle{
   margin: 0;
   font-size: 16px;
@@ -150,33 +212,30 @@
   color: var(--muted);
   font-size: 13.5px;
   line-height: 1.35;
-  min-height: 34px;
+}
+
+.metaText{
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #45607a;
+}
+
+.cardActions{
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .cardBtn{
-  margin-top: 12px;
   height: 40px;
-  width: 100%;
+  min-width: 130px;
   border-radius: 12px;
   border: 1px solid transparent;
   cursor: pointer;
   font-weight: 900;
   color: white;
   background: linear-gradient(135deg, var(--primary), var(--primary2));
-  transition: filter .2s ease, transform .06s ease, box-shadow .2s ease;
-}
-
-.cardBtn:hover:not(:disabled){
-  filter: brightness(1.04);
-}
-
-.cardBtn:active:not(:disabled){
-  transform: translateY(1px);
-}
-
-.cardBtn:focus-visible{
-  outline: none;
-  box-shadow: 0 0 0 4px rgba(74,163,255,.22);
 }
 
 .empty{
@@ -226,15 +285,126 @@
   animation: shimmer 1.2s ease-in-out infinite;
 }
 
+.detailGrid{
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.detailItem{
+  border: 1px solid var(--stroke);
+  border-radius: 12px;
+  background: #fff;
+  padding: 12px;
+}
+
+.detailItem span{
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.detailItem strong{
+  display: block;
+  margin-top: 4px;
+}
+
+.tableWrap{
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table{
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td{
+  border-bottom: 1px solid var(--stroke);
+  text-align: left;
+  font-size: 13px;
+  padding: 12px 10px;
+  vertical-align: top;
+}
+
+.adminBadge{
+  display: inline-flex;
+  margin-left: 8px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #e0f2fe;
+  color: #075985;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.tableActions{
+  display: flex;
+  gap: 6px;
+}
+
+.modalOverlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+  padding: 16px;
+}
+
+.modalCard{
+  width: min(620px, 100%);
+  border-radius: 14px;
+  border: 1px solid var(--stroke);
+  background: #fff;
+  padding: 16px;
+}
+
+.formGrid{
+  display: grid;
+  gap: 10px;
+}
+
+.formGrid label{
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: #1f4f88;
+}
+
+.formGrid input{
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid var(--stroke);
+  padding: 0 10px;
+}
+
+.checkboxField{
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+}
+
+.modalActions{
+  margin-top: 4px;
+  display: flex;
+  justify-content: end;
+  gap: 8px;
+}
+
 @keyframes shimmer{
   0% { background-position: 0% 0; }
   100% { background-position: 200% 0; }
 }
 
-@media (max-width: 520px){
+@media (max-width: 720px){
   .page{ padding: 16px; }
   .h1{ font-size: 28px; }
   .header{ align-items: start; flex-direction: column; }
   .actions{ width: 100%; }
   .btnPrimary, .btnGhost{ width: 100%; }
+  .cardActions{ flex-direction: column; }
+  .cardBtn{ width: 100%; }
 }
