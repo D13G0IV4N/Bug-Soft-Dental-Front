@@ -2,6 +2,7 @@ import { useState } from "react";
 import styles from "./login.module.css";
 import { login } from "../../api/auth";
 import { useNavigate } from "react-router-dom";
+import { getPostLoginRoute } from "../../utils/auth";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -28,7 +29,7 @@ export default function LoginPage() {
       const user = res?.data?.user ?? res?.user;
       if (user) localStorage.setItem("user", JSON.stringify(user));
 
-      navigate("/clinics", { replace: true });
+      navigate(getPostLoginRoute(user?.role ?? null), { replace: true });
     } catch (err: any) {
       console.log("=== LOGIN ERROR (RAW) ===", err);
 
