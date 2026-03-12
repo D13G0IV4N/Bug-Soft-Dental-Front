@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import styles from "../Dentists/dentists.module.css";
 import { createAppointment, getAppointments, updateAppointmentStatus, type Appointment } from "../../api/appointments";
 import { getAdminPatients } from "../../api/patients";
 import { getAdminUsers } from "../../api/admin";
+import styles from "./admin.module.css";
 
 export default function AdminAppointmentsPage() {
   const [items, setItems] = useState<Appointment[]>([]);
@@ -63,28 +63,34 @@ export default function AdminAppointmentsPage() {
 
   return (
     <>
-      <div className={styles.panelTop}><div className={styles.panelTitle}>Agenda</div><button className={styles.btnGhost} onClick={fetchData} disabled={loading}>Actualizar</button></div>
+      <div className={styles.panelTop}>
+        <div>
+          <h2 className={styles.panelTitle}>Agenda</h2>
+          <p className={styles.panelSub}>Programa y confirma citas de forma rápida.</p>
+        </div>
+        <button className={styles.btnSoft} onClick={fetchData} disabled={loading}>Actualizar</button>
+      </div>
 
-      <form className={styles.grid} onSubmit={onCreate}>
-        <label className={styles.card}>Paciente
+      <form className={styles.formGrid} onSubmit={onCreate}>
+        <label className={styles.field}>Paciente
           <select value={form.patient_id} onChange={(e) => setForm({ ...form, patient_id: e.target.value })} required>
             <option value="">Selecciona paciente</option>
             {patients.map((patient) => <option key={patient.id} value={patient.id}>{patient.name}</option>)}
           </select>
         </label>
-        <label className={styles.card}>Dentista
+        <label className={styles.field}>Dentista
           <select value={form.dentist_id} onChange={(e) => setForm({ ...form, dentist_id: e.target.value })} required>
             <option value="">Selecciona dentista</option>
             {dentists.map((dentist) => <option key={dentist.id} value={dentist.id}>{dentist.name}</option>)}
           </select>
         </label>
-        <label className={styles.card}>Inicio
+        <label className={styles.field}>Inicio
           <input type="datetime-local" value={form.starts_at} onChange={(e) => setForm({ ...form, starts_at: e.target.value })} required />
         </label>
-        <label className={styles.card}>Notas
+        <label className={styles.field}>Notas
           <input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
         </label>
-        <div className={styles.actions}><button className={styles.btnPrimary} type="submit" disabled={saving}>{saving ? "Creando..." : "Crear cita"}</button></div>
+        <div className={styles.formActions}><button className={styles.btnPrimary} type="submit" disabled={saving}>{saving ? "Creando..." : "Crear cita"}</button></div>
       </form>
 
       {loading && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Cargando citas...</p></div></div>}
@@ -97,11 +103,11 @@ export default function AdminAppointmentsPage() {
             <tbody>
               {items.map((item) => (
                 <tr key={item.id}>
-                  <td>{item.id}</td>
-                  <td>{item.patient_name || item.patient_id}</td>
-                  <td>{item.dentist_name || item.dentist_id}</td>
-                  <td>{item.starts_at}</td>
-                  <td>{item.status || "pending"}</td>
+                  <td><p className={styles.rowTitle}>{item.id}</p></td>
+                  <td><p className={styles.rowTitle}>{item.patient_name || item.patient_id}</p></td>
+                  <td><p className={styles.rowTitle}>{item.dentist_name || item.dentist_id}</p></td>
+                  <td><p className={styles.rowSub}>{item.starts_at}</p></td>
+                  <td><span className={`${styles.pill} ${item.status === "cancelled" ? styles.pillOff : styles.pillOn}`}>{item.status || "pending"}</span></td>
                   <td>
                     <div className={styles.tableActions}>
                       <button className={styles.btnGhost} onClick={() => onStatusChange(item, "confirmed")}>Confirmar</button>
