@@ -207,7 +207,7 @@ export default function PatientsPage() {
                 ← Volver a clínica
               </button>
             ) : (
-              <button className={styles.btnGhost} onClick={() => navigate("/clinics")}>Ver clínicas</button>
+              <button className={styles.btnGhost} onClick={() => navigate("/admin")}>Ir al panel</button>
             )}
 
             <button className={styles.btnPrimary} onClick={() => setShowCreate(true)}>

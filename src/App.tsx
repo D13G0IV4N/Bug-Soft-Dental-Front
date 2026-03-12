@@ -4,20 +4,29 @@ import ClinicsPage from "./pages/Clinics/ClinicsPage";
 import DentistsPage from "./pages/Dentists/DentistsPage";
 import PatientsPage from "./pages/Patients/PatientsPage";
 import ClinicDetailPage from "./pages/Clinics/ClinicDetailPage";
+import { getPostLoginRoute, getStoredRole, isAuthenticated, type AppRole } from "./utils/auth";
+import AdminLayout from "./pages/Admin/AdminLayout";
+import AdminDashboardPage from "./pages/Admin/AdminDashboardPage";
+import AdminUsersPage from "./pages/Admin/AdminUsersPage";
+import AdminReceptionistsPage from "./pages/Admin/AdminReceptionistsPage";
+import AdminAppointmentsPage from "./pages/Admin/AdminAppointmentsPage";
 
 function HomeRedirect() {
-  const token = localStorage.getItem("authToken");
-  const userRaw = localStorage.getItem("user");
-  const user = userRaw ? JSON.parse(userRaw) : null;
-  const role = user?.role;
-
-  if (!token) return <Navigate to="/login" replace />;
-  return <Navigate to={role === "super_admin" ? "/clinics" : "/patients"} replace />;
+  if (!isAuthenticated()) return <Navigate to="/login" replace />;
+  return <Navigate to={getPostLoginRoute(getStoredRole())} replace />;
 }
 
 function ProtectedLayout() {
-  const token = localStorage.getItem("authToken");
-  if (!token) return <Navigate to="/login" replace />;
+  if (!isAuthenticated()) return <Navigate to="/login" replace />;
+  return <Outlet />;
+}
+
+function RoleGuard({ allowedRoles }: { allowedRoles: AppRole[] }) {
+  const role = getStoredRole();
+
+  if (!role) return <Navigate to="/login" replace />;
+  if (!allowedRoles.includes(role)) return <Navigate to={getPostLoginRoute(role)} replace />;
+
   return <Outlet />;
 }
 
@@ -28,11 +37,24 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
 
       <Route element={<ProtectedLayout />}>
-        <Route path="/clinics" element={<ClinicsPage />} />
-        <Route path="/clinics/:clinicId" element={<ClinicDetailPage />} />
-        <Route path="/clinics/:clinicId/dentists" element={<DentistsPage />} />
-        <Route path="/clinics/:clinicId/patients" element={<PatientsPage />} />
-        <Route path="/patients" element={<PatientsPage />} />
+        <Route element={<RoleGuard allowedRoles={["super_admin"]} />}>
+          <Route path="/clinics" element={<ClinicsPage />} />
+          <Route path="/clinics/:clinicId" element={<ClinicDetailPage />} />
+          <Route path="/clinics/:clinicId/dentists" element={<DentistsPage />} />
+          <Route path="/clinics/:clinicId/patients" element={<PatientsPage />} />
+        </Route>
+
+        <Route element={<RoleGuard allowedRoles={["admin", "receptionist"]} />}>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboardPage />} />
+            <Route element={<RoleGuard allowedRoles={["admin"]} />}>
+              <Route path="users" element={<AdminUsersPage />} />
+              <Route path="receptionists" element={<AdminReceptionistsPage />} />
+            </Route>
+            <Route path="patients" element={<PatientsPage />} />
+            <Route path="appointments" element={<AdminAppointmentsPage />} />
+          </Route>
+        </Route>
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
