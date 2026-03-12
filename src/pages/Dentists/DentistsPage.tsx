@@ -143,18 +143,18 @@ export default function DentistsPage() {
                   </p>
 
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ color: "rgba(255,255,255,0.8)", fontSize: 13 }}>Color:</span>
+                    <span style={{ color: "#5f7387", fontSize: 13 }}>Color:</span>
                     <span
                       style={{
                         width: 16,
                         height: 16,
                         borderRadius: 999,
-                        border: "1px solid rgba(255,255,255,0.35)",
+                        border: "1px solid rgba(47,134,230,0.35)",
                         background: d.color || "#2f86e6",
                         display: "inline-block",
                       }}
                     />
-                    <span style={{ color: "rgba(255,255,255,0.8)", fontSize: 12 }}>
+                    <span style={{ color: "#5f7387", fontSize: 12 }}>
                       {d.color || "#2f86e6"}
                     </span>
                   </div>

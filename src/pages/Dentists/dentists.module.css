@@ -50,21 +50,48 @@
   height: 42px;
   padding: 0 14px;
   border-radius: 12px;
-  border: none;
+  border: 1px solid transparent;
   cursor: pointer;
   font-weight: 800;
   color: white;
   background: linear-gradient(135deg, var(--primary), var(--primary2));
+  transition: filter .2s ease, transform .06s ease, box-shadow .2s ease;
+}
+
+.btnPrimary:hover:not(:disabled){
+  filter: brightness(1.04);
+}
+
+.btnPrimary:active:not(:disabled){
+  transform: translateY(1px);
+}
+
+.btnPrimary:focus-visible{
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(74,163,255,.22);
 }
 
 .btnGhost{
   height: 42px;
   padding: 0 14px;
   border-radius: 12px;
-  border: 1px solid var(--stroke);
+  border: 1px solid rgba(47,134,230,.45);
   cursor: pointer;
   font-weight: 800;
-  background: rgba(255,255,255,.85);
+  color: #1f4f88;
+  background: #ffffff;
+  transition: background-color .2s ease, border-color .2s ease, color .2s ease, box-shadow .2s ease;
+}
+
+.btnGhost:hover:not(:disabled){
+  background: rgba(74,163,255,.1);
+  border-color: rgba(47,134,230,.75);
+  color: #123f73;
+}
+
+.btnGhost:focus-visible{
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(74,163,255,.18);
 }
 
 .btnDanger{
@@ -76,6 +103,23 @@
   font-weight: 800;
   color: white;
   background: var(--danger);
+}
+
+.btnDanger:hover:not(:disabled){
+  filter: brightness(.95);
+}
+
+.btnDanger:focus-visible{
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(220,38,38,.22);
+}
+
+.btnGhost:disabled,
+.btnPrimary:disabled,
+.btnDanger:disabled,
+.cardBtn:disabled{
+  opacity: .6;
+  cursor: not-allowed;
 }
 
 .panel{
@@ -135,11 +179,25 @@
   height: 40px;
   width: 100%;
   border-radius: 12px;
-  border: none;
+  border: 1px solid transparent;
   cursor: pointer;
   font-weight: 900;
   color: white;
   background: linear-gradient(135deg, var(--primary), var(--primary2));
+  transition: filter .2s ease, transform .06s ease, box-shadow .2s ease;
+}
+
+.cardBtn:hover:not(:disabled){
+  filter: brightness(1.04);
+}
+
+.cardBtn:active:not(:disabled){
+  transform: translateY(1px);
+}
+
+.cardBtn:focus-visible{
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(74,163,255,.22);
 }
 
 .empty{

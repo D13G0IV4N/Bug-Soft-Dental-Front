@@ -109,6 +109,47 @@
 
 .input::placeholder { color: rgba(95, 115, 135, 0.75); }
 
+
+.passwordWrap {
+  position: relative;
+}
+
+.passwordWrap .input {
+  padding-right: 48px;
+}
+
+.passwordToggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  color: #4b647f;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.passwordToggle:hover {
+  background: rgba(74, 163, 255, 0.12);
+  color: #194a81;
+}
+
+.passwordToggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(74, 163, 255, 0.24);
+}
+
+.passwordToggle svg {
+  width: 19px;
+  height: 19px;
+  fill: currentColor;
+}
 .input:focus {
   border-color: rgba(74, 163, 255, 0.85);
   box-shadow: 0 0 0 4px rgba(74, 163, 255, 0.16);
@@ -131,16 +172,24 @@
 
 .btn {
   height: 46px;
-  border: none;
+  border: 1px solid transparent;
   border-radius: 14px;
   cursor: pointer;
   font-weight: 700;
   color: #fff;
   background: linear-gradient(135deg, var(--primary), var(--primary2));
-  transition: transform 0.06s ease, filter 0.15s ease;
+  transition: transform 0.06s ease, filter 0.15s ease, box-shadow 0.2s ease;
 }
 .btn:active { transform: scale(0.99); }
 .btn:hover { filter: brightness(1.02); }
+.btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(74, 163, 255, 0.22);
+}
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
 .footer {
   margin-top: 14px;
