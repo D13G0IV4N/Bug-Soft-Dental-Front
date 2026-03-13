@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import styles from "../Dentists/dentists.module.css";
+import formStyles from "../../styles/formSystem.module.css";
 import type { Patient } from "../../api/patients";
 
 interface Props {
@@ -69,12 +70,12 @@ export default function PatientFormModal({
   }
 
   return (
-    <div className={styles.modalOverlay} onClick={onClose}>
-      <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.modalHeader}>
+    <div className={formStyles.modalOverlay} onClick={onClose}>
+      <div className={formStyles.modalCard} onClick={(e) => e.stopPropagation()}>
+        <div className={formStyles.modalHeader}>
           <div>
-            <h2 className={styles.modalTitle}>{title}</h2>
-            <p className={styles.modalText}>Completa la información administrativa del paciente.</p>
+            <h2 className={formStyles.modalTitle}>{title}</h2>
+            <p className={formStyles.modalText}>Completa la información administrativa del paciente.</p>
           </div>
 
           <button className={styles.btnGhost} type="button" onClick={onClose} disabled={loading}>
@@ -82,21 +83,22 @@ export default function PatientFormModal({
           </button>
         </div>
 
-        <form className={styles.formGrid} onSubmit={handleSubmit}>
-          <label className={styles.formFieldFull}>
+        <div className={formStyles.modalBody}>
+          <form className={formStyles.formGrid} onSubmit={handleSubmit}>
+          <label className={`${formStyles.field} ${formStyles.fieldFull}`}>
             Nombre *
             <input
-              className={styles.input}
+              className={formStyles.control}
               value={patient.name}
               onChange={(e) => setPatient({ ...patient, name: e.target.value })}
               required
             />
           </label>
 
-          <label>
+          <label className={formStyles.field}>
             Correo *
             <input
-              className={styles.input}
+              className={formStyles.control}
               type="email"
               value={patient.email}
               onChange={(e) => setPatient({ ...patient, email: e.target.value })}
@@ -104,19 +106,19 @@ export default function PatientFormModal({
             />
           </label>
 
-          <label>
+          <label className={formStyles.field}>
             Teléfono
             <input
-              className={styles.input}
+              className={formStyles.control}
               value={patient.phone ?? ""}
               onChange={(e) => setPatient({ ...patient, phone: e.target.value })}
             />
           </label>
 
-          <label>
+          <label className={formStyles.field}>
             Contraseña {isPasswordRequired ? "*" : "(opcional)"}
             <input
-              className={styles.input}
+              className={formStyles.control}
               type="password"
               value={patient.password ?? ""}
               onChange={(e) => setPatient({ ...patient, password: e.target.value })}
@@ -124,20 +126,20 @@ export default function PatientFormModal({
             />
           </label>
 
-          <label>
+          <label className={formStyles.field}>
             Fecha de nacimiento
             <input
-              className={styles.input}
+              className={formStyles.control}
               type="date"
               value={patient.profile.birth_date ?? ""}
               onChange={(e) => updateProfile("birth_date", e.target.value)}
             />
           </label>
 
-          <label>
+          <label className={formStyles.field}>
             Género
             <select
-              className={styles.input}
+              className={formStyles.control}
               value={patient.profile.gender ?? ""}
               onChange={(e) => updateProfile("gender", e.target.value)}
             >
@@ -148,7 +150,7 @@ export default function PatientFormModal({
             </select>
           </label>
 
-          <label className={styles.checkboxField}>
+          <label className={formStyles.checkboxField}>
             <input
               type="checkbox"
               checked={patient.status !== false}
@@ -157,36 +159,36 @@ export default function PatientFormModal({
             Paciente activo
           </label>
 
-          <label className={styles.formFieldFull}>
+          <label className={`${formStyles.field} ${formStyles.fieldFull}`}>
             Dirección
             <textarea
-              className={styles.input}
+              className={formStyles.control}
               value={patient.profile.address ?? ""}
               onChange={(e) => updateProfile("address", e.target.value)}
             />
           </label>
 
-          <label className={styles.formFieldFull}>
+          <label className={`${formStyles.field} ${formStyles.fieldFull}`}>
             Alergias
             <textarea
-              className={styles.input}
+              className={formStyles.control}
               value={patient.profile.allergies ?? ""}
               onChange={(e) => updateProfile("allergies", e.target.value)}
             />
           </label>
 
-          <label className={styles.formFieldFull}>
+          <label className={`${formStyles.field} ${formStyles.fieldFull}`}>
             Notas
             <textarea
-              className={styles.input}
+              className={formStyles.control}
               value={patient.profile.notes ?? ""}
               onChange={(e) => updateProfile("notes", e.target.value)}
             />
           </label>
 
-          {error && <div className={styles.formError}>{error}</div>}
+          {error && <div className={formStyles.error}>{error}</div>}
 
-          <div className={styles.formActionsBetween}>
+          <div className={formStyles.formActionsBetween}>
             <button type="button" className={styles.btnGhost} onClick={onClose} disabled={loading}>
               Cancelar
             </button>
@@ -194,7 +196,8 @@ export default function PatientFormModal({
               {loading ? loadingLabel : submitLabel}
             </button>
           </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );
