@@ -26,13 +26,7 @@ function emptyPatient(): Patient {
     password: "",
     phone: "",
     status: true,
-    profile: {
-      birth_date: "",
-      gender: "",
-      address: "",
-      allergies: "",
-      notes: "",
-    },
+    profile: { birth_date: "", gender: "", address: "", allergies: "", notes: "" },
   };
 }
 
@@ -66,13 +60,13 @@ export default function PatientsPage() {
     [isClinicContext, clinicId]
   );
 
-  function getErrorMessage(error: unknown, fallback: string) {
-    if (typeof error === "object" && error !== null) {
-      const maybeResponse = (error as { response?: { data?: { message?: string } } }).response;
+  function getErrorMessage(err: unknown, fallback: string) {
+    if (typeof err === "object" && err !== null) {
+      const maybeResponse = (err as { response?: { data?: { message?: string } } }).response;
       const message = maybeResponse?.data?.message;
       if (message) return message;
 
-      const directMessage = (error as { message?: string }).message;
+      const directMessage = (err as { message?: string }).message;
       if (directMessage) return directMessage;
     }
 
@@ -91,9 +85,9 @@ export default function PatientsPage() {
       setError("");
       const list = isClinicContext && clinicId ? await getSuperClinicPatients(clinicId) : await getAdminPatients();
       setPatients(Array.isArray(list) ? list : []);
-    } catch (error: unknown) {
-      console.error("Patients error:", error);
-      setError(getErrorMessage(error, "No se pudieron cargar los pacientes"));
+    } catch (err: unknown) {
+      console.error("Patients error:", err);
+      setError(getErrorMessage(err, "No se pudieron cargar los pacientes"));
     } finally {
       setLoading(false);
     }
@@ -150,8 +144,8 @@ export default function PatientsPage() {
         : await getAdminPatientById(patient.id);
       setSelectedPatient(detailed);
       setShowDetails(true);
-    } catch (error: unknown) {
-      alert(getErrorMessage(error, "No se pudo cargar el detalle del paciente"));
+    } catch (err: unknown) {
+      alert(getErrorMessage(err, "No se pudo cargar el detalle del paciente"));
     } finally {
       setModalLoading(false);
     }
@@ -167,8 +161,8 @@ export default function PatientsPage() {
         : await getAdminPatientById(patient.id);
       setSelectedPatient({ ...detailed, password: "" });
       setShowEdit(true);
-    } catch (error: unknown) {
-      alert(getErrorMessage(error, "No se pudo cargar el paciente"));
+    } catch (err: unknown) {
+      alert(getErrorMessage(err, "No se pudo cargar el paciente"));
     } finally {
       setModalLoading(false);
     }
@@ -176,9 +170,7 @@ export default function PatientsPage() {
 
   async function handleDelete(patient: Patient) {
     if (!patient.id) return;
-    const confirmed = window.confirm(
-      `¿Eliminar a ${patient.name || "este paciente"}? Esta acción no se puede deshacer.`
-    );
+    const confirmed = window.confirm(`¿Eliminar a ${patient.name || "este paciente"}? Esta acción no se puede deshacer.`);
 
     if (!confirmed) return;
 
@@ -189,116 +181,151 @@ export default function PatientsPage() {
         await deleteAdminPatient(patient.id);
       }
       await fetchPatients();
-    } catch (error: unknown) {
-      alert(getErrorMessage(error, "No se pudo eliminar el paciente"));
+    } catch (err: unknown) {
+      alert(getErrorMessage(err, "No se pudo eliminar el paciente"));
     }
   }
 
   return (
-    <div className={`${styles.page} ${isAdminContext ? adminStyles.adminPatientsRoot : ""}`.trim()}>
-      <div className={`${styles.wrap} ${isAdminContext ? adminStyles.adminPatientsWrap : ""}`.trim()}>
-        <div className={`${styles.header} ${isAdminContext ? adminStyles.adminPatientsHeader : ""}`.trim()}>
-          <div>
-            <h1 className={`${styles.h1} ${isAdminContext ? adminStyles.adminPatientsTitle : ""}`.trim()}>Pacientes</h1>
-            <p className={`${styles.sub} ${isAdminContext ? adminStyles.adminPatientsSub : ""}`.trim()}>{subtitle}</p>
-          </div>
-
-          <div className={styles.actions}>
-            {isClinicContext ? (
-              <button className={styles.btnGhost} onClick={() => navigate(`/clinics/${clinicId}`)}>
-                ← Volver a clínica
-              </button>
-            ) : (
-              <button className={styles.btnGhost} onClick={() => navigate("/admin")}>Ver clínica</button>
-            )}
-
-            <button className={styles.btnPrimary} onClick={() => setShowCreate(true)}>
-              + Crear paciente
-            </button>
-            {isClinicContext && (
-              <button className={styles.btnGhost} onClick={handleLogout} disabled={loading || modalLoading}>
-                Cerrar sesión
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div className={`${styles.panel} ${isAdminContext ? adminStyles.adminPatientsPanel : ""}`.trim()}>
-          <div className={styles.panelTop}>
-            <div className={styles.panelTitle}>Listado</div>
-            <div className={styles.count}>{loading ? "Cargando..." : `${patients.length} paciente(s)`}</div>
-          </div>
-
-          {loading && (
-            <div className={`${styles.skeletonRow} ${isAdminContext ? `${adminStyles.adminPatientsBody} ${adminStyles.adminPatientsSkeleton}` : ""}`.trim()}>
-              <div className={styles.skeleton} />
-              <div className={styles.skeleton} />
-              <div className={styles.skeleton} />
+    <>
+      {isAdminContext ? (
+        <div className={adminStyles.viewStack}>
+          <div className={adminStyles.hero}>
+            <div>
+              <h2 className={adminStyles.heroTitle}>Pacientes</h2>
+              <p className={adminStyles.heroSub}>{subtitle}</p>
             </div>
-          )}
+            <div className={adminStyles.actions}>
+              <button className={adminStyles.btnPrimary} onClick={() => setShowCreate(true)}>+ Crear paciente</button>
+            </div>
+          </div>
 
-          {!loading && error && (
-            <div className={`${styles.empty} ${isAdminContext ? adminStyles.adminPatientsBody : ""}`.trim()}>
-              <div className={styles.emptyBox}>
-                <p className={styles.emptyTitle}>No se pudo cargar</p>
-                <p className={styles.emptyText}>{error}</p>
+          <div className={adminStyles.contentCard}>
+            <div className={adminStyles.sectionHead}>
+              <div>
+                <h3 className={adminStyles.sectionTitle}>Listado de pacientes</h3>
+                <p className={adminStyles.sectionSub}>{loading ? "Cargando..." : `${patients.length} paciente(s)`}</p>
               </div>
             </div>
-          )}
 
-          {!loading && !error && patients.length === 0 && (
-            <div className={`${styles.empty} ${isAdminContext ? adminStyles.adminPatientsBody : ""}`.trim()}>
-              <div className={styles.emptyBox}>
-                <p className={styles.emptyTitle}>Aún no hay pacientes</p>
-                <p className={styles.emptyText}>Crea uno con el botón de arriba.</p>
+            <div className={adminStyles.adminPatientsBody}>
+              {loading && <div className={adminStyles.empty}><div className={adminStyles.emptyBox}><p className={adminStyles.emptyTitle}>Cargando pacientes...</p></div></div>}
+              {!loading && error && <div className={adminStyles.empty}><div className={adminStyles.emptyBox}><p className={adminStyles.emptyTitle}>No se pudo cargar</p><p className={adminStyles.emptyText}>{error}</p></div></div>}
+              {!loading && !error && patients.length === 0 && <div className={adminStyles.empty}><div className={adminStyles.emptyBox}><p className={adminStyles.emptyTitle}>Aún no hay pacientes</p><p className={adminStyles.emptyText}>Crea uno con el botón de arriba.</p></div></div>}
+
+              {!loading && !error && patients.length > 0 && (
+                <div className={adminStyles.listSurface}>
+                  <div className={adminStyles.tableWrap}>
+                    <table className={adminStyles.table}>
+                      <thead>
+                        <tr><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Estatus</th><th>Nacimiento</th><th>Género</th><th>Acciones</th></tr>
+                      </thead>
+                      <tbody>
+                        {patients.map((patient) => (
+                          <tr key={patient.id}>
+                            <td><p className={adminStyles.rowTitle}>{patient.name || "-"}</p></td>
+                            <td><p className={adminStyles.rowSub}>{patient.email || "-"}</p></td>
+                            <td><p className={adminStyles.rowSub}>{patient.phone || "-"}</p></td>
+                            <td><span className={`${adminStyles.pill} ${patient.status === false ? adminStyles.pillOff : adminStyles.pillOn}`}>{patient.status === false ? "Inactivo" : "Activo"}</span></td>
+                            <td><p className={adminStyles.rowSub}>{formatDate(patient.profile.birth_date)}</p></td>
+                            <td><p className={adminStyles.rowSub}>{patient.profile.gender || "-"}</p></td>
+                            <td>
+                              <div className={adminStyles.tableActions}>
+                                <button className={adminStyles.btnGhost} onClick={() => openDetails(patient)} disabled={modalLoading}>Ver</button>
+                                <button className={adminStyles.btnPrimary} onClick={() => openEdit(patient)} disabled={modalLoading}>Editar</button>
+                                <button className={adminStyles.btnDanger} onClick={() => handleDelete(patient)} disabled={modalLoading}>Eliminar</button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className={styles.page}>
+          <div className={styles.wrap}>
+            <div className={styles.header}>
+              <div>
+                <h1 className={styles.h1}>Pacientes</h1>
+                <p className={styles.sub}>{subtitle}</p>
+              </div>
+
+              <div className={styles.actions}>
+                <button className={styles.btnGhost} onClick={() => navigate(`/clinics/${clinicId}`)}>← Volver a clínica</button>
+                <button className={styles.btnPrimary} onClick={() => setShowCreate(true)}>+ Crear paciente</button>
+                <button className={styles.btnGhost} onClick={handleLogout} disabled={loading || modalLoading}>Cerrar sesión</button>
               </div>
             </div>
-          )}
 
-          {!loading && !error && patients.length > 0 && (
-            <div className={`${styles.tableWrap} ${isAdminContext ? adminStyles.adminPatientsBody : ""}`.trim()}>
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>Nombre</th>
-                    <th>Correo</th>
-                    <th>Teléfono</th>
-                    <th>Estatus</th>
-                    <th>Nacimiento</th>
-                    <th>Género</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {patients.map((patient) => (
-                    <tr key={patient.id}>
-                      <td>{patient.name || "-"}</td>
-                      <td>{patient.email || "-"}</td>
-                      <td>{patient.phone || "-"}</td>
-                      <td>{patient.status === false ? "Inactivo" : "Activo"}</td>
-                      <td>{formatDate(patient.profile.birth_date)}</td>
-                      <td>{patient.profile.gender || "-"}</td>
-                      <td>
-                        <div className={styles.tableActions}>
-                          <button className={styles.btnGhost} onClick={() => openDetails(patient)} disabled={modalLoading}>
-                            Ver
-                          </button>
-                          <button className={styles.btnPrimary} onClick={() => openEdit(patient)} disabled={modalLoading}>
-                            Editar
-                          </button>
-                          <button className={styles.btnDanger} onClick={() => handleDelete(patient)} disabled={modalLoading}>
-                            Eliminar
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className={styles.panel}>
+              <div className={styles.panelTop}>
+                <div className={styles.panelTitle}>Listado</div>
+                <div className={styles.count}>{loading ? "Cargando..." : `${patients.length} paciente(s)`}</div>
+              </div>
+
+              {loading && (
+                <div className={styles.skeletonRow}>
+                  <div className={styles.skeleton} />
+                  <div className={styles.skeleton} />
+                  <div className={styles.skeleton} />
+                </div>
+              )}
+
+              {!loading && error && (
+                <div className={styles.empty}>
+                  <div className={styles.emptyBox}>
+                    <p className={styles.emptyTitle}>No se pudo cargar</p>
+                    <p className={styles.emptyText}>{error}</p>
+                  </div>
+                </div>
+              )}
+
+              {!loading && !error && patients.length === 0 && (
+                <div className={styles.empty}>
+                  <div className={styles.emptyBox}>
+                    <p className={styles.emptyTitle}>Aún no hay pacientes</p>
+                    <p className={styles.emptyText}>Crea uno con el botón de arriba.</p>
+                  </div>
+                </div>
+              )}
+
+              {!loading && !error && patients.length > 0 && (
+                <div className={styles.tableWrap}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Estatus</th><th>Nacimiento</th><th>Género</th><th>Acciones</th></tr>
+                    </thead>
+                    <tbody>
+                      {patients.map((patient) => (
+                        <tr key={patient.id}>
+                          <td>{patient.name || "-"}</td>
+                          <td>{patient.email || "-"}</td>
+                          <td>{patient.phone || "-"}</td>
+                          <td>{patient.status === false ? "Inactivo" : "Activo"}</td>
+                          <td>{formatDate(patient.profile.birth_date)}</td>
+                          <td>{patient.profile.gender || "-"}</td>
+                          <td>
+                            <div className={styles.tableActions}>
+                              <button className={styles.btnGhost} onClick={() => openDetails(patient)} disabled={modalLoading}>Ver</button>
+                              <button className={styles.btnPrimary} onClick={() => openEdit(patient)} disabled={modalLoading}>Editar</button>
+                              <button className={styles.btnDanger} onClick={() => handleDelete(patient)} disabled={modalLoading}>Eliminar</button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
       {showCreate && (
         <PatientFormModal
@@ -338,6 +365,6 @@ export default function PatientsPage() {
           }}
         />
       )}
-    </div>
+    </>
   );
 }
