@@ -123,7 +123,6 @@ export default function AdminUsersPage() {
         </div>
         <div className={styles.actions}>
           <button className={styles.btnPrimary} onClick={openCreate}>+ Crear usuario</button>
-          <button className={styles.btnSoft} onClick={fetchUsers} disabled={loading}>Actualizar</button>
         </div>
       </div>
 
