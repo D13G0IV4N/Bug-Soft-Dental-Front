@@ -79,6 +79,20 @@ export async function getClinicUsers(clinicId: number | string) {
   return (Array.isArray(list) ? list : []).map(mapToClinicUser);
 }
 
+export async function createClinicUser(clinicId: number | string, payload: CreateUserPayload) {
+  const body = {
+    name: payload.name,
+    email: payload.email,
+    password: payload.password,
+    phone: payload.phone,
+    role: payload.role,
+    status: payload.status === false ? 0 : 1,
+  };
+
+  const { data } = await api.post(clinicUsersBase(clinicId), body);
+  return normalizeOne(data);
+}
+
 export async function updateClinicUser(
   clinicId: number | string,
   userId: number | string,

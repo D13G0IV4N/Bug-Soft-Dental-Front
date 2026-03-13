@@ -4,6 +4,7 @@ import styles from "./clinics.module.css";
 
 import { getSuperClinicById } from "../../api/clinics";
 import {
+  createClinicUser,
   deleteClinicUser,
   getClinicUsers,
   updateClinicUser,
@@ -21,6 +22,22 @@ type ClinicData = {
   status?: boolean;
   created_at?: string;
   updated_at?: string;
+};
+
+type ReceptionistForm = {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+  status: boolean;
+};
+
+const emptyReceptionistForm: ReceptionistForm = {
+  name: "",
+  email: "",
+  phone: "",
+  password: "",
+  status: true,
 };
 
 function toDate(dateString?: string) {
@@ -52,6 +69,12 @@ export default function ClinicDetailPage() {
     status: true,
     password: "",
   });
+
+  const [selectedReceptionist, setSelectedReceptionist] = useState<ClinicUser | null>(null);
+  const [showReceptionistModal, setShowReceptionistModal] = useState(false);
+  const [savingReceptionist, setSavingReceptionist] = useState(false);
+  const [receptionistForm, setReceptionistForm] =
+    useState<ReceptionistForm>(emptyReceptionistForm);
 
   function handleLogout() {
     localStorage.removeItem("authToken");
@@ -90,9 +113,7 @@ export default function ClinicDetailPage() {
     } catch (e: any) {
       console.error("Clinic users error:", e?.response?.data || e);
       setUsersError(
-        e?.response?.data?.message ||
-          e?.message ||
-          "No se pudieron cargar los usuarios de la clínica"
+        e?.response?.data?.message || e?.message || "No se pudieron cargar los usuarios"
       );
     } finally {
       setUsersLoading(false);
@@ -104,10 +125,7 @@ export default function ClinicDetailPage() {
     fetchUsers();
   }, [clinicId]);
 
-  const adminUser = useMemo(
-    () => users.find((user) => user.role === "admin"),
-    [users]
-  );
+  const adminUser = useMemo(() => users.find((user) => user.role === "admin"), [users]);
 
   const usersByRole = useMemo(() => {
     return users.reduce(
@@ -120,6 +138,11 @@ export default function ClinicDetailPage() {
     );
   }, [users]);
 
+  const receptionists = useMemo(
+    () => users.filter((user) => user.role === "receptionist"),
+    [users]
+  );
+
   function openUserEditor(user: ClinicUser) {
     setSelectedUser(user);
     setUserForm({
@@ -131,6 +154,25 @@ export default function ClinicDetailPage() {
       password: "",
     });
     setShowUserModal(true);
+  }
+
+  function openReceptionistModal(user?: ClinicUser) {
+    if (!user) {
+      setSelectedReceptionist(null);
+      setReceptionistForm(emptyReceptionistForm);
+      setShowReceptionistModal(true);
+      return;
+    }
+
+    setSelectedReceptionist(user);
+    setReceptionistForm({
+      name: user.name ?? "",
+      email: user.email ?? "",
+      phone: user.phone ?? "",
+      password: "",
+      status: user.status !== false,
+    });
+    setShowReceptionistModal(true);
   }
 
   async function handleUpdateUser(e: React.FormEvent) {
@@ -153,6 +195,42 @@ export default function ClinicDetailPage() {
       alert(e?.response?.data?.message || e?.message || "No se pudo actualizar el usuario");
     } finally {
       setSavingUser(false);
+    }
+  }
+
+  async function handleSaveReceptionist(e: React.FormEvent) {
+    e.preventDefault();
+    if (!clinicId) return;
+
+    try {
+      setSavingReceptionist(true);
+
+      if (selectedReceptionist?.id) {
+        await updateClinicUser(clinicId, selectedReceptionist.id, {
+          name: receptionistForm.name,
+          email: receptionistForm.email,
+          phone: receptionistForm.phone,
+          role: "receptionist",
+          status: receptionistForm.status,
+          password: receptionistForm.password.trim() ? receptionistForm.password : undefined,
+        });
+      } else {
+        await createClinicUser(clinicId, {
+          name: receptionistForm.name,
+          email: receptionistForm.email,
+          phone: receptionistForm.phone,
+          password: receptionistForm.password,
+          role: "receptionist",
+          status: receptionistForm.status,
+        });
+      }
+
+      setShowReceptionistModal(false);
+      await fetchUsers();
+    } catch (e: any) {
+      alert(e?.response?.data?.message || e?.message || "No se pudo guardar la recepcionista");
+    } finally {
+      setSavingReceptionist(false);
     }
   }
 
@@ -184,41 +262,173 @@ export default function ClinicDetailPage() {
           </div>
 
           <div className={styles.actions}>
-            <button className={styles.btnGhost} onClick={() => navigate("/clinics")}>← Volver</button>
-            
-            <button className={styles.btnGhost} onClick={() => navigate(`/clinics/${clinicId}/dentists`)}>Dentistas</button>
-
-            <button className={styles.btnGhost} onClick={() => navigate(`/clinics/${clinicId}/patients`)}>
+            <button className={styles.btnGhost} onClick={() => navigate("/clinics")}>
+              ← Volver
+            </button>
+            <button
+              className={styles.btnGhost}
+              onClick={() => navigate(`/clinics/${clinicId}/dentists`)}
+            >
+              Dentistas
+            </button>
+            <button
+              className={styles.btnGhost}
+              onClick={() => navigate(`/clinics/${clinicId}/patients`)}
+            >
               Pacientes
             </button>
-            <button className={styles.btnGhost} onClick={handleLogout}>Cerrar sesión</button>
+            <button className={styles.btnGhost} onClick={handleLogout}>
+              Cerrar sesión
+            </button>
           </div>
         </div>
 
         {loading ? (
-          <div className={styles.panel}><div className={styles.skeletonRow}><div className={styles.skeleton} /></div></div>
+          <div className={styles.panel}>
+            <div className={styles.skeletonRow}>
+              <div className={styles.skeleton} />
+            </div>
+          </div>
         ) : error ? (
           <div className={styles.panel}>
-            <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Error</p><p className={styles.emptyText}>{error}</p></div></div>
+            <div className={styles.empty}>
+              <div className={styles.emptyBox}>
+                <p className={styles.emptyTitle}>Error</p>
+                <p className={styles.emptyText}>{error}</p>
+              </div>
+            </div>
           </div>
         ) : (
           <>
             <div className={styles.statsGrid}>
-              <article className={styles.statCard}><p>Estado de clínica</p><strong>{clinic?.status === false ? "Inactiva" : "Activa"}</strong></article>
-              <article className={styles.statCard}><p>Total usuarios</p><strong>{usersLoading ? "-" : users.length}</strong></article>
-              <article className={styles.statCard}><p>Administrador</p><strong>{adminUser?.name || "No identificado"}</strong></article>
+              <article className={styles.statCard}>
+                <p>Total usuarios</p>
+                <strong>{usersLoading ? "-" : users.length}</strong>
+              </article>
+              <article className={styles.statCard}>
+                <p>Administrador</p>
+                <strong>{adminUser?.name || "No identificado"}</strong>
+              </article>
+              <article className={styles.statCard}>
+                <p>Recepcionistas</p>
+                <strong>{usersLoading ? "-" : receptionists.length}</strong>
+              </article>
             </div>
 
             <section className={styles.panel}>
-              <div className={styles.panelTop}><div className={styles.panelTitle}>Información de clínica</div></div>
-              <div className={styles.detailGrid}>
-                <div className={styles.detailItem}><span>Nombre</span><strong>{clinicName}</strong></div>
-                <div className={styles.detailItem}><span>Correo</span><strong>{clinic?.email || "Sin correo"}</strong></div>
-                <div className={styles.detailItem}><span>Teléfono</span><strong>{clinic?.phone || "Sin teléfono"}</strong></div>
-                <div className={styles.detailItem}><span>Dirección</span><strong>{clinic?.address || clinic?.direccion || "Sin dirección"}</strong></div>
-                <div className={styles.detailItem}><span>Creación</span><strong>{toDate(clinic?.created_at)}</strong></div>
-                <div className={styles.detailItem}><span>Última actualización</span><strong>{toDate(clinic?.updated_at)}</strong></div>
+              <div className={styles.panelTop}>
+                <div className={styles.panelTitle}>Información de clínica</div>
               </div>
+              <div className={styles.detailGrid}>
+                <div className={styles.detailItem}>
+                  <span>Nombre</span>
+                  <strong>{clinicName}</strong>
+                </div>
+                <div className={styles.detailItem}>
+                  <span>Correo</span>
+                  <strong>{clinic?.email || "Sin correo"}</strong>
+                </div>
+                <div className={styles.detailItem}>
+                  <span>Teléfono</span>
+                  <strong>{clinic?.phone || "Sin teléfono"}</strong>
+                </div>
+                <div className={styles.detailItem}>
+                  <span>Dirección</span>
+                  <strong>{clinic?.address || clinic?.direccion || "Sin dirección"}</strong>
+                </div>
+                <div className={styles.detailItem}>
+                  <span>Creación</span>
+                  <strong>{toDate(clinic?.created_at)}</strong>
+                </div>
+                <div className={styles.detailItem}>
+                  <span>Última actualización</span>
+                  <strong>{toDate(clinic?.updated_at)}</strong>
+                </div>
+              </div>
+            </section>
+
+            <section className={styles.panel}>
+              <div className={styles.panelTop}>
+                <div>
+                  <div className={styles.panelTitle}>Recepcionistas de clínica</div>
+                  <div className={styles.count}>
+                    {usersLoading ? "Cargando..." : `${receptionists.length} registradas`}
+                  </div>
+                </div>
+                <button className={styles.btnPrimary} onClick={() => openReceptionistModal()}>
+                  + Crear recepcionista
+                </button>
+              </div>
+
+              {usersLoading && (
+                <div className={styles.skeletonRow}>
+                  <div className={styles.skeleton} />
+                </div>
+              )}
+
+              {!usersLoading && usersError && (
+                <div className={styles.empty}>
+                  <div className={styles.emptyBox}>
+                    <p className={styles.emptyTitle}>No se pudieron cargar recepcionistas</p>
+                    <p className={styles.emptyText}>{usersError}</p>
+                  </div>
+                </div>
+              )}
+
+              {!usersLoading && !usersError && receptionists.length === 0 && (
+                <div className={styles.empty}>
+                  <div className={styles.emptyBox}>
+                    <p className={styles.emptyTitle}>Sin recepcionistas</p>
+                    <p className={styles.emptyText}>
+                      Esta clínica no tiene recepcionistas registradas aún.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {!usersLoading && !usersError && receptionists.length > 0 && (
+                <div className={styles.tableWrap}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Teléfono</th>
+                        <th>Estatus</th>
+                        <th>Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {receptionists.map((user) => (
+                        <tr key={user.id}>
+                          <td>
+                            <strong>{user.name || "Sin nombre"}</strong>
+                          </td>
+                          <td>{user.email || "-"}</td>
+                          <td>{user.phone || "-"}</td>
+                          <td>{user.status === false ? "Inactivo" : "Activo"}</td>
+                          <td>
+                            <div className={styles.tableActions}>
+                              <button
+                                className={styles.btnGhost}
+                                onClick={() => openReceptionistModal(user)}
+                              >
+                                Editar
+                              </button>
+                              <button
+                                className={styles.btnDanger}
+                                onClick={() => handleDeleteUser(user)}
+                              >
+                                Eliminar
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </section>
 
             <section className={styles.panel}>
@@ -239,11 +449,23 @@ export default function ClinicDetailPage() {
               )}
 
               {!usersLoading && usersError && (
-                <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>No se pudieron cargar los usuarios</p><p className={styles.emptyText}>{usersError}</p></div></div>
+                <div className={styles.empty}>
+                  <div className={styles.emptyBox}>
+                    <p className={styles.emptyTitle}>No se pudieron cargar los usuarios</p>
+                    <p className={styles.emptyText}>{usersError}</p>
+                  </div>
+                </div>
               )}
 
               {!usersLoading && !usersError && users.length === 0 && (
-                <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Sin usuarios</p><p className={styles.emptyText}>Esta clínica todavía no tiene usuarios registrados.</p></div></div>
+                <div className={styles.empty}>
+                  <div className={styles.emptyBox}>
+                    <p className={styles.emptyTitle}>Sin usuarios</p>
+                    <p className={styles.emptyText}>
+                      Esta clínica todavía no tiene usuarios registrados.
+                    </p>
+                  </div>
+                </div>
               )}
 
               {!usersLoading && !usersError && users.length > 0 && (
@@ -265,7 +487,9 @@ export default function ClinicDetailPage() {
                         <tr key={user.id}>
                           <td>
                             <strong>{user.name || "Sin nombre"}</strong>
-                            {user.role === "admin" && <span className={styles.adminBadge}>Administrador</span>}
+                            {user.role === "admin" && (
+                              <span className={styles.adminBadge}>Administrador</span>
+                            )}
                           </td>
                           <td>{user.email || "-"}</td>
                           <td>{user.phone || "-"}</td>
@@ -273,13 +497,25 @@ export default function ClinicDetailPage() {
                           <td>{user.status === false ? "Inactivo" : "Activo"}</td>
                           <td>
                             {user.role === "dentist"
-                              ? `${user.dentistProfile?.specialty || "Sin especialidad"} · ${user.dentistProfile?.licenseNumber || "Sin licencia"}`
+                              ? `${user.dentistProfile?.specialty || "Sin especialidad"} · ${
+                                  user.dentistProfile?.licenseNumber || "Sin licencia"
+                                }`
                               : "-"}
                           </td>
                           <td>
                             <div className={styles.tableActions}>
-                              <button className={styles.btnGhost} onClick={() => openUserEditor(user)}>Editar</button>
-                              <button className={styles.btnDanger} onClick={() => handleDeleteUser(user)}>Eliminar</button>
+                              <button
+                                className={styles.btnGhost}
+                                onClick={() => openUserEditor(user)}
+                              >
+                                Editar
+                              </button>
+                              <button
+                                className={styles.btnDanger}
+                                onClick={() => handleDeleteUser(user)}
+                              >
+                                Eliminar
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -300,32 +536,142 @@ export default function ClinicDetailPage() {
             <form onSubmit={handleUpdateUser} className={styles.formGrid}>
               <label>
                 Nombre
-                <input value={userForm.name} onChange={(e) => setUserForm({ ...userForm, name: e.target.value })} required />
+                <input
+                  value={userForm.name}
+                  onChange={(e) => setUserForm({ ...userForm, name: e.target.value })}
+                  required
+                />
               </label>
               <label>
                 Correo
-                <input type="email" value={userForm.email} onChange={(e) => setUserForm({ ...userForm, email: e.target.value })} required />
+                <input
+                  type="email"
+                  value={userForm.email}
+                  onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
+                  required
+                />
               </label>
               <label>
                 Teléfono
-                <input value={userForm.phone} onChange={(e) => setUserForm({ ...userForm, phone: e.target.value })} />
+                <input
+                  value={userForm.phone}
+                  onChange={(e) => setUserForm({ ...userForm, phone: e.target.value })}
+                />
               </label>
               <label>
                 Rol
-                <input value={userForm.role} onChange={(e) => setUserForm({ ...userForm, role: e.target.value })} required />
+                <input
+                  value={userForm.role}
+                  onChange={(e) => setUserForm({ ...userForm, role: e.target.value })}
+                  required
+                />
               </label>
               <label>
                 Contraseña (opcional)
-                <input type="password" value={userForm.password} onChange={(e) => setUserForm({ ...userForm, password: e.target.value })} />
+                <input
+                  type="password"
+                  value={userForm.password}
+                  onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
+                />
               </label>
               <label className={styles.checkboxField}>
-                <input type="checkbox" checked={userForm.status} onChange={(e) => setUserForm({ ...userForm, status: e.target.checked })} />
+                <input
+                  type="checkbox"
+                  checked={userForm.status}
+                  onChange={(e) => setUserForm({ ...userForm, status: e.target.checked })}
+                />
                 Activo
               </label>
 
               <div className={styles.modalActions}>
-                <button type="button" className={styles.btnGhost} onClick={() => setShowUserModal(false)} disabled={savingUser}>Cancelar</button>
-                <button type="submit" className={styles.btnPrimary} disabled={savingUser}>{savingUser ? "Guardando..." : "Guardar"}</button>
+                <button
+                  type="button"
+                  className={styles.btnGhost}
+                  onClick={() => setShowUserModal(false)}
+                  disabled={savingUser}
+                >
+                  Cancelar
+                </button>
+                <button type="submit" className={styles.btnPrimary} disabled={savingUser}>
+                  {savingUser ? "Guardando..." : "Guardar"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showReceptionistModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowReceptionistModal(false)}>
+          <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ marginTop: 0 }}>
+              {selectedReceptionist ? "Editar recepcionista" : "Crear recepcionista"}
+            </h3>
+            <form onSubmit={handleSaveReceptionist} className={styles.formGrid}>
+              <label>
+                Nombre
+                <input
+                  value={receptionistForm.name}
+                  onChange={(e) =>
+                    setReceptionistForm({ ...receptionistForm, name: e.target.value })
+                  }
+                  required
+                />
+              </label>
+              <label>
+                Correo
+                <input
+                  type="email"
+                  value={receptionistForm.email}
+                  onChange={(e) =>
+                    setReceptionistForm({ ...receptionistForm, email: e.target.value })
+                  }
+                  required
+                />
+              </label>
+              <label>
+                Teléfono
+                <input
+                  value={receptionistForm.phone}
+                  onChange={(e) =>
+                    setReceptionistForm({ ...receptionistForm, phone: e.target.value })
+                  }
+                />
+              </label>
+              <label>
+                Contraseña {selectedReceptionist ? "(opcional)" : ""}
+                <input
+                  type="password"
+                  value={receptionistForm.password}
+                  onChange={(e) =>
+                    setReceptionistForm({ ...receptionistForm, password: e.target.value })
+                  }
+                  required={!selectedReceptionist}
+                />
+              </label>
+              <label className={styles.checkboxField}>
+                <input
+                  type="checkbox"
+                  checked={receptionistForm.status}
+                  onChange={(e) =>
+                    setReceptionistForm({ ...receptionistForm, status: e.target.checked })
+                  }
+                />
+                Activo
+              </label>
+
+              <div className={styles.modalActions}>
+                <button
+                  type="button"
+                  className={styles.btnGhost}
+                  onClick={() => setShowReceptionistModal(false)}
+                  disabled={savingReceptionist}
+                >
+                  Cancelar
+                </button>
+                <button type="submit" className={styles.btnPrimary} disabled={savingReceptionist}>
+                  {savingReceptionist ? "Guardando..." : "Guardar"}
+                </button>
               </div>
             </form>
           </div>
