@@ -88,9 +88,7 @@ export default function ClinicsPage() {
               + Crear clínica
             </button>
 
-            <button className={styles.btnGhost} onClick={fetchClinics} disabled={loading}>
-              {loading ? "Actualizando..." : "Actualizar"}
-            </button>
+            
 
             <button className={styles.btnGhost} onClick={handleLogout} disabled={loading}>
               Cerrar sesión

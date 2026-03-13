@@ -120,9 +120,10 @@ export default function AdminUsersPage() {
         <div>
           <h2 className={styles.panelTitle}>Usuarios de mi clínica</h2>
           <p className={styles.panelSub}>Administra roles internos y estado de acceso.</p>
-        </div>
+        </div>  
         <div className={styles.actions}>
-          <button className={styles.btnPrimary} onClick={openCreate}>+ Crear usuario</button>
+          <button className={styles.btnPrimary} onClick={openCreate}>+ Crear Dentista</button>
+          <button className={styles.btnSoft} onClick={fetchUsers} disabled={loading}>Actualizar</button>
         </div>
       </div>
 

@@ -213,9 +213,7 @@ export default function PatientsPage() {
             <button className={styles.btnPrimary} onClick={() => setShowCreate(true)}>
               + Crear paciente
             </button>
-            <button className={styles.btnGhost} onClick={fetchPatients} disabled={loading}>
-              {loading ? "Actualizando..." : "Actualizar"}
-            </button>
+           
             <button className={styles.btnGhost} onClick={handleLogout} disabled={loading || modalLoading}>
               Cerrar sesión
             </button>

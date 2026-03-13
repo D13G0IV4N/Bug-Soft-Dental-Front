@@ -79,9 +79,7 @@ export default function DentistsPage() {
               + Crear dentista
             </button>
 
-            <button className={styles.btnGhost} onClick={fetchDentists}>
-              Actualizar
-            </button>
+            
             <button className={styles.btnGhost} onClick={handleLogout} disabled={loading}>
               Cerrar sesión
             </button>
