@@ -8,6 +8,7 @@ import {
   type AdminClinicUser,
 } from "../../api/admin";
 import styles from "./admin.module.css";
+import formStyles from "../../styles/formSystem.module.css";
 
 type UserFormState = {
   name: string;
@@ -169,33 +170,35 @@ export default function AdminUsersPage() {
       )}
 
       {showModal && (
-        <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>
-          <div className={styles.modalCard} onClick={(event) => event.stopPropagation()}>
-            <div className={styles.modalHead}>
-              <h3 className={styles.modalTitle}>{editing ? "Editar usuario" : "Crear usuario"}</h3>
-              <p className={styles.modalText}>Completa la información para {editing ? "actualizar" : "registrar"} el usuario.</p>
+        <div className={formStyles.modalOverlay} onClick={() => setShowModal(false)}>
+          <div className={formStyles.modalCard} onClick={(event) => event.stopPropagation()}>
+            <div className={formStyles.modalHeader}>
+              <h3 className={formStyles.modalTitle}>{editing ? "Editar usuario" : "Crear usuario"}</h3>
+              <p className={formStyles.modalText}>Completa la información para {editing ? "actualizar" : "registrar"} el usuario.</p>
             </div>
 
-            <form className={styles.formGrid} onSubmit={onSubmit}>
-              <label className={styles.field}>Nombre<input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></label>
-              <label className={styles.field}>Correo<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label>
-              <label className={styles.field}>Teléfono<input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></label>
-              <label className={styles.field}>Rol
-                <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
+            <div className={formStyles.modalBody}>
+            <form className={formStyles.formGrid} onSubmit={onSubmit}>
+              <label className={formStyles.field}>Nombre<input className={formStyles.control} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></label>
+              <label className={formStyles.field}>Correo<input className={formStyles.control} type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label>
+              <label className={formStyles.field}>Teléfono<input className={formStyles.control} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></label>
+              <label className={formStyles.field}>Rol
+                <select className={formStyles.control} value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
                   <option value="dentist">Dentista</option>
                   <option value="receptionist">Recepcionista</option>
                   <option value="client">Paciente/Cliente</option>
                 </select>
               </label>
-              <label className={styles.field}>Contraseña {editing ? "(opcional)" : ""}
-                <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required={!editing} />
+              <label className={formStyles.field}>Contraseña {editing ? "(opcional)" : ""}
+                <input className={formStyles.control} type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required={!editing} />
               </label>
-              <label className={styles.checkboxField}><input type="checkbox" checked={form.status} onChange={(e) => setForm({ ...form, status: e.target.checked })} /> Activo</label>
-              <div className={styles.formActions}>
+              <label className={formStyles.checkboxField}><input type="checkbox" checked={form.status} onChange={(e) => setForm({ ...form, status: e.target.checked })} /> Activo</label>
+              <div className={formStyles.formActions}>
                 <button type="button" className={styles.btnGhost} onClick={() => setShowModal(false)} disabled={saving}>Cancelar</button>
                 <button type="submit" className={styles.btnPrimary} disabled={saving}>{saving ? "Guardando..." : "Guardar"}</button>
               </div>
             </form>
+            </div>
           </div>
         </div>
       )}

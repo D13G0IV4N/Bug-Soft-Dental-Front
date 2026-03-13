@@ -8,6 +8,7 @@ import {
   type AdminClinicUser,
 } from "../../api/admin";
 import styles from "./admin.module.css";
+import formStyles from "../../styles/formSystem.module.css";
 
 type ReceptionistForm = {
   name: string;
@@ -141,20 +142,22 @@ export default function AdminReceptionistsPage() {
       )}
 
       {showModal && (
-        <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>
-          <div className={styles.modalCard} onClick={(event) => event.stopPropagation()}>
-            <div className={styles.modalHead}>
-              <h3 className={styles.modalTitle}>{editing ? "Editar recepcionista" : "Crear recepcionista"}</h3>
-              <p className={styles.modalText}>Completa los datos para mantener el equipo actualizado.</p>
+        <div className={formStyles.modalOverlay} onClick={() => setShowModal(false)}>
+          <div className={formStyles.modalCard} onClick={(event) => event.stopPropagation()}>
+            <div className={formStyles.modalHeader}>
+              <h3 className={formStyles.modalTitle}>{editing ? "Editar recepcionista" : "Crear recepcionista"}</h3>
+              <p className={formStyles.modalText}>Completa los datos para mantener el equipo actualizado.</p>
             </div>
-            <form className={styles.formGrid} onSubmit={onSubmit}>
-              <label className={styles.field}>Nombre<input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></label>
-              <label className={styles.field}>Correo<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label>
-              <label className={styles.field}>Teléfono<input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></label>
-              <label className={styles.field}>Contraseña {editing ? "(opcional)" : ""}<input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required={!editing} /></label>
-              <label className={styles.checkboxField}><input type="checkbox" checked={form.status} onChange={(e) => setForm({ ...form, status: e.target.checked })} /> Activo</label>
-              <div className={styles.formActions}><button type="button" className={styles.btnGhost} onClick={() => setShowModal(false)}>Cancelar</button><button type="submit" className={styles.btnPrimary} disabled={saving}>{saving ? "Guardando..." : "Guardar"}</button></div>
+            <div className={formStyles.modalBody}>
+            <form className={formStyles.formGrid} onSubmit={onSubmit}>
+              <label className={formStyles.field}>Nombre<input className={formStyles.control} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></label>
+              <label className={formStyles.field}>Correo<input className={formStyles.control} type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label>
+              <label className={formStyles.field}>Teléfono<input className={formStyles.control} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></label>
+              <label className={formStyles.field}>Contraseña {editing ? "(opcional)" : ""}<input className={formStyles.control} type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required={!editing} /></label>
+              <label className={formStyles.checkboxField}><input type="checkbox" checked={form.status} onChange={(e) => setForm({ ...form, status: e.target.checked })} /> Activo</label>
+              <div className={formStyles.formActions}><button type="button" className={styles.btnGhost} onClick={() => setShowModal(false)}>Cancelar</button><button type="submit" className={styles.btnPrimary} disabled={saving}>{saving ? "Guardando..." : "Guardar"}</button></div>
             </form>
+            </div>
           </div>
         </div>
       )}

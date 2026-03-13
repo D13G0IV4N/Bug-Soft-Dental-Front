@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import styles from "./clinics.module.css";
+import formStyles from "../../styles/formSystem.module.css";
 
 import { getSuperClinicById } from "../../api/clinics";
 import {
@@ -530,51 +531,57 @@ export default function ClinicDetailPage() {
       </div>
 
       {showUserModal && selectedUser && (
-        <div className={styles.modalOverlay} onClick={() => setShowUserModal(false)}>
-          <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ marginTop: 0 }}>Editar usuario</h3>
-            <form onSubmit={handleUpdateUser} className={styles.formGrid}>
-              <label>
+        <div className={formStyles.modalOverlay} onClick={() => setShowUserModal(false)}>
+          <div className={formStyles.modalCard} onClick={(e) => e.stopPropagation()}>
+            <div className={formStyles.modalHeader}><h3 className={formStyles.modalTitle}>Editar usuario</h3></div>
+            <div className={formStyles.modalBody}>
+            <form onSubmit={handleUpdateUser} className={formStyles.formGrid}>
+              <label className={formStyles.field}>
                 Nombre
                 <input
+                  className={formStyles.control}
                   value={userForm.name}
                   onChange={(e) => setUserForm({ ...userForm, name: e.target.value })}
                   required
                 />
               </label>
-              <label>
+              <label className={formStyles.field}>
                 Correo
                 <input
+                  className={formStyles.control}
                   type="email"
                   value={userForm.email}
                   onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
                   required
                 />
               </label>
-              <label>
+              <label className={formStyles.field}>
                 Teléfono
                 <input
+                  className={formStyles.control}
                   value={userForm.phone}
                   onChange={(e) => setUserForm({ ...userForm, phone: e.target.value })}
                 />
               </label>
-              <label>
+              <label className={formStyles.field}>
                 Rol
                 <input
+                  className={formStyles.control}
                   value={userForm.role}
                   onChange={(e) => setUserForm({ ...userForm, role: e.target.value })}
                   required
                 />
               </label>
-              <label>
+              <label className={formStyles.field}>
                 Contraseña (opcional)
                 <input
+                  className={formStyles.control}
                   type="password"
                   value={userForm.password}
                   onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
                 />
               </label>
-              <label className={styles.checkboxField}>
+              <label className={formStyles.checkboxField}>
                 <input
                   type="checkbox"
                   checked={userForm.status}
@@ -583,7 +590,7 @@ export default function ClinicDetailPage() {
                 Activo
               </label>
 
-              <div className={styles.modalActions}>
+              <div className={formStyles.formActions}>
                 <button
                   type="button"
                   className={styles.btnGhost}
@@ -597,20 +604,21 @@ export default function ClinicDetailPage() {
                 </button>
               </div>
             </form>
+            </div>
           </div>
         </div>
       )}
 
       {showReceptionistModal && (
-        <div className={styles.modalOverlay} onClick={() => setShowReceptionistModal(false)}>
-          <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ marginTop: 0 }}>
-              {selectedReceptionist ? "Editar recepcionista" : "Crear recepcionista"}
-            </h3>
-            <form onSubmit={handleSaveReceptionist} className={styles.formGrid}>
-              <label>
+        <div className={formStyles.modalOverlay} onClick={() => setShowReceptionistModal(false)}>
+          <div className={formStyles.modalCard} onClick={(e) => e.stopPropagation()}>
+            <div className={formStyles.modalHeader}><h3 className={formStyles.modalTitle}>{selectedReceptionist ? "Editar recepcionista" : "Crear recepcionista"}</h3></div>
+            <div className={formStyles.modalBody}>
+            <form onSubmit={handleSaveReceptionist} className={formStyles.formGrid}>
+              <label className={formStyles.field}>
                 Nombre
                 <input
+                  className={formStyles.control}
                   value={receptionistForm.name}
                   onChange={(e) =>
                     setReceptionistForm({ ...receptionistForm, name: e.target.value })
@@ -618,9 +626,10 @@ export default function ClinicDetailPage() {
                   required
                 />
               </label>
-              <label>
+              <label className={formStyles.field}>
                 Correo
                 <input
+                  className={formStyles.control}
                   type="email"
                   value={receptionistForm.email}
                   onChange={(e) =>
@@ -629,18 +638,20 @@ export default function ClinicDetailPage() {
                   required
                 />
               </label>
-              <label>
+              <label className={formStyles.field}>
                 Teléfono
                 <input
+                  className={formStyles.control}
                   value={receptionistForm.phone}
                   onChange={(e) =>
                     setReceptionistForm({ ...receptionistForm, phone: e.target.value })
                   }
                 />
               </label>
-              <label>
+              <label className={formStyles.field}>
                 Contraseña {selectedReceptionist ? "(opcional)" : ""}
                 <input
+                  className={formStyles.control}
                   type="password"
                   value={receptionistForm.password}
                   onChange={(e) =>
@@ -649,7 +660,7 @@ export default function ClinicDetailPage() {
                   required={!selectedReceptionist}
                 />
               </label>
-              <label className={styles.checkboxField}>
+              <label className={formStyles.checkboxField}>
                 <input
                   type="checkbox"
                   checked={receptionistForm.status}
@@ -660,7 +671,7 @@ export default function ClinicDetailPage() {
                 Activo
               </label>
 
-              <div className={styles.modalActions}>
+              <div className={formStyles.formActions}>
                 <button
                   type="button"
                   className={styles.btnGhost}
@@ -674,6 +685,7 @@ export default function ClinicDetailPage() {
                 </button>
               </div>
             </form>
+            </div>
           </div>
         </div>
       )}

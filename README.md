@@ -71,3 +71,15 @@ export default defineConfig([
   },
 ])
 ```
+
+## Default form design system
+
+All admin and super-admin forms should use `src/styles/formSystem.module.css` as the default design language for:
+- modal overlays/cards
+- field labels and inputs
+- checkboxes
+- form spacing/grid rhythm
+- action footer alignment
+- inline form error messaging
+
+Use this shared module for new create/edit forms unless a feature explicitly requires a different style.

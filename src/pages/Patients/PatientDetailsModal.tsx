@@ -1,4 +1,5 @@
 import styles from "../Dentists/dentists.module.css";
+import formStyles from "../../styles/formSystem.module.css";
 import type { Patient } from "../../api/patients";
 
 interface Props {
@@ -15,55 +16,27 @@ function formatDate(date?: string | null) {
 
 export default function PatientDetailsModal({ patient, onClose }: Props) {
   return (
-    <div className={styles.modalOverlay} onClick={onClose}>
-      <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.modalHeader}>
+    <div className={formStyles.modalOverlay} onClick={onClose}>
+      <div className={formStyles.modalCard} onClick={(e) => e.stopPropagation()}>
+        <div className={formStyles.modalHeader}>
           <div>
-            <h2 className={styles.modalTitle}>{patient.name || "Paciente"}</h2>
-            <p className={styles.modalText}>Detalle administrativo del paciente.</p>
+            <h2 className={formStyles.modalTitle}>{patient.name || "Paciente"}</h2>
+            <p className={formStyles.modalText}>Detalle administrativo del paciente.</p>
           </div>
-          <button className={styles.btnGhost} type="button" onClick={onClose}>
-            Cerrar
-          </button>
+          <button className={styles.btnGhost} type="button" onClick={onClose}>Cerrar</button>
         </div>
 
-        <div className={styles.formGrid}>
-          <label>
-            Correo
-            <input className={styles.input} value={patient.email || "-"} readOnly />
-          </label>
-          <label>
-            Teléfono
-            <input className={styles.input} value={patient.phone || "-"} readOnly />
-          </label>
-          <label>
-            Estado
-            <input
-              className={styles.input}
-              value={patient.status === false ? "Inactivo" : "Activo"}
-              readOnly
-            />
-          </label>
-          <label>
-            Fecha de nacimiento
-            <input className={styles.input} value={formatDate(patient.profile.birth_date)} readOnly />
-          </label>
-          <label>
-            Género
-            <input className={styles.input} value={patient.profile.gender || "-"} readOnly />
-          </label>
-          <label className={styles.formFieldFull}>
-            Dirección
-            <textarea className={styles.input} value={patient.profile.address || "-"} readOnly />
-          </label>
-          <label className={styles.formFieldFull}>
-            Alergias
-            <textarea className={styles.input} value={patient.profile.allergies || "-"} readOnly />
-          </label>
-          <label className={styles.formFieldFull}>
-            Notas
-            <textarea className={styles.input} value={patient.profile.notes || "-"} readOnly />
-          </label>
+        <div className={formStyles.modalBody}>
+          <div className={formStyles.formGrid}>
+            <label className={formStyles.field}>Correo<input className={formStyles.control} value={patient.email || "-"} readOnly /></label>
+            <label className={formStyles.field}>Teléfono<input className={formStyles.control} value={patient.phone || "-"} readOnly /></label>
+            <label className={formStyles.field}>Estado<input className={formStyles.control} value={patient.status === false ? "Inactivo" : "Activo"} readOnly /></label>
+            <label className={formStyles.field}>Fecha de nacimiento<input className={formStyles.control} value={formatDate(patient.profile.birth_date)} readOnly /></label>
+            <label className={formStyles.field}>Género<input className={formStyles.control} value={patient.profile.gender || "-"} readOnly /></label>
+            <label className={`${formStyles.field} ${formStyles.fieldFull}`}>Dirección<textarea className={formStyles.control} value={patient.profile.address || "-"} readOnly /></label>
+            <label className={`${formStyles.field} ${formStyles.fieldFull}`}>Alergias<textarea className={formStyles.control} value={patient.profile.allergies || "-"} readOnly /></label>
+            <label className={`${formStyles.field} ${formStyles.fieldFull}`}>Notas<textarea className={formStyles.control} value={patient.profile.notes || "-"} readOnly /></label>
+          </div>
         </div>
       </div>
     </div>
