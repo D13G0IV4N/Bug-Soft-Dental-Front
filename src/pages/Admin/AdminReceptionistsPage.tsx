@@ -98,52 +98,56 @@ export default function AdminReceptionistsPage() {
 
   return (
     <>
-      <div className={styles.panelTop}>
-        <div>
-          <h2 className={styles.panelTitle}>Recepcionistas</h2>
-          <p className={styles.panelSub}>Controla acceso del equipo de recepción.</p>
+      <div className={styles.viewStack}>
+        <div className={styles.hero}>
+          <div>
+            <h2 className={styles.heroTitle}>Recepcionistas</h2>
+            <p className={styles.heroSub}>Controla acceso y continuidad operativa del equipo de recepción.</p>
+          </div>
+          <div className={styles.actions}>
+            <button className={styles.btnPrimary} onClick={() => { setEditing(null); setForm(emptyForm); setShowModal(true); }}>+ Crear recepcionista</button>
+          </div>
         </div>
-        <div className={styles.actions}>
-          <button className={styles.btnPrimary} onClick={() => { setEditing(null); setForm(emptyForm); setShowModal(true); }}>+ Crear recepcionista</button>
-        </div>
-      </div>
 
-      <div className={styles.sectionBody}>
-        {loading && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Cargando recepcionistas...</p></div></div>}
-        {!loading && error && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Error</p><p className={styles.emptyText}>{error}</p></div></div>}
-        {!loading && !error && items.length === 0 && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Sin recepcionistas</p><p className={styles.emptyText}>Crea el primer perfil para comenzar.</p></div></div>}
-
-        {!loading && !error && items.length > 0 && (
-          <div className={styles.tableCard}>
-            <div className={styles.tableWrap}>
-              <table className={styles.table}>
-                <thead><tr><th>Nombre</th><th>Contacto</th><th>Estatus</th><th>Acciones</th></tr></thead>
-                <tbody>
-                  {items.map((item) => (
-                    <tr key={item.id}>
-                      <td><p className={styles.rowTitle}>{item.name}</p></td>
-                      <td>
-                        <p className={styles.rowTitle}>{item.email}</p>
-                        <p className={styles.rowSub}>{item.phone || "Sin teléfono"}</p>
-                      </td>
-                      <td>
-                        <span className={`${styles.pill} ${item.status === false ? styles.pillOff : styles.pillOn}`}>
-                          {item.status === false ? "Inactivo" : "Activo"}
-                        </span>
-                      </td>
-                      <td>
-                        <div className={styles.tableActions}>
-                          <button className={styles.btnGhost} onClick={() => openEdit(item)}>Editar</button>
-                          <button className={styles.btnDanger} onClick={() => onDelete(item)}>Eliminar</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        <div className={styles.contentCard}>
+          <div className={styles.sectionHead}>
+            <div>
+              <h3 className={styles.sectionTitle}>Equipo de recepción</h3>
+              <p className={styles.sectionSub}>{loading ? "Cargando..." : `${items.length} recepcionista(s)`}</p>
             </div>
           </div>
-        )}
+
+          <div className={styles.sectionBody}>
+            {loading && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Cargando recepcionistas...</p></div></div>}
+            {!loading && error && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Error</p><p className={styles.emptyText}>{error}</p></div></div>}
+            {!loading && !error && items.length === 0 && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Sin recepcionistas</p><p className={styles.emptyText}>Crea el primer perfil para comenzar.</p></div></div>}
+
+            {!loading && !error && items.length > 0 && (
+              <div className={styles.listSurface}>
+                <div className={styles.tableWrap}>
+                  <table className={styles.table}>
+                    <thead><tr><th>Nombre</th><th>Contacto</th><th>Estatus</th><th>Acciones</th></tr></thead>
+                    <tbody>
+                      {items.map((item) => (
+                        <tr key={item.id}>
+                          <td><p className={styles.rowTitle}>{item.name}</p></td>
+                          <td><p className={styles.rowTitle}>{item.email}</p><p className={styles.rowSub}>{item.phone || "Sin teléfono"}</p></td>
+                          <td><span className={`${styles.pill} ${item.status === false ? styles.pillOff : styles.pillOn}`}>{item.status === false ? "Inactivo" : "Activo"}</span></td>
+                          <td>
+                            <div className={styles.tableActions}>
+                              <button className={styles.btnGhost} onClick={() => openEdit(item)}>Editar</button>
+                              <button className={styles.btnDanger} onClick={() => onDelete(item)}>Eliminar</button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {showModal && (

@@ -117,60 +117,59 @@ export default function AdminUsersPage() {
 
   return (
     <>
-      <div className={styles.panelTop}>
-        <div>
-          <h2 className={styles.panelTitle}>Usuarios de mi clínica</h2>
-          <p className={styles.panelSub}>Administra roles internos y estado de acceso.</p>
+      <div className={styles.viewStack}>
+        <div className={styles.hero}>
+          <div>
+            <h2 className={styles.heroTitle}>Usuarios clínicos</h2>
+            <p className={styles.heroSub}>Gestiona dentistas, roles internos y su acceso al sistema.</p>
+          </div>
+          <div className={styles.actions}>
+            <button className={styles.btnPrimary} onClick={openCreate}>+ Crear dentista</button>
+          </div>
         </div>
-        <div className={styles.actions}>
-          <button className={styles.btnPrimary} onClick={openCreate}>+ Crear dentista</button>
-          <button className={styles.btnSoft} onClick={fetchUsers} disabled={loading}>Actualizar</button>
-        </div>
-      </div>
 
-      <div className={styles.sectionBody}>
-        {loading && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Cargando usuarios...</p></div></div>}
-        {!loading && error && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Error</p><p className={styles.emptyText}>{error}</p></div></div>}
-        {!loading && !error && users.length === 0 && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Sin usuarios</p><p className={styles.emptyText}>Crea el primer usuario para comenzar.</p></div></div>}
-
-        {!loading && !error && users.length > 0 && (
-          <div className={styles.tableCard}>
-            <div className={styles.tableWrap}>
-              <table className={styles.table}>
-                <thead>
-                  <tr><th>Nombre</th><th>Contacto</th><th>Rol</th><th>Estatus</th><th>Acciones</th></tr>
-                </thead>
-                <tbody>
-                  {users.map((user) => (
-                    <tr key={user.id}>
-                      <td>
-                        <p className={styles.rowTitle}>{user.name}</p>
-                      </td>
-                      <td>
-                        <p className={styles.rowTitle}>{user.email}</p>
-                        <p className={styles.rowSub}>{user.phone || "Sin teléfono"}</p>
-                      </td>
-                      <td>
-                        <span className={`${styles.pill} ${styles.pillRole}`}>{user.role}</span>
-                      </td>
-                      <td>
-                        <span className={`${styles.pill} ${user.status === false ? styles.pillOff : styles.pillOn}`}>
-                          {user.status === false ? "Inactivo" : "Activo"}
-                        </span>
-                      </td>
-                      <td>
-                        <div className={styles.tableActions}>
-                          <button className={styles.btnGhost} onClick={() => openEdit(user)}>Editar</button>
-                          <button className={styles.btnDanger} onClick={() => onDelete(user)}>Eliminar</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        <div className={styles.contentCard}>
+          <div className={styles.sectionHead}>
+            <div>
+              <h3 className={styles.sectionTitle}>Directorio de usuarios</h3>
+              <p className={styles.sectionSub}>{loading ? "Cargando..." : `${users.length} usuario(s)`}</p>
             </div>
           </div>
-        )}
+
+          <div className={styles.sectionBody}>
+            {loading && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Cargando usuarios...</p></div></div>}
+            {!loading && error && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Error</p><p className={styles.emptyText}>{error}</p></div></div>}
+            {!loading && !error && users.length === 0 && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Sin usuarios</p><p className={styles.emptyText}>Crea el primer usuario para comenzar.</p></div></div>}
+
+            {!loading && !error && users.length > 0 && (
+              <div className={styles.listSurface}>
+                <div className={styles.tableWrap}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr><th>Nombre</th><th>Contacto</th><th>Rol</th><th>Estatus</th><th>Acciones</th></tr>
+                    </thead>
+                    <tbody>
+                      {users.map((user) => (
+                        <tr key={user.id}>
+                          <td><p className={styles.rowTitle}>{user.name}</p></td>
+                          <td><p className={styles.rowTitle}>{user.email}</p><p className={styles.rowSub}>{user.phone || "Sin teléfono"}</p></td>
+                          <td><span className={`${styles.pill} ${styles.pillRole}`}>{user.role}</span></td>
+                          <td><span className={`${styles.pill} ${user.status === false ? styles.pillOff : styles.pillOn}`}>{user.status === false ? "Inactivo" : "Activo"}</span></td>
+                          <td>
+                            <div className={styles.tableActions}>
+                              <button className={styles.btnGhost} onClick={() => openEdit(user)}>Editar</button>
+                              <button className={styles.btnDanger} onClick={() => onDelete(user)}>Eliminar</button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {showModal && (
