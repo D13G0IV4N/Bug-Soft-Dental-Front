@@ -121,53 +121,57 @@ export default function AdminUsersPage() {
         <div>
           <h2 className={styles.panelTitle}>Usuarios de mi clínica</h2>
           <p className={styles.panelSub}>Administra roles internos y estado de acceso.</p>
-        </div>  
+        </div>
         <div className={styles.actions}>
-          <button className={styles.btnPrimary} onClick={openCreate}>+ Crear Dentista</button>
+          <button className={styles.btnPrimary} onClick={openCreate}>+ Crear dentista</button>
           <button className={styles.btnSoft} onClick={fetchUsers} disabled={loading}>Actualizar</button>
         </div>
       </div>
 
-      {loading && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Cargando usuarios...</p></div></div>}
-      {!loading && error && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Error</p><p className={styles.emptyText}>{error}</p></div></div>}
-      {!loading && !error && users.length === 0 && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Sin usuarios</p><p className={styles.emptyText}>Crea el primer usuario para comenzar.</p></div></div>}
+      <div className={styles.sectionBody}>
+        {loading && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Cargando usuarios...</p></div></div>}
+        {!loading && error && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Error</p><p className={styles.emptyText}>{error}</p></div></div>}
+        {!loading && !error && users.length === 0 && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Sin usuarios</p><p className={styles.emptyText}>Crea el primer usuario para comenzar.</p></div></div>}
 
-      {!loading && !error && users.length > 0 && (
-        <div className={styles.tableWrap}>
-          <table className={styles.table}>
-            <thead>
-              <tr><th>Nombre</th><th>Contacto</th><th>Rol</th><th>Estatus</th><th>Acciones</th></tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr key={user.id}>
-                  <td>
-                    <p className={styles.rowTitle}>{user.name}</p>
-                  </td>
-                  <td>
-                    <p className={styles.rowTitle}>{user.email}</p>
-                    <p className={styles.rowSub}>{user.phone || "Sin teléfono"}</p>
-                  </td>
-                  <td>
-                    <span className={`${styles.pill} ${styles.pillRole}`}>{user.role}</span>
-                  </td>
-                  <td>
-                    <span className={`${styles.pill} ${user.status === false ? styles.pillOff : styles.pillOn}`}>
-                      {user.status === false ? "Inactivo" : "Activo"}
-                    </span>
-                  </td>
-                  <td>
-                    <div className={styles.tableActions}>
-                      <button className={styles.btnGhost} onClick={() => openEdit(user)}>Editar</button>
-                      <button className={styles.btnDanger} onClick={() => onDelete(user)}>Eliminar</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+        {!loading && !error && users.length > 0 && (
+          <div className={styles.tableCard}>
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead>
+                  <tr><th>Nombre</th><th>Contacto</th><th>Rol</th><th>Estatus</th><th>Acciones</th></tr>
+                </thead>
+                <tbody>
+                  {users.map((user) => (
+                    <tr key={user.id}>
+                      <td>
+                        <p className={styles.rowTitle}>{user.name}</p>
+                      </td>
+                      <td>
+                        <p className={styles.rowTitle}>{user.email}</p>
+                        <p className={styles.rowSub}>{user.phone || "Sin teléfono"}</p>
+                      </td>
+                      <td>
+                        <span className={`${styles.pill} ${styles.pillRole}`}>{user.role}</span>
+                      </td>
+                      <td>
+                        <span className={`${styles.pill} ${user.status === false ? styles.pillOff : styles.pillOn}`}>
+                          {user.status === false ? "Inactivo" : "Activo"}
+                        </span>
+                      </td>
+                      <td>
+                        <div className={styles.tableActions}>
+                          <button className={styles.btnGhost} onClick={() => openEdit(user)}>Editar</button>
+                          <button className={styles.btnDanger} onClick={() => onDelete(user)}>Eliminar</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
 
       {showModal && (
         <div className={formStyles.modalOverlay} onClick={() => setShowModal(false)}>
@@ -178,26 +182,26 @@ export default function AdminUsersPage() {
             </div>
 
             <div className={formStyles.modalBody}>
-            <form className={formStyles.formGrid} onSubmit={onSubmit}>
-              <label className={formStyles.field}>Nombre<input className={formStyles.control} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></label>
-              <label className={formStyles.field}>Correo<input className={formStyles.control} type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label>
-              <label className={formStyles.field}>Teléfono<input className={formStyles.control} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></label>
-              <label className={formStyles.field}>Rol
-                <select className={formStyles.control} value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
-                  <option value="dentist">Dentista</option>
-                  <option value="receptionist">Recepcionista</option>
-                  <option value="client">Paciente/Cliente</option>
-                </select>
-              </label>
-              <label className={formStyles.field}>Contraseña {editing ? "(opcional)" : ""}
-                <input className={formStyles.control} type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required={!editing} />
-              </label>
-              <label className={formStyles.checkboxField}><input type="checkbox" checked={form.status} onChange={(e) => setForm({ ...form, status: e.target.checked })} /> Activo</label>
-              <div className={formStyles.formActions}>
-                <button type="button" className={styles.btnGhost} onClick={() => setShowModal(false)} disabled={saving}>Cancelar</button>
-                <button type="submit" className={styles.btnPrimary} disabled={saving}>{saving ? "Guardando..." : "Guardar"}</button>
-              </div>
-            </form>
+              <form className={formStyles.formGrid} onSubmit={onSubmit}>
+                <label className={formStyles.field}>Nombre<input className={formStyles.control} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></label>
+                <label className={formStyles.field}>Correo<input className={formStyles.control} type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label>
+                <label className={formStyles.field}>Teléfono<input className={formStyles.control} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></label>
+                <label className={formStyles.field}>Rol
+                  <select className={formStyles.control} value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
+                    <option value="dentist">Dentista</option>
+                    <option value="receptionist">Recepcionista</option>
+                    <option value="client">Paciente/Cliente</option>
+                  </select>
+                </label>
+                <label className={formStyles.field}>Contraseña {editing ? "(opcional)" : ""}
+                  <input className={formStyles.control} type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required={!editing} />
+                </label>
+                <label className={formStyles.checkboxField}><input type="checkbox" checked={form.status} onChange={(e) => setForm({ ...form, status: e.target.checked })} /> Activo</label>
+                <div className={formStyles.formActions}>
+                  <button type="button" className={styles.btnGhost} onClick={() => setShowModal(false)} disabled={saving}>Cancelar</button>
+                  <button type="submit" className={styles.btnPrimary} disabled={saving}>{saving ? "Guardando..." : "Guardar"}</button>
+                </div>
+              </form>
             </div>
           </div>
         </div>

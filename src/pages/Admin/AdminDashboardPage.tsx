@@ -57,22 +57,26 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {loading && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Cargando clínica...</p></div></div>}
+      <div className={styles.sectionBody}>
+        {loading && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Cargando clínica...</p></div></div>}
 
-      {!loading && error && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Error</p><p className={styles.emptyText}>{error}</p></div></div>}
+        {!loading && error && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Error</p><p className={styles.emptyText}>{error}</p></div></div>}
 
-      {!loading && !error && clinic && (
-        <form className={formStyles.formGrid} onSubmit={onSubmit}>
-          <label className={formStyles.field}>Nombre<input className={formStyles.control} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></label>
-          <label className={formStyles.field}>Correo<input className={formStyles.control} type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label>
-          <label className={formStyles.field}>Teléfono<input className={formStyles.control} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></label>
-          <label className={formStyles.field}>Dirección<input className={formStyles.control} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></label>
-          <div className={formStyles.formActions}>
-            <button className={styles.btnSoft} type="button" onClick={fetchClinic} disabled={saving}>Resetear</button>
-            <button className={styles.btnPrimary} type="submit" disabled={saving}>{saving ? "Guardando..." : "Guardar clínica"}</button>
+        {!loading && !error && clinic && (
+          <div className={styles.formCard}>
+            <form className={formStyles.formGrid} onSubmit={onSubmit}>
+              <label className={formStyles.field}>Nombre<input className={formStyles.control} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></label>
+              <label className={formStyles.field}>Correo<input className={formStyles.control} type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label>
+              <label className={formStyles.field}>Teléfono<input className={formStyles.control} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></label>
+              <label className={formStyles.field}>Dirección<input className={formStyles.control} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></label>
+              <div className={formStyles.formActions}>
+                <button className={styles.btnSoft} type="button" onClick={fetchClinic} disabled={saving}>Resetear</button>
+                <button className={styles.btnPrimary} type="submit" disabled={saving}>{saving ? "Guardando..." : "Guardar clínica"}</button>
+              </div>
+            </form>
           </div>
-        </form>
-      )}
+        )}
+      </div>
     </div>
   );
 }
