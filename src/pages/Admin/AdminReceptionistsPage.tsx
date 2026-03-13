@@ -108,38 +108,43 @@ export default function AdminReceptionistsPage() {
         </div>
       </div>
 
-      {loading && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Cargando recepcionistas...</p></div></div>}
-      {!loading && error && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Error</p><p className={styles.emptyText}>{error}</p></div></div>}
+      <div className={styles.sectionBody}>
+        {loading && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Cargando recepcionistas...</p></div></div>}
+        {!loading && error && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Error</p><p className={styles.emptyText}>{error}</p></div></div>}
+        {!loading && !error && items.length === 0 && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Sin recepcionistas</p><p className={styles.emptyText}>Crea el primer perfil para comenzar.</p></div></div>}
 
-      {!loading && !error && (
-        <div className={styles.tableWrap}>
-          <table className={styles.table}>
-            <thead><tr><th>Nombre</th><th>Contacto</th><th>Estatus</th><th>Acciones</th></tr></thead>
-            <tbody>
-              {items.map((item) => (
-                <tr key={item.id}>
-                  <td><p className={styles.rowTitle}>{item.name}</p></td>
-                  <td>
-                    <p className={styles.rowTitle}>{item.email}</p>
-                    <p className={styles.rowSub}>{item.phone || "Sin teléfono"}</p>
-                  </td>
-                  <td>
-                    <span className={`${styles.pill} ${item.status === false ? styles.pillOff : styles.pillOn}`}>
-                      {item.status === false ? "Inactivo" : "Activo"}
-                    </span>
-                  </td>
-                  <td>
-                    <div className={styles.tableActions}>
-                      <button className={styles.btnGhost} onClick={() => openEdit(item)}>Editar</button>
-                      <button className={styles.btnDanger} onClick={() => onDelete(item)}>Eliminar</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+        {!loading && !error && items.length > 0 && (
+          <div className={styles.tableCard}>
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead><tr><th>Nombre</th><th>Contacto</th><th>Estatus</th><th>Acciones</th></tr></thead>
+                <tbody>
+                  {items.map((item) => (
+                    <tr key={item.id}>
+                      <td><p className={styles.rowTitle}>{item.name}</p></td>
+                      <td>
+                        <p className={styles.rowTitle}>{item.email}</p>
+                        <p className={styles.rowSub}>{item.phone || "Sin teléfono"}</p>
+                      </td>
+                      <td>
+                        <span className={`${styles.pill} ${item.status === false ? styles.pillOff : styles.pillOn}`}>
+                          {item.status === false ? "Inactivo" : "Activo"}
+                        </span>
+                      </td>
+                      <td>
+                        <div className={styles.tableActions}>
+                          <button className={styles.btnGhost} onClick={() => openEdit(item)}>Editar</button>
+                          <button className={styles.btnDanger} onClick={() => onDelete(item)}>Eliminar</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
 
       {showModal && (
         <div className={formStyles.modalOverlay} onClick={() => setShowModal(false)}>
@@ -149,14 +154,14 @@ export default function AdminReceptionistsPage() {
               <p className={formStyles.modalText}>Completa los datos para mantener el equipo actualizado.</p>
             </div>
             <div className={formStyles.modalBody}>
-            <form className={formStyles.formGrid} onSubmit={onSubmit}>
-              <label className={formStyles.field}>Nombre<input className={formStyles.control} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></label>
-              <label className={formStyles.field}>Correo<input className={formStyles.control} type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label>
-              <label className={formStyles.field}>Teléfono<input className={formStyles.control} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></label>
-              <label className={formStyles.field}>Contraseña {editing ? "(opcional)" : ""}<input className={formStyles.control} type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required={!editing} /></label>
-              <label className={formStyles.checkboxField}><input type="checkbox" checked={form.status} onChange={(e) => setForm({ ...form, status: e.target.checked })} /> Activo</label>
-              <div className={formStyles.formActions}><button type="button" className={styles.btnGhost} onClick={() => setShowModal(false)}>Cancelar</button><button type="submit" className={styles.btnPrimary} disabled={saving}>{saving ? "Guardando..." : "Guardar"}</button></div>
-            </form>
+              <form className={formStyles.formGrid} onSubmit={onSubmit}>
+                <label className={formStyles.field}>Nombre<input className={formStyles.control} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></label>
+                <label className={formStyles.field}>Correo<input className={formStyles.control} type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label>
+                <label className={formStyles.field}>Teléfono<input className={formStyles.control} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></label>
+                <label className={formStyles.field}>Contraseña {editing ? "(opcional)" : ""}<input className={formStyles.control} type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required={!editing} /></label>
+                <label className={formStyles.checkboxField}><input type="checkbox" checked={form.status} onChange={(e) => setForm({ ...form, status: e.target.checked })} /> Activo</label>
+                <div className={formStyles.formActions}><button type="button" className={styles.btnGhost} onClick={() => setShowModal(false)}>Cancelar</button><button type="submit" className={styles.btnPrimary} disabled={saving}>{saving ? "Guardando..." : "Guardar"}</button></div>
+              </form>
             </div>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import styles from "../Dentists/dentists.module.css";
+import adminStyles from "../Admin/admin.module.css";
 
 import {
   createAdminPatient,
@@ -58,6 +59,7 @@ export default function PatientsPage() {
   const [modalLoading, setModalLoading] = useState(false);
 
   const isClinicContext = Boolean(clinicId);
+  const isAdminContext = !isClinicContext;
 
   const subtitle = useMemo(
     () => (isClinicContext ? `Clínica #${clinicId}` : "Gestión administrativa de pacientes"),
@@ -193,12 +195,12 @@ export default function PatientsPage() {
   }
 
   return (
-    <div className={styles.page}>
-      <div className={styles.wrap}>
-        <div className={styles.header}>
+    <div className={`${styles.page} ${isAdminContext ? adminStyles.adminPatientsRoot : ""}`.trim()}>
+      <div className={`${styles.wrap} ${isAdminContext ? adminStyles.adminPatientsWrap : ""}`.trim()}>
+        <div className={`${styles.header} ${isAdminContext ? adminStyles.adminPatientsHeader : ""}`.trim()}>
           <div>
-            <h1 className={styles.h1}>Pacientes</h1>
-            <p className={styles.sub}>{subtitle}</p>
+            <h1 className={`${styles.h1} ${isAdminContext ? adminStyles.adminPatientsTitle : ""}`.trim()}>Pacientes</h1>
+            <p className={`${styles.sub} ${isAdminContext ? adminStyles.adminPatientsSub : ""}`.trim()}>{subtitle}</p>
           </div>
 
           <div className={styles.actions}>
@@ -207,27 +209,28 @@ export default function PatientsPage() {
                 ← Volver a clínica
               </button>
             ) : (
-              <button className={styles.btnGhost} onClick={() => navigate("/admin")}>Ir al panel</button>
+              <button className={styles.btnGhost} onClick={() => navigate("/admin")}>Ver clínica</button>
             )}
 
             <button className={styles.btnPrimary} onClick={() => setShowCreate(true)}>
               + Crear paciente
             </button>
-           
-            <button className={styles.btnGhost} onClick={handleLogout} disabled={loading || modalLoading}>
-              Cerrar sesión
-            </button>
+            {isClinicContext && (
+              <button className={styles.btnGhost} onClick={handleLogout} disabled={loading || modalLoading}>
+                Cerrar sesión
+              </button>
+            )}
           </div>
         </div>
 
-        <div className={styles.panel}>
+        <div className={`${styles.panel} ${isAdminContext ? adminStyles.adminPatientsPanel : ""}`.trim()}>
           <div className={styles.panelTop}>
             <div className={styles.panelTitle}>Listado</div>
             <div className={styles.count}>{loading ? "Cargando..." : `${patients.length} paciente(s)`}</div>
           </div>
 
           {loading && (
-            <div className={styles.skeletonRow}>
+            <div className={`${styles.skeletonRow} ${isAdminContext ? `${adminStyles.adminPatientsBody} ${adminStyles.adminPatientsSkeleton}` : ""}`.trim()}>
               <div className={styles.skeleton} />
               <div className={styles.skeleton} />
               <div className={styles.skeleton} />
@@ -235,7 +238,7 @@ export default function PatientsPage() {
           )}
 
           {!loading && error && (
-            <div className={styles.empty}>
+            <div className={`${styles.empty} ${isAdminContext ? adminStyles.adminPatientsBody : ""}`.trim()}>
               <div className={styles.emptyBox}>
                 <p className={styles.emptyTitle}>No se pudo cargar</p>
                 <p className={styles.emptyText}>{error}</p>
@@ -244,7 +247,7 @@ export default function PatientsPage() {
           )}
 
           {!loading && !error && patients.length === 0 && (
-            <div className={styles.empty}>
+            <div className={`${styles.empty} ${isAdminContext ? adminStyles.adminPatientsBody : ""}`.trim()}>
               <div className={styles.emptyBox}>
                 <p className={styles.emptyTitle}>Aún no hay pacientes</p>
                 <p className={styles.emptyText}>Crea uno con el botón de arriba.</p>
@@ -253,7 +256,7 @@ export default function PatientsPage() {
           )}
 
           {!loading && !error && patients.length > 0 && (
-            <div className={styles.tableWrap}>
+            <div className={`${styles.tableWrap} ${isAdminContext ? adminStyles.adminPatientsBody : ""}`.trim()}>
               <table className={styles.table}>
                 <thead>
                   <tr>
