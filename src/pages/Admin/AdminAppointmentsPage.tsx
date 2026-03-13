@@ -68,7 +68,6 @@ export default function AdminAppointmentsPage() {
           <h2 className={styles.panelTitle}>Agenda</h2>
           <p className={styles.panelSub}>Programa y confirma citas de forma rápida.</p>
         </div>
-        <button className={styles.btnSoft} onClick={fetchData} disabled={loading}>Actualizar</button>
       </div>
 
       <form className={styles.formGrid} onSubmit={onCreate}>

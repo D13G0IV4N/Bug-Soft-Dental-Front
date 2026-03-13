@@ -104,7 +104,6 @@ export default function AdminReceptionistsPage() {
         </div>
         <div className={styles.actions}>
           <button className={styles.btnPrimary} onClick={() => { setEditing(null); setForm(emptyForm); setShowModal(true); }}>+ Crear recepcionista</button>
-          <button className={styles.btnSoft} onClick={fetchItems} disabled={loading}>Actualizar</button>
         </div>
       </div>
 
