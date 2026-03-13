@@ -48,23 +48,30 @@ export default function LoginPage() {
   };
 
   return (
-    <div className={styles.page}>
-      <div className={styles.cardWrap}>
-        <div className={styles.topBar} />
+    <main className={styles.page}>
+      <section className={styles.shell}>
+        <aside className={styles.brandPanel}>
+          <div className={styles.brandMark}>🦷</div>
+          <p className={styles.brandEyebrow}>Plataforma clínica</p>
+          <h1 className={styles.brandTitle}>Bug&Soft Dental</h1>
+          <p className={styles.brandCopy}>
+            Gestión médica diseñada para equipos odontológicos modernos.
+          </p>
+          <div className={styles.brandPill}>Acceso seguro para personal autorizado</div>
+        </aside>
 
-        <div className={styles.content}>
-          <div className={styles.header}>
-            <div className={styles.logo}>🦷</div>
-            <h1 className={styles.title}>Bug&Soft Dental</h1>
-            <p className={styles.subtitle}>
-              Inicia sesión para acceder a tu agenda.
+        <div className={styles.formPanel}>
+          <header className={styles.formHeader}>
+            <h2 className={styles.formTitle}>Iniciar sesión</h2>
+            <p className={styles.formSubtitle}>
+              Ingresa con tu cuenta para acceder al panel clínico.
             </p>
-          </div>
+          </header>
 
           <form className={styles.form} onSubmit={onSubmit}>
             <div className={styles.row}>
               <label className={styles.label} htmlFor="email">
-                Correo
+                Correo corporativo
               </label>
               <input
                 id="email"
@@ -124,28 +131,16 @@ export default function LoginPage() {
               >
                 ¿Olvidaste tu contraseña?
               </a>
-
-              <a
-                className={styles.link}
-                href="#"
-                onClick={(e) => e.preventDefault()}
-              >
-                Crear cuenta
-              </a>
             </div>
 
             <button className={styles.btn} type="submit">
-              Entrar
+              Acceder al sistema
             </button>
 
-            <div className={styles.footer}>
-              <span>Salud • Dental</span>
-              <span>•</span>
-              <span>Bug&Soft Hub</span>
-            </div>
+            <p className={styles.footer}>Entorno de salud con acceso auditado.</p>
           </form>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }
