@@ -1,9 +1,25 @@
 import { useEffect, useState } from "react";
-import { createAppointment, getAppointments, updateAppointmentStatus, type Appointment } from "../../api/appointments";
+import {
+  createAppointment,
+  getAppointments,
+  toErrorMessage,
+  updateAppointmentStatus,
+  type Appointment,
+  type AppointmentStatus,
+} from "../../api/appointments";
 import { getAdminPatients } from "../../api/patients";
 import { getAdminUsers } from "../../api/admin";
 import styles from "./admin.module.css";
 import formStyles from "../../styles/formSystem.module.css";
+
+const APPOINTMENT_STATUS_ACTIONS: AppointmentStatus[] = ["confirmed", "completed", "cancelled"];
+
+function formatDateTime(value: string) {
+  if (!value) return "-";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return parsed.toLocaleString();
+}
 
 export default function AdminAppointmentsPage() {
   const [items, setItems] = useState<Appointment[]>([]);
@@ -12,7 +28,14 @@ export default function AdminAppointmentsPage() {
   const [saving, setSaving] = useState(false);
   const [patients, setPatients] = useState<Array<{ id?: number; name: string }>>([]);
   const [dentists, setDentists] = useState<Array<{ id?: number; name: string }>>([]);
-  const [form, setForm] = useState({ patient_id: "", dentist_id: "", starts_at: "", notes: "" });
+  const [formError, setFormError] = useState("");
+  const [form, setForm] = useState({
+    patient_id: "",
+    dentist_id: "",
+    starts_at: "",
+    ends_at: "",
+    reason: "",
+  });
 
   async function fetchData() {
     try {
@@ -23,7 +46,7 @@ export default function AdminAppointmentsPage() {
       setPatients(adminPatients.map((patient) => ({ id: patient.id, name: patient.name })));
       setDentists(users.filter((user) => user.role === "dentist").map((user) => ({ id: user.id, name: user.name })));
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "No se pudo cargar la agenda");
+      setError(toErrorMessage(e, "No se pudo cargar la agenda"));
     } finally {
       setLoading(false);
     }
@@ -35,22 +58,35 @@ export default function AdminAppointmentsPage() {
 
   async function onCreate(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setFormError("");
+
     try {
       setSaving(true);
-      await createAppointment({ patient_id: Number(form.patient_id), dentist_id: Number(form.dentist_id), starts_at: form.starts_at, notes: form.notes });
-      setForm({ patient_id: "", dentist_id: "", starts_at: "", notes: "" });
+      await createAppointment({
+        patient_id: Number(form.patient_id),
+        dentist_id: Number(form.dentist_id),
+        starts_at: form.starts_at,
+        ends_at: form.ends_at,
+        reason: form.reason,
+      });
+      setForm({ patient_id: "", dentist_id: "", starts_at: "", ends_at: "", reason: "" });
       await fetchData();
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "No se pudo crear la cita");
+      setFormError(toErrorMessage(e, "No se pudo crear la cita"));
     } finally {
       setSaving(false);
     }
   }
 
-  async function onStatusChange(item: Appointment, status: string) {
+  async function onStatusChange(item: Appointment, status: AppointmentStatus) {
     if (!item.id) return;
-    await updateAppointmentStatus(item.id, status);
-    await fetchData();
+
+    try {
+      await updateAppointmentStatus(item.id, status);
+      await fetchData();
+    } catch (e: unknown) {
+      setError(toErrorMessage(e, "No se pudo actualizar el estatus de la cita"));
+    }
   }
 
   return (
@@ -87,9 +123,13 @@ export default function AdminAppointmentsPage() {
               <label className={formStyles.field}>Inicio
                 <input className={formStyles.control} type="datetime-local" value={form.starts_at} onChange={(e) => setForm({ ...form, starts_at: e.target.value })} required />
               </label>
-              <label className={formStyles.field}>Notas
-                <input className={formStyles.control} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+              <label className={formStyles.field}>Fin
+                <input className={formStyles.control} type="datetime-local" value={form.ends_at} onChange={(e) => setForm({ ...form, ends_at: e.target.value })} required />
               </label>
+              <label className={formStyles.field}>Motivo
+                <input className={formStyles.control} value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} required />
+              </label>
+              {formError && <p className={formStyles.error}>{formError}</p>}
               <div className={formStyles.formActions}><button className={styles.btnPrimary} type="submit" disabled={saving}>{saving ? "Creando..." : "Crear cita"}</button></div>
             </form>
           </div>
@@ -112,19 +152,29 @@ export default function AdminAppointmentsPage() {
             <div className={styles.listSurface}>
               <div className={styles.tableWrap}>
                 <table className={styles.table}>
-                  <thead><tr><th>ID</th><th>Paciente</th><th>Dentista</th><th>Inicio</th><th>Estatus</th><th>Acciones</th></tr></thead>
+                  <thead><tr><th>ID</th><th>Paciente</th><th>Dentista</th><th>Inicio</th><th>Fin</th><th>Motivo</th><th>Estatus</th><th>Acciones</th></tr></thead>
                   <tbody>
                     {items.map((item) => (
                       <tr key={item.id}>
                         <td><p className={styles.rowTitle}>{item.id}</p></td>
-                        <td><p className={styles.rowTitle}>{item.patient_name || item.patient_id}</p></td>
-                        <td><p className={styles.rowTitle}>{item.dentist_name || item.dentist_id}</p></td>
-                        <td><p className={styles.rowSub}>{item.starts_at}</p></td>
+                        <td><p className={styles.rowTitle}>{item.patient?.name || item.patient_name || item.patient_id}</p></td>
+                        <td><p className={styles.rowTitle}>{item.dentist?.name || item.dentist_name || item.dentist_id}</p></td>
+                        <td><p className={styles.rowSub}>{formatDateTime(item.starts_at)}</p></td>
+                        <td><p className={styles.rowSub}>{formatDateTime(item.ends_at || "")}</p></td>
+                        <td><p className={styles.rowSub}>{item.reason || item.notes || "-"}</p></td>
                         <td><span className={`${styles.pill} ${item.status === "cancelled" ? styles.pillOff : styles.pillOn}`}>{item.status || "pending"}</span></td>
                         <td>
                           <div className={styles.tableActions}>
-                            <button className={styles.btnGhost} onClick={() => onStatusChange(item, "confirmed")}>Confirmar</button>
-                            <button className={styles.btnDanger} onClick={() => onStatusChange(item, "cancelled")}>Cancelar</button>
+                            {APPOINTMENT_STATUS_ACTIONS.map((status) => (
+                              <button
+                                key={status}
+                                className={status === "cancelled" ? styles.btnDanger : styles.btnGhost}
+                                onClick={() => onStatusChange(item, status)}
+                                disabled={item.status === status}
+                              >
+                                {status === "confirmed" ? "Confirmar" : status === "completed" ? "Completar" : "Cancelar"}
+                              </button>
+                            ))}
                           </div>
                         </td>
                       </tr>
