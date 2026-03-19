@@ -4,6 +4,12 @@ export interface Specialty {
   id: number;
   name: string;
   description?: string | null;
+  status: boolean;
+}
+
+export interface SpecialtyPayload {
+  name: string;
+  description?: string | null;
   status?: boolean;
 }
 
@@ -12,6 +18,12 @@ function normalizeList<T>(payload: unknown): T[] {
   const nested = source?.data as { data?: unknown } | undefined;
   const list = nested?.data ?? source?.data ?? payload;
   return Array.isArray(list) ? (list as T[]) : [];
+}
+
+function normalizeOne<T>(payload: unknown): T {
+  const source = payload as { data?: unknown };
+  const nested = source?.data as { data?: unknown } | undefined;
+  return (nested?.data ?? source?.data ?? payload) as T;
 }
 
 function toStatus(value: unknown): boolean {
@@ -25,18 +37,65 @@ function toStatus(value: unknown): boolean {
 }
 
 function mapSpecialty(raw: unknown): Specialty {
+  const specialty = raw as Record<string, unknown>;
+
   return {
-    id: Number(raw?.id ?? 0),
-    name: raw?.name ?? raw?.specialty ?? "",
-    description: raw?.description ?? null,
-    status: toStatus(raw?.status),
+    id: Number(specialty.id ?? 0),
+    name: String(specialty.name ?? specialty.specialty ?? "").trim(),
+    description:
+      typeof specialty.description === "string" || specialty.description === null
+        ? specialty.description
+        : null,
+    status: toStatus(specialty.status),
   };
 }
 
-export async function getSpecialties() {
+function buildSpecialtyPayload(payload: SpecialtyPayload) {
+  return {
+    name: payload.name.trim(),
+    description: payload.description?.trim() ? payload.description.trim() : null,
+    status: payload.status ?? true,
+  };
+}
+
+export async function getSpecialties(options?: { includeInactive?: boolean }) {
   const { data } = await api.get("/specialties");
-  return normalizeList<unknown>(data)
+  const specialties = normalizeList<unknown>(data)
     .map(mapSpecialty)
-    .filter((specialty) => specialty.id > 0 && specialty.name)
-    .filter((specialty) => specialty.status !== false);
+    .filter((specialty) => specialty.id > 0 && specialty.name);
+
+  if (options?.includeInactive) {
+    return specialties;
+  }
+
+  return specialties.filter((specialty) => specialty.status !== false);
+}
+
+export async function createSpecialty(payload: SpecialtyPayload) {
+  const { data } = await api.post("/specialties", buildSpecialtyPayload(payload));
+  return mapSpecialty(normalizeOne<unknown>(data));
+}
+
+export async function updateSpecialty(specialtyId: number | string, payload: Partial<SpecialtyPayload>) {
+  const body: Record<string, unknown> = {};
+
+  if (typeof payload.name === "string") {
+    body.name = payload.name.trim();
+  }
+
+  if (payload.description !== undefined) {
+    body.description = payload.description?.trim() ? payload.description.trim() : null;
+  }
+
+  if (typeof payload.status === "boolean") {
+    body.status = payload.status;
+  }
+
+  const { data } = await api.patch(`/specialties/${specialtyId}`, body);
+  return mapSpecialty(normalizeOne<unknown>(data));
+}
+
+export async function deleteSpecialty(specialtyId: number | string) {
+  const { data } = await api.delete(`/specialties/${specialtyId}`);
+  return data;
 }
