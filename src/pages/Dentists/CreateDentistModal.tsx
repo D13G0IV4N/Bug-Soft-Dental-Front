@@ -3,6 +3,7 @@ import styles from "./dentists.module.css";
 import formStyles from "../../styles/formSystem.module.css";
 import { createDentist, type Dentist } from "../../api/dentists";
 import { getSpecialties, type Specialty } from "../../api/specialties";
+import SpecialtiesField from "./SpecialtiesField";
 
 interface Props { clinicId: string; onClose: () => void; onCreated: () => void; }
 
@@ -46,11 +47,7 @@ export default function CreateDentistModal({ clinicId, onClose, onCreated }: Pro
     return () => { active = false; };
   }, []);
 
-  function handleSpecialtiesChange(event: React.ChangeEvent<HTMLSelectElement>) {
-    const specialtyIds = Array.from(event.target.selectedOptions)
-      .map((option) => Number(option.value))
-      .filter((value) => Number.isInteger(value) && value > 0);
-
+  function handleSpecialtiesChange(specialtyIds: number[]) {
     setDentist((current) => ({ ...current, specialtyIds }));
   }
 
@@ -85,16 +82,13 @@ export default function CreateDentistModal({ clinicId, onClose, onCreated }: Pro
             <label className={formStyles.field}>Teléfono<input className={formStyles.control} value={dentist.phone ?? ""} onChange={(e) => setDentist({ ...dentist, phone: e.target.value })} placeholder="3312345678" /></label>
             <label className={formStyles.field}>Correo *<input className={formStyles.control} type="email" value={dentist.email ?? ""} onChange={(e) => setDentist({ ...dentist, email: e.target.value })} required placeholder="correo@gmail.com" /></label>
             <label className={`${formStyles.field} ${formStyles.fieldFull}`}>Contraseña *<input className={formStyles.control} type="password" value={dentist.password ?? ""} onChange={(e) => setDentist({ ...dentist, password: e.target.value })} required placeholder="********" /></label>
-            <label className={`${formStyles.field} ${formStyles.fieldFull}`}>Especialidades
-              <select className={formStyles.control} multiple size={Math.min(Math.max(specialties.length, 4), 6)} value={dentist.specialtyIds.map(String)} onChange={handleSpecialtiesChange} disabled={loadingSpecialties || loading}>
-                {specialties.map((specialty) => (
-                  <option key={specialty.id} value={specialty.id}>{specialty.name}</option>
-                ))}
-              </select>
-            </label>
-            <p className={formStyles.helper}>
-              {loadingSpecialties ? "Cargando especialidades..." : specialties.length > 0 ? "Mantén presionada la tecla Ctrl (o Cmd en Mac) para elegir varias especialidades." : "No hay especialidades disponibles en el backend."}
-            </p>
+            <SpecialtiesField
+              specialties={specialties}
+              selectedIds={dentist.specialtyIds}
+              loading={loadingSpecialties}
+              disabled={loadingSpecialties || loading}
+              onChange={handleSpecialtiesChange}
+            />
             <label className={formStyles.field}>Número de licencia<input className={formStyles.control} value={dentist.licenseNumber ?? ""} onChange={(e) => setDentist({ ...dentist, licenseNumber: e.target.value })} placeholder="LIC-123456" /></label>
             <label className={formStyles.field}>Color<input className={formStyles.control} type="color" value={dentist.color || "#2f86e6"} onChange={(e) => setDentist({ ...dentist, color: e.target.value })} /></label>
             <label className={formStyles.checkboxField}><input type="checkbox" checked={dentist.status ?? true} onChange={(e) => setDentist({ ...dentist, status: e.target.checked })} /> Activo</label>

@@ -4,14 +4,20 @@ import { useNavigate, useParams } from "react-router-dom";
 import styles from "./dentists.module.css";
 
 import { getDentistsByClinic, type Dentist } from "../../api/dentists";
+import { getSpecialties, type Specialty } from "../../api/specialties";
 
 import CreateDentistModal from "./CreateDentistModal";
 import EditDentistModal from "./EditDentistModal";
 import DentistDetailsModal from "./DentistDetailsModal";
 
-function formatSpecialties(dentist: Dentist) {
-  if (dentist.specialties.length === 0) return "Sin especialidad";
-  return dentist.specialties.map((specialty) => specialty.name).join(", ");
+function formatSpecialties(dentist: Dentist, specialtiesCatalog: Specialty[]) {
+  const names = dentist.specialties.length > 0
+    ? dentist.specialties.map((specialty) => specialty.name)
+    : dentist.specialtyIds
+        .map((specialtyId) => specialtiesCatalog.find((specialty) => specialty.id === specialtyId)?.name)
+        .filter((name): name is string => Boolean(name));
+
+  return names.length > 0 ? Array.from(new Set(names)).join(", ") : "Sin especialidad";
 }
 
 export default function DentistsPage() {
@@ -21,6 +27,7 @@ export default function DentistsPage() {
   const [dentists, setDentists] = useState<Dentist[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [specialtiesCatalog, setSpecialtiesCatalog] = useState<Specialty[]>([]);
 
   const [showCreate, setShowCreate] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
@@ -57,7 +64,23 @@ export default function DentistsPage() {
   }, [clinicId]);
 
   useEffect(() => {
+    let active = true;
+
+    async function loadSpecialties() {
+      try {
+        const catalog = await getSpecialties();
+        if (active) setSpecialtiesCatalog(catalog);
+      } catch (e) {
+        console.error("Specialties catalog error:", e);
+      }
+    }
+
     fetchDentists();
+    loadSpecialties();
+
+    return () => {
+      active = false;
+    };
   }, [fetchDentists]);
 
   return (
@@ -139,7 +162,7 @@ export default function DentistsPage() {
                     <br />
                     {d.phone ? `Tel: ${d.phone}` : "Sin teléfono"}
                     <br />
-                    {`Especialidades: ${formatSpecialties(d)}`}
+                    {`Especialidades: ${formatSpecialties(d, specialtiesCatalog)}`}
                     <br />
                     {d.licenseNumber ? `Licencia: ${d.licenseNumber}` : "Sin licencia"}
                   </p>
@@ -211,7 +234,7 @@ export default function DentistsPage() {
       {showDetails && details && clinicId && (
         <DentistDetailsModal
           clinicId={clinicId}
-          dentist={details}
+          dentist={{ ...details, specialties: details.specialties.length > 0 ? details.specialties : specialtiesCatalog.filter((specialty) => details.specialtyIds.includes(specialty.id)) }}
           onClose={() => setShowDetails(false)}
         />
       )}
