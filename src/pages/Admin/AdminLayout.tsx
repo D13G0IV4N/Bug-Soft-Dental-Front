@@ -9,6 +9,7 @@ const adminLinks = [
   { to: "/admin/dentists", label: "Dentistas" },
   { to: "/admin/receptionists", label: "Recepcionistas" },
   { to: "/admin/specialties", label: "Especialidades" },
+  { to: "/admin/services", label: "Servicios" },
   { to: "/admin/patients", label: "Pacientes" },
   { to: "/admin/appointments", label: "Citas" },
 ];
