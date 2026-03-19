@@ -11,6 +11,7 @@ import AdminDentistsPage from "./pages/Admin/AdminDentistsPage";
 import AdminReceptionistsPage from "./pages/Admin/AdminReceptionistsPage";
 import AdminAppointmentsPage from "./pages/Admin/AdminAppointmentsPage";
 import AdminSpecialtiesPage from "./pages/Admin/AdminSpecialtiesPage";
+import AdminServicesPage from "./pages/Admin/AdminServicesPage";
 
 function HomeRedirect() {
   if (!isAuthenticated()) return <Navigate to="/login" replace />;
@@ -53,6 +54,7 @@ export default function App() {
               <Route path="dentists" element={<AdminDentistsPage />} />
               <Route path="receptionists" element={<AdminReceptionistsPage />} />
               <Route path="specialties" element={<AdminSpecialtiesPage />} />
+              <Route path="services" element={<AdminServicesPage />} />
             </Route>
             <Route path="patients" element={<PatientsPage />} />
             <Route path="appointments" element={<AdminAppointmentsPage />} />
