@@ -7,7 +7,7 @@ import ClinicDetailPage from "./pages/Clinics/ClinicDetailPage";
 import { getPostLoginRoute, getStoredRole, isAuthenticated, type AppRole } from "./utils/auth";
 import AdminLayout from "./pages/Admin/AdminLayout";
 import AdminDashboardPage from "./pages/Admin/AdminDashboardPage";
-import AdminUsersPage from "./pages/Admin/AdminUsersPage";
+import AdminDentistsPage from "./pages/Admin/AdminDentistsPage";
 import AdminReceptionistsPage from "./pages/Admin/AdminReceptionistsPage";
 import AdminAppointmentsPage from "./pages/Admin/AdminAppointmentsPage";
 
@@ -48,7 +48,8 @@ export default function App() {
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboardPage />} />
             <Route element={<RoleGuard allowedRoles={["admin"]} />}>
-              <Route path="users" element={<AdminUsersPage />} />
+              <Route path="users" element={<Navigate to="/admin/dentists" replace />} />
+              <Route path="dentists" element={<AdminDentistsPage />} />
               <Route path="receptionists" element={<AdminReceptionistsPage />} />
             </Route>
             <Route path="patients" element={<PatientsPage />} />

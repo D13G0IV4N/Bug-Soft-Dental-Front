@@ -6,7 +6,7 @@ import styles from "./admin.module.css";
 
 const adminLinks = [
   { to: "/admin", label: "Mi clínica", end: true },
-  { to: "/admin/users", label: "Usuarios" },
+  { to: "/admin/dentists", label: "Dentistas" },
   { to: "/admin/receptionists", label: "Recepcionistas" },
   { to: "/admin/patients", label: "Pacientes" },
   { to: "/admin/appointments", label: "Citas" },

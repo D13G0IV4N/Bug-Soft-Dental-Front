@@ -2,55 +2,53 @@ import { useEffect, useState } from "react";
 import {
   createAdminUser,
   deleteAdminUser,
+  getAdminDentists,
   getAdminUserById,
-  getAdminUsers,
   updateAdminUser,
   type AdminClinicUser,
 } from "../../api/admin";
 import styles from "./admin.module.css";
 import formStyles from "../../styles/formSystem.module.css";
 
-type UserFormState = {
+type DentistFormState = {
   name: string;
   email: string;
   phone: string;
-  role: string;
   status: boolean;
   password: string;
 };
 
-const emptyForm: UserFormState = {
+const emptyForm: DentistFormState = {
   name: "",
   email: "",
   phone: "",
-  role: "dentist",
   status: true,
   password: "",
 };
 
-export default function AdminUsersPage() {
-  const [users, setUsers] = useState<AdminClinicUser[]>([]);
+export default function AdminDentistsPage() {
+  const [dentists, setDentists] = useState<AdminClinicUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<AdminClinicUser | null>(null);
-  const [form, setForm] = useState<UserFormState>(emptyForm);
+  const [form, setForm] = useState<DentistFormState>(emptyForm);
 
-  async function fetchUsers() {
+  async function fetchDentists() {
     try {
       setLoading(true);
       setError("");
-      setUsers(await getAdminUsers());
+      setDentists(await getAdminDentists());
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "No se pudieron cargar usuarios");
+      setError(e instanceof Error ? e.message : "No se pudieron cargar los dentistas");
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    fetchUsers();
+    fetchDentists();
   }, []);
 
   function openCreate() {
@@ -59,22 +57,21 @@ export default function AdminUsersPage() {
     setShowModal(true);
   }
 
-  async function openEdit(user: AdminClinicUser) {
-    if (!user.id) return;
+  async function openEdit(dentist: AdminClinicUser) {
+    if (!dentist.id) return;
     try {
-      const full = await getAdminUserById(user.id);
+      const full = await getAdminUserById(dentist.id);
       setEditing(full);
       setForm({
         name: full.name,
         email: full.email,
         phone: full.phone ?? "",
-        role: full.role,
         status: full.status !== false,
         password: "",
       });
       setShowModal(true);
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "No se pudo cargar el usuario");
+      alert(e instanceof Error ? e.message : "No se pudo cargar el dentista");
     }
   }
 
@@ -87,31 +84,31 @@ export default function AdminUsersPage() {
           name: form.name,
           email: form.email,
           phone: form.phone,
-          role: form.role,
+          role: "dentist",
           status: form.status,
           password: form.password.trim() ? form.password : undefined,
         });
       } else {
-        await createAdminUser({ ...form });
+        await createAdminUser({ ...form, role: "dentist" });
       }
       setShowModal(false);
-      await fetchUsers();
+      await fetchDentists();
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "No se pudo guardar");
+      alert(e instanceof Error ? e.message : "No se pudo guardar el dentista");
     } finally {
       setSaving(false);
     }
   }
 
-  async function onDelete(user: AdminClinicUser) {
-    if (!user.id) return;
-    if (!window.confirm(`¿Eliminar a ${user.name}?`)) return;
+  async function onDelete(dentist: AdminClinicUser) {
+    if (!dentist.id) return;
+    if (!window.confirm(`¿Eliminar a ${dentist.name}?`)) return;
 
     try {
-      await deleteAdminUser(user.id);
-      await fetchUsers();
+      await deleteAdminUser(dentist.id);
+      await fetchDentists();
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "No se pudo eliminar");
+      alert(e instanceof Error ? e.message : "No se pudo eliminar el dentista");
     }
   }
 
@@ -120,8 +117,8 @@ export default function AdminUsersPage() {
       <div className={styles.viewStack}>
         <div className={styles.hero}>
           <div>
-            <h2 className={styles.heroTitle}>Usuarios clínicos</h2>
-            <p className={styles.heroSub}>Gestiona dentistas, roles internos y su acceso al sistema.</p>
+            <h2 className={styles.heroTitle}>Dentistas</h2>
+            <p className={styles.heroSub}>Gestiona únicamente a los dentistas y su acceso al sistema.</p>
           </div>
           <div className={styles.actions}>
             <button className={styles.btnPrimary} onClick={openCreate}>+ Crear dentista</button>
@@ -131,17 +128,17 @@ export default function AdminUsersPage() {
         <div className={styles.contentCard}>
           <div className={styles.sectionHead}>
             <div>
-              <h3 className={styles.sectionTitle}>Directorio de usuarios</h3>
-              <p className={styles.sectionSub}>{loading ? "Cargando..." : `${users.length} usuario(s)`}</p>
+              <h3 className={styles.sectionTitle}>Directorio de dentistas</h3>
+              <p className={styles.sectionSub}>{loading ? "Cargando..." : `${dentists.length} dentista(s)`}</p>
             </div>
           </div>
 
           <div className={styles.sectionBody}>
-            {loading && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Cargando usuarios...</p></div></div>}
+            {loading && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Cargando dentistas...</p></div></div>}
             {!loading && error && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Error</p><p className={styles.emptyText}>{error}</p></div></div>}
-            {!loading && !error && users.length === 0 && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Sin usuarios</p><p className={styles.emptyText}>Crea el primer usuario para comenzar.</p></div></div>}
+            {!loading && !error && dentists.length === 0 && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Sin dentistas</p><p className={styles.emptyText}>Crea el primer dentista para comenzar.</p></div></div>}
 
-            {!loading && !error && users.length > 0 && (
+            {!loading && !error && dentists.length > 0 && (
               <div className={styles.listSurface}>
                 <div className={styles.tableWrap}>
                   <table className={styles.table}>
@@ -149,16 +146,16 @@ export default function AdminUsersPage() {
                       <tr><th>Nombre</th><th>Contacto</th><th>Rol</th><th>Estatus</th><th>Acciones</th></tr>
                     </thead>
                     <tbody>
-                      {users.map((user) => (
-                        <tr key={user.id}>
-                          <td><p className={styles.rowTitle}>{user.name}</p></td>
-                          <td><p className={styles.rowTitle}>{user.email}</p><p className={styles.rowSub}>{user.phone || "Sin teléfono"}</p></td>
-                          <td><span className={`${styles.pill} ${styles.pillRole}`}>{user.role}</span></td>
-                          <td><span className={`${styles.pill} ${user.status === false ? styles.pillOff : styles.pillOn}`}>{user.status === false ? "Inactivo" : "Activo"}</span></td>
+                      {dentists.map((dentist) => (
+                        <tr key={dentist.id}>
+                          <td><p className={styles.rowTitle}>{dentist.name}</p></td>
+                          <td><p className={styles.rowTitle}>{dentist.email}</p><p className={styles.rowSub}>{dentist.phone || "Sin teléfono"}</p></td>
+                          <td><span className={`${styles.pill} ${styles.pillRole}`}>dentist</span></td>
+                          <td><span className={`${styles.pill} ${dentist.status === false ? styles.pillOff : styles.pillOn}`}>{dentist.status === false ? "Inactivo" : "Activo"}</span></td>
                           <td>
                             <div className={styles.tableActions}>
-                              <button className={styles.btnGhost} onClick={() => openEdit(user)}>Editar</button>
-                              <button className={styles.btnDanger} onClick={() => onDelete(user)}>Eliminar</button>
+                              <button className={styles.btnGhost} onClick={() => openEdit(dentist)}>Editar</button>
+                              <button className={styles.btnDanger} onClick={() => onDelete(dentist)}>Eliminar</button>
                             </div>
                           </td>
                         </tr>
@@ -176,8 +173,8 @@ export default function AdminUsersPage() {
         <div className={formStyles.modalOverlay} onClick={() => setShowModal(false)}>
           <div className={formStyles.modalCard} onClick={(event) => event.stopPropagation()}>
             <div className={formStyles.modalHeader}>
-              <h3 className={formStyles.modalTitle}>{editing ? "Editar usuario" : "Crear usuario"}</h3>
-              <p className={formStyles.modalText}>Completa la información para {editing ? "actualizar" : "registrar"} el usuario.</p>
+              <h3 className={formStyles.modalTitle}>{editing ? "Editar dentista" : "Crear dentista"}</h3>
+              <p className={formStyles.modalText}>Completa la información para {editing ? "actualizar" : "registrar"} el dentista.</p>
             </div>
 
             <div className={formStyles.modalBody}>
@@ -186,11 +183,7 @@ export default function AdminUsersPage() {
                 <label className={formStyles.field}>Correo<input className={formStyles.control} type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label>
                 <label className={formStyles.field}>Teléfono<input className={formStyles.control} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></label>
                 <label className={formStyles.field}>Rol
-                  <select className={formStyles.control} value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
-                    <option value="dentist">Dentista</option>
-                    <option value="receptionist">Recepcionista</option>
-                    <option value="client">Paciente/Cliente</option>
-                  </select>
+                  <input className={formStyles.control} value="Dentista" readOnly aria-readonly="true" />
                 </label>
                 <label className={formStyles.field}>Contraseña {editing ? "(opcional)" : ""}
                   <input className={formStyles.control} type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required={!editing} />
@@ -198,7 +191,7 @@ export default function AdminUsersPage() {
                 <label className={formStyles.checkboxField}><input type="checkbox" checked={form.status} onChange={(e) => setForm({ ...form, status: e.target.checked })} /> Activo</label>
                 <div className={formStyles.formActions}>
                   <button type="button" className={styles.btnGhost} onClick={() => setShowModal(false)} disabled={saving}>Cancelar</button>
-                  <button type="submit" className={styles.btnPrimary} disabled={saving}>{saving ? "Guardando..." : "Guardar"}</button>
+                  <button type="submit" className={styles.btnPrimary} disabled={saving}>{saving ? "Guardando..." : editing ? "Guardar dentista" : "Crear dentista"}</button>
                 </div>
               </form>
             </div>
