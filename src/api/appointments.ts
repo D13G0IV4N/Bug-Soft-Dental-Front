@@ -1,22 +1,25 @@
 import axios from "axios";
 import { api } from "./axios";
 
-export type AppointmentStatus = "pending" | "confirmed" | "cancelled" | "completed" | string;
+export type AppointmentStatus = "pending" | "scheduled" | "confirmed" | "cancelled" | "completed" | string;
 
 interface AppointmentPerson {
   id?: number;
   name?: string;
+  email?: string;
+  phone?: string;
 }
 
 export interface Appointment {
   id?: number;
-  patient_id: number;
-  dentist_id: number;
-  starts_at: string;
-  ends_at?: string;
+  patient_user_id: number;
+  dentist_user_id: number;
+  start_at: string;
+  end_at?: string;
   reason?: string;
-  status?: AppointmentStatus;
+  internal_notes?: string;
   notes?: string;
+  status?: AppointmentStatus;
   patient?: AppointmentPerson;
   dentist?: AppointmentPerson;
   patient_name?: string;
@@ -26,11 +29,13 @@ export interface Appointment {
 }
 
 export interface CreateAppointmentInput {
-  patient_id: number;
-  dentist_id: number;
-  starts_at: string;
-  ends_at: string;
-  reason: string;
+  patient_user_id: number;
+  dentist_user_id: number;
+  start_at: string;
+  end_at: string;
+  reason?: string;
+  internal_notes?: string;
+  notes?: string;
 }
 
 function normalizeOne<T>(payload: unknown): T {
@@ -77,20 +82,36 @@ function normalizeAppointment(raw: unknown): Appointment {
   const patient = asRecord(source.patient);
   const dentist = asRecord(source.dentist);
 
-  const patientId = toNumber(source.patient_id ?? patient.id);
-  const dentistId = toNumber(source.dentist_id ?? dentist.id);
+  const patientUserId = toNumber(source.patient_user_id ?? source.patient_id ?? patient.id);
+  const dentistUserId = toNumber(source.dentist_user_id ?? source.dentist_id ?? dentist.id);
+  const internalNotes = toStringValue(source.internal_notes ?? source.notes);
 
   return {
     id: typeof source.id === "number" ? source.id : undefined,
-    patient_id: patientId,
-    dentist_id: dentistId,
-    starts_at: toStringValue(source.starts_at ?? source.start_at ?? source.start_time ?? source.start_datetime),
-    ends_at: toStringValue(source.ends_at ?? source.end_at ?? source.end_time ?? source.end_datetime),
+    patient_user_id: patientUserId,
+    dentist_user_id: dentistUserId,
+    start_at: toStringValue(source.start_at ?? source.starts_at ?? source.start_time ?? source.start_datetime),
+    end_at: toStringValue(source.end_at ?? source.ends_at ?? source.end_time ?? source.end_datetime),
     reason: toStringValue(source.reason),
-    status: toStringValue(source.status) || "pending",
-    notes: toStringValue(source.notes),
-    patient: Object.keys(patient).length ? { id: toNumber(patient.id), name: toStringValue(patient.name) } : undefined,
-    dentist: Object.keys(dentist).length ? { id: toNumber(dentist.id), name: toStringValue(dentist.name) } : undefined,
+    internal_notes: internalNotes,
+    notes: internalNotes,
+    status: toStringValue(source.status) || "scheduled",
+    patient: Object.keys(patient).length
+      ? {
+          id: toNumber(patient.id),
+          name: toStringValue(patient.name),
+          email: toStringValue(patient.email),
+          phone: toStringValue(patient.phone),
+        }
+      : undefined,
+    dentist: Object.keys(dentist).length
+      ? {
+          id: toNumber(dentist.id),
+          name: toStringValue(dentist.name),
+          email: toStringValue(dentist.email),
+          phone: toStringValue(dentist.phone),
+        }
+      : undefined,
     patient_name: toStringValue(source.patient_name ?? patient.name),
     dentist_name: toStringValue(source.dentist_name ?? dentist.name),
     created_at: toStringValue(source.created_at),
@@ -123,24 +144,26 @@ export function toErrorMessage(error: unknown, fallbackMessage: string): string 
 }
 
 export async function getAppointments() {
-  const { data } = await api.get("/admin/appointments");
+  const { data } = await api.get("/appointments");
   return normalizeList(data).map(normalizeAppointment);
 }
 
 export async function createAppointment(payload: CreateAppointmentInput) {
   const requestBody = {
-    patient_id: payload.patient_id,
-    dentist_id: payload.dentist_id,
-    starts_at: toApiDateTime(payload.starts_at),
-    ends_at: toApiDateTime(payload.ends_at),
-    reason: payload.reason,
+    patient_user_id: payload.patient_user_id,
+    dentist_user_id: payload.dentist_user_id,
+    start_at: toApiDateTime(payload.start_at),
+    end_at: toApiDateTime(payload.end_at),
+    reason: payload.reason?.trim() || undefined,
+    internal_notes: payload.internal_notes?.trim() || undefined,
+    notes: payload.notes?.trim() || undefined,
   };
 
-  const { data } = await api.post("/admin/appointments", requestBody);
+  const { data } = await api.post("/appointments", requestBody);
   return normalizeAppointment(normalizeOne<unknown>(data));
 }
 
 export async function updateAppointmentStatus(appointmentId: number | string, status: AppointmentStatus) {
-  const { data } = await api.patch(`/admin/appointments/${appointmentId}/status`, { status });
+  const { data } = await api.patch(`/appointments/${appointmentId}/status`, { status });
   return normalizeAppointment(normalizeOne<unknown>(data));
 }
