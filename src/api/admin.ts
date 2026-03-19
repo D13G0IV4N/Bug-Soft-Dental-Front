@@ -75,6 +75,11 @@ export async function getAdminUsers() {
   return normalizeList<AdminClinicUser>(data).map(mapUser);
 }
 
+export async function getAdminDentists() {
+  const users = await getAdminUsers();
+  return users.filter((user) => user.role === "dentist");
+}
+
 export async function getAdminUserById(userId: number | string) {
   const { data } = await api.get(`/admin/users/${userId}`);
   return mapUser(normalizeOne<AdminClinicUser>(data));
