@@ -67,6 +67,7 @@ function mapUser(raw: unknown): AdminClinicUser {
   const specialties = [
     ...(Array.isArray(raw?.specialties) ? raw.specialties : []),
     ...(Array.isArray(profile?.specialties) ? profile.specialties : []),
+    ...(Array.isArray(raw?.dentist_specialties) ? raw.dentist_specialties : []),
   ]
     .map(toSpecialty)
     .filter((item): item is Specialty => Boolean(item));

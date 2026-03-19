@@ -8,6 +8,7 @@ import {
   type AdminClinicUser,
 } from "../../api/admin";
 import { getSpecialties, type Specialty } from "../../api/specialties";
+import SpecialtiesField from "../Dentists/SpecialtiesField";
 import styles from "./admin.module.css";
 import formStyles from "../../styles/formSystem.module.css";
 
@@ -29,9 +30,14 @@ const emptyForm: DentistFormState = {
   specialtyIds: [],
 };
 
-function formatSpecialties(dentist: AdminClinicUser) {
-  if (!dentist.specialties || dentist.specialties.length === 0) return "Sin especialidad";
-  return dentist.specialties.map((specialty) => specialty.name).join(", ");
+function formatSpecialties(dentist: AdminClinicUser, specialtiesCatalog: Specialty[]) {
+  const names = dentist.specialties?.length
+    ? dentist.specialties.map((specialty) => specialty.name)
+    : (dentist.specialtyIds ?? [])
+        .map((specialtyId) => specialtiesCatalog.find((specialty) => specialty.id === specialtyId)?.name)
+        .filter((name): name is string => Boolean(name));
+
+  return names.length > 0 ? Array.from(new Set(names)).join(", ") : "Sin especialidad";
 }
 
 export default function AdminDentistsPage() {
@@ -99,11 +105,7 @@ export default function AdminDentistsPage() {
     }
   }
 
-  function handleSpecialtiesChange(event: React.ChangeEvent<HTMLSelectElement>) {
-    const specialtyIds = Array.from(event.target.selectedOptions)
-      .map((option) => Number(option.value))
-      .filter((value) => Number.isInteger(value) && value > 0);
-
+  function handleSpecialtiesChange(specialtyIds: number[]) {
     setForm((current) => ({ ...current, specialtyIds }));
   }
 
@@ -183,7 +185,7 @@ export default function AdminDentistsPage() {
                         <tr key={dentist.id}>
                           <td><p className={styles.rowTitle}>{dentist.name}</p></td>
                           <td><p className={styles.rowTitle}>{dentist.email}</p><p className={styles.rowSub}>{dentist.phone || "Sin teléfono"}</p></td>
-                          <td><p className={styles.rowSub}>{formatSpecialties(dentist)}</p></td>
+                          <td><p className={styles.rowSub}>{formatSpecialties(dentist, specialties)}</p></td>
                           <td><span className={`${styles.pill} ${styles.pillRole}`}>dentist</span></td>
                           <td><span className={`${styles.pill} ${dentist.status === false ? styles.pillOff : styles.pillOn}`}>{dentist.status === false ? "Inactivo" : "Activo"}</span></td>
                           <td>
@@ -222,16 +224,13 @@ export default function AdminDentistsPage() {
                 <label className={formStyles.field}>Contraseña {editing ? "(opcional)" : ""}
                   <input className={formStyles.control} type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required={!editing} />
                 </label>
-                <label className={`${formStyles.field} ${formStyles.fieldFull}`}>Especialidades
-                  <select className={formStyles.control} multiple size={Math.min(Math.max(specialties.length, 4), 6)} value={form.specialtyIds.map(String)} onChange={handleSpecialtiesChange} disabled={specialtiesLoading || saving}>
-                    {specialties.map((specialty) => (
-                      <option key={specialty.id} value={specialty.id}>{specialty.name}</option>
-                    ))}
-                  </select>
-                </label>
-                <p className={formStyles.helper}>
-                  {specialtiesLoading ? "Cargando especialidades..." : specialties.length > 0 ? "Mantén presionada la tecla Ctrl (o Cmd en Mac) para elegir varias especialidades." : "No hay especialidades disponibles en el backend."}
-                </p>
+                <SpecialtiesField
+                  specialties={specialties}
+                  selectedIds={form.specialtyIds}
+                  loading={specialtiesLoading}
+                  disabled={saving || specialtiesLoading}
+                  onChange={handleSpecialtiesChange}
+                />
                 <label className={formStyles.checkboxField}><input type="checkbox" checked={form.status} onChange={(e) => setForm({ ...form, status: e.target.checked })} /> Activo</label>
                 <div className={formStyles.formActions}>
                   <button type="button" className={styles.btnGhost} onClick={() => setShowModal(false)} disabled={saving}>Cancelar</button>
