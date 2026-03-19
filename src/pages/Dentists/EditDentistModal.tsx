@@ -3,11 +3,12 @@ import styles from "./dentists.module.css";
 import formStyles from "../../styles/formSystem.module.css";
 import { deleteDentist, updateDentist, type Dentist } from "../../api/dentists";
 import { getSpecialties, type Specialty } from "../../api/specialties";
+import SpecialtiesField from "./SpecialtiesField";
 
 interface Props { clinicId: string; dentist: Dentist; onClose: () => void; onUpdated: () => void; }
 
 export default function EditDentistModal({ clinicId, dentist, onClose, onUpdated }: Props) {
-  const [form, setForm] = useState<Dentist>({ ...dentist, password: "" });
+  const [form, setForm] = useState<Dentist>({ ...dentist, specialtyIds: dentist.specialtyIds ?? [], password: "" });
   const [specialties, setSpecialties] = useState<Specialty[]>([]);
   const [loadingSpecialties, setLoadingSpecialties] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -34,11 +35,11 @@ export default function EditDentistModal({ clinicId, dentist, onClose, onUpdated
     return () => { active = false; };
   }, []);
 
-  function handleSpecialtiesChange(event: React.ChangeEvent<HTMLSelectElement>) {
-    const specialtyIds = Array.from(event.target.selectedOptions)
-      .map((option) => Number(option.value))
-      .filter((value) => Number.isInteger(value) && value > 0);
+  useEffect(() => {
+    setForm({ ...dentist, specialtyIds: dentist.specialtyIds ?? [], password: "" });
+  }, [dentist]);
 
+  function handleSpecialtiesChange(specialtyIds: number[]) {
     setForm((current) => ({ ...current, specialtyIds }));
   }
 
@@ -87,16 +88,13 @@ export default function EditDentistModal({ clinicId, dentist, onClose, onUpdated
             <label className={formStyles.field}>Teléfono<input className={formStyles.control} value={form.phone ?? ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></label>
             <label className={formStyles.field}>Correo *<input className={formStyles.control} type="email" value={form.email ?? ""} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label>
             <label className={`${formStyles.field} ${formStyles.fieldFull}`}>Contraseña (opcional)<input className={formStyles.control} type="password" value={form.password ?? ""} onChange={(e) => setForm({ ...form, password: e.target.value })} /></label>
-            <label className={`${formStyles.field} ${formStyles.fieldFull}`}>Especialidades
-              <select className={formStyles.control} multiple size={Math.min(Math.max(specialties.length, 4), 6)} value={form.specialtyIds.map(String)} onChange={handleSpecialtiesChange} disabled={loadingSpecialties || loading}>
-                {specialties.map((specialty) => (
-                  <option key={specialty.id} value={specialty.id}>{specialty.name}</option>
-                ))}
-              </select>
-            </label>
-            <p className={formStyles.helper}>
-              {loadingSpecialties ? "Cargando especialidades..." : specialties.length > 0 ? "Mantén presionada la tecla Ctrl (o Cmd en Mac) para elegir varias especialidades." : "No hay especialidades disponibles en el backend."}
-            </p>
+            <SpecialtiesField
+              specialties={specialties}
+              selectedIds={form.specialtyIds}
+              loading={loadingSpecialties}
+              disabled={loadingSpecialties || loading}
+              onChange={handleSpecialtiesChange}
+            />
             <label className={formStyles.field}>Número de licencia<input className={formStyles.control} value={form.licenseNumber ?? ""} onChange={(e) => setForm({ ...form, licenseNumber: e.target.value })} /></label>
             <label className={formStyles.field}>Color<input className={formStyles.control} type="color" value={form.color || "#2f86e6"} onChange={(e) => setForm({ ...form, color: e.target.value })} /></label>
             <label className={formStyles.checkboxField}><input type="checkbox" checked={form.status ?? true} onChange={(e) => setForm({ ...form, status: e.target.checked })} /> Activo</label>

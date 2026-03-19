@@ -97,6 +97,10 @@ function mapToDentist(u: unknown): Dentist {
 }
 
 function buildDentistPayload(dentist: Partial<Dentist>, includePassword = false) {
+  const specialtyIds = Array.from(
+    new Set((dentist.specialtyIds ?? []).map((value) => Number(value)).filter((value) => Number.isInteger(value) && value > 0))
+  );
+
   const payload: Record<string, unknown> = {
     name: dentist.name,
     email: dentist.email,
@@ -104,7 +108,7 @@ function buildDentistPayload(dentist: Partial<Dentist>, includePassword = false)
     role: "dentist",
     license_number: dentist.licenseNumber ?? null,
     color: dentist.color ?? null,
-    specialty_ids: dentist.specialtyIds ?? [],
+    specialty_ids: specialtyIds,
     dentist_profile: {
       license_number: dentist.licenseNumber ?? null,
       color: dentist.color ?? null,
