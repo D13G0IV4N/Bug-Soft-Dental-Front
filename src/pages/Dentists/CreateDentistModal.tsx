@@ -1,14 +1,58 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "./dentists.module.css";
 import formStyles from "../../styles/formSystem.module.css";
 import { createDentist, type Dentist } from "../../api/dentists";
+import { getSpecialties, type Specialty } from "../../api/specialties";
 
 interface Props { clinicId: string; onClose: () => void; onCreated: () => void; }
 
+const emptyDentist: Dentist = {
+  name: "",
+  email: "",
+  password: "",
+  phone: "",
+  status: true,
+  specialtyIds: [],
+  specialties: [],
+  licenseNumber: "",
+  color: "#2f86e6",
+};
+
 export default function CreateDentistModal({ clinicId, onClose, onCreated }: Props) {
-  const [dentist, setDentist] = useState<Dentist>({ name: "", email: "", password: "", phone: "", status: true, specialty: "", licenseNumber: "", color: "#2f86e6" });
+  const [dentist, setDentist] = useState<Dentist>(emptyDentist);
+  const [specialties, setSpecialties] = useState<Specialty[]>([]);
+  const [loadingSpecialties, setLoadingSpecialties] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadSpecialties() {
+      try {
+        setLoadingSpecialties(true);
+        const catalog = await getSpecialties();
+        if (active) setSpecialties(catalog);
+      } catch (err: unknown) {
+        if (active) {
+          setError(err?.response?.data?.message || err?.message || "No se pudieron cargar las especialidades");
+        }
+      } finally {
+        if (active) setLoadingSpecialties(false);
+      }
+    }
+
+    loadSpecialties();
+    return () => { active = false; };
+  }, []);
+
+  function handleSpecialtiesChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    const specialtyIds = Array.from(event.target.selectedOptions)
+      .map((option) => Number(option.value))
+      .filter((value) => Number.isInteger(value) && value > 0);
+
+    setDentist((current) => ({ ...current, specialtyIds }));
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -18,7 +62,7 @@ export default function CreateDentistModal({ clinicId, onClose, onCreated }: Pro
       await createDentist(clinicId, dentist);
       onCreated();
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Create dentist error:", err?.response?.data || err);
       setError(err?.response?.data?.message || err?.message || "No se pudo crear el dentista");
     } finally { setLoading(false); }
@@ -41,12 +85,21 @@ export default function CreateDentistModal({ clinicId, onClose, onCreated }: Pro
             <label className={formStyles.field}>Teléfono<input className={formStyles.control} value={dentist.phone ?? ""} onChange={(e) => setDentist({ ...dentist, phone: e.target.value })} placeholder="3312345678" /></label>
             <label className={formStyles.field}>Correo *<input className={formStyles.control} type="email" value={dentist.email ?? ""} onChange={(e) => setDentist({ ...dentist, email: e.target.value })} required placeholder="correo@gmail.com" /></label>
             <label className={`${formStyles.field} ${formStyles.fieldFull}`}>Contraseña *<input className={formStyles.control} type="password" value={dentist.password ?? ""} onChange={(e) => setDentist({ ...dentist, password: e.target.value })} required placeholder="********" /></label>
-            <label className={formStyles.field}>Especialidad<input className={formStyles.control} value={dentist.specialty ?? ""} onChange={(e) => setDentist({ ...dentist, specialty: e.target.value })} placeholder="Ortodoncia / Endodoncia..." /></label>
+            <label className={`${formStyles.field} ${formStyles.fieldFull}`}>Especialidades
+              <select className={formStyles.control} multiple size={Math.min(Math.max(specialties.length, 4), 6)} value={dentist.specialtyIds.map(String)} onChange={handleSpecialtiesChange} disabled={loadingSpecialties || loading}>
+                {specialties.map((specialty) => (
+                  <option key={specialty.id} value={specialty.id}>{specialty.name}</option>
+                ))}
+              </select>
+            </label>
+            <p className={formStyles.helper}>
+              {loadingSpecialties ? "Cargando especialidades..." : specialties.length > 0 ? "Mantén presionada la tecla Ctrl (o Cmd en Mac) para elegir varias especialidades." : "No hay especialidades disponibles en el backend."}
+            </p>
             <label className={formStyles.field}>Número de licencia<input className={formStyles.control} value={dentist.licenseNumber ?? ""} onChange={(e) => setDentist({ ...dentist, licenseNumber: e.target.value })} placeholder="LIC-123456" /></label>
             <label className={formStyles.field}>Color<input className={formStyles.control} type="color" value={dentist.color || "#2f86e6"} onChange={(e) => setDentist({ ...dentist, color: e.target.value })} /></label>
             <label className={formStyles.checkboxField}><input type="checkbox" checked={dentist.status ?? true} onChange={(e) => setDentist({ ...dentist, status: e.target.checked })} /> Activo</label>
             {error && <div className={formStyles.error}>{error}</div>}
-            <div className={formStyles.formActions}><button type="button" className={styles.btnGhost} onClick={onClose} disabled={loading}>Cancelar</button><button type="submit" className={styles.btnPrimary} disabled={loading}>{loading ? "Creando..." : "Crear"}</button></div>
+            <div className={formStyles.formActions}><button type="button" className={styles.btnGhost} onClick={onClose} disabled={loading}>Cancelar</button><button type="submit" className={styles.btnPrimary} disabled={loading || loadingSpecialties}>{loading ? "Creando..." : "Crear"}</button></div>
           </form>
         </div>
       </div>

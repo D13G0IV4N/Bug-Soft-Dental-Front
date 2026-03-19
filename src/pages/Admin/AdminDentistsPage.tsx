@@ -7,6 +7,7 @@ import {
   updateAdminUser,
   type AdminClinicUser,
 } from "../../api/admin";
+import { getSpecialties, type Specialty } from "../../api/specialties";
 import styles from "./admin.module.css";
 import formStyles from "../../styles/formSystem.module.css";
 
@@ -16,6 +17,7 @@ type DentistFormState = {
   phone: string;
   status: boolean;
   password: string;
+  specialtyIds: number[];
 };
 
 const emptyForm: DentistFormState = {
@@ -24,11 +26,19 @@ const emptyForm: DentistFormState = {
   phone: "",
   status: true,
   password: "",
+  specialtyIds: [],
 };
+
+function formatSpecialties(dentist: AdminClinicUser) {
+  if (!dentist.specialties || dentist.specialties.length === 0) return "Sin especialidad";
+  return dentist.specialties.map((specialty) => specialty.name).join(", ");
+}
 
 export default function AdminDentistsPage() {
   const [dentists, setDentists] = useState<AdminClinicUser[]>([]);
+  const [specialties, setSpecialties] = useState<Specialty[]>([]);
   const [loading, setLoading] = useState(true);
+  const [specialtiesLoading, setSpecialtiesLoading] = useState(true);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -47,8 +57,21 @@ export default function AdminDentistsPage() {
     }
   }
 
+  async function fetchSpecialties() {
+    try {
+      setSpecialtiesLoading(true);
+      const catalog = await getSpecialties();
+      setSpecialties(catalog);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "No se pudieron cargar las especialidades");
+    } finally {
+      setSpecialtiesLoading(false);
+    }
+  }
+
   useEffect(() => {
     fetchDentists();
+    fetchSpecialties();
   }, []);
 
   function openCreate() {
@@ -68,11 +91,20 @@ export default function AdminDentistsPage() {
         phone: full.phone ?? "",
         status: full.status !== false,
         password: "",
+        specialtyIds: full.specialtyIds ?? [],
       });
       setShowModal(true);
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "No se pudo cargar el dentista");
     }
+  }
+
+  function handleSpecialtiesChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    const specialtyIds = Array.from(event.target.selectedOptions)
+      .map((option) => Number(option.value))
+      .filter((value) => Number.isInteger(value) && value > 0);
+
+    setForm((current) => ({ ...current, specialtyIds }));
   }
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -87,6 +119,7 @@ export default function AdminDentistsPage() {
           role: "dentist",
           status: form.status,
           password: form.password.trim() ? form.password : undefined,
+          specialtyIds: form.specialtyIds,
         });
       } else {
         await createAdminUser({ ...form, role: "dentist" });
@@ -143,13 +176,14 @@ export default function AdminDentistsPage() {
                 <div className={styles.tableWrap}>
                   <table className={styles.table}>
                     <thead>
-                      <tr><th>Nombre</th><th>Contacto</th><th>Rol</th><th>Estatus</th><th>Acciones</th></tr>
+                      <tr><th>Nombre</th><th>Contacto</th><th>Especialidades</th><th>Rol</th><th>Estatus</th><th>Acciones</th></tr>
                     </thead>
                     <tbody>
                       {dentists.map((dentist) => (
                         <tr key={dentist.id}>
                           <td><p className={styles.rowTitle}>{dentist.name}</p></td>
                           <td><p className={styles.rowTitle}>{dentist.email}</p><p className={styles.rowSub}>{dentist.phone || "Sin teléfono"}</p></td>
+                          <td><p className={styles.rowSub}>{formatSpecialties(dentist)}</p></td>
                           <td><span className={`${styles.pill} ${styles.pillRole}`}>dentist</span></td>
                           <td><span className={`${styles.pill} ${dentist.status === false ? styles.pillOff : styles.pillOn}`}>{dentist.status === false ? "Inactivo" : "Activo"}</span></td>
                           <td>
@@ -188,10 +222,20 @@ export default function AdminDentistsPage() {
                 <label className={formStyles.field}>Contraseña {editing ? "(opcional)" : ""}
                   <input className={formStyles.control} type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required={!editing} />
                 </label>
+                <label className={`${formStyles.field} ${formStyles.fieldFull}`}>Especialidades
+                  <select className={formStyles.control} multiple size={Math.min(Math.max(specialties.length, 4), 6)} value={form.specialtyIds.map(String)} onChange={handleSpecialtiesChange} disabled={specialtiesLoading || saving}>
+                    {specialties.map((specialty) => (
+                      <option key={specialty.id} value={specialty.id}>{specialty.name}</option>
+                    ))}
+                  </select>
+                </label>
+                <p className={formStyles.helper}>
+                  {specialtiesLoading ? "Cargando especialidades..." : specialties.length > 0 ? "Mantén presionada la tecla Ctrl (o Cmd en Mac) para elegir varias especialidades." : "No hay especialidades disponibles en el backend."}
+                </p>
                 <label className={formStyles.checkboxField}><input type="checkbox" checked={form.status} onChange={(e) => setForm({ ...form, status: e.target.checked })} /> Activo</label>
                 <div className={formStyles.formActions}>
                   <button type="button" className={styles.btnGhost} onClick={() => setShowModal(false)} disabled={saving}>Cancelar</button>
-                  <button type="submit" className={styles.btnPrimary} disabled={saving}>{saving ? "Guardando..." : editing ? "Guardar dentista" : "Crear dentista"}</button>
+                  <button type="submit" className={styles.btnPrimary} disabled={saving || specialtiesLoading}>{saving ? "Guardando..." : editing ? "Guardar dentista" : "Crear dentista"}</button>
                 </div>
               </form>
             </div>

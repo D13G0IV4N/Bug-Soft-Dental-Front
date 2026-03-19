@@ -1,4 +1,5 @@
 import { api } from "./axios";
+import type { Specialty } from "./specialties";
 
 export type UserRole = "admin" | "receptionist" | "dentist" | "client";
 
@@ -10,7 +11,8 @@ export interface ClinicUser {
   role: UserRole | string;
   status?: boolean;
   dentistProfile?: {
-    specialty?: string | null;
+    specialtyIds: number[];
+    specialties: Specialty[];
     licenseNumber?: string | null;
     color?: string | null;
   };
@@ -34,16 +36,55 @@ export interface UpdateClinicUserPayload {
   status?: boolean;
 }
 
-function normalizeList(res: any) {
+function normalizeList(res: unknown) {
   return res?.data?.data ?? res?.data ?? res ?? [];
 }
 
-function normalizeOne(res: any) {
+function normalizeOne(res: unknown) {
   return res?.data?.data ?? res?.data ?? res;
 }
 
-function mapToClinicUser(user: any): ClinicUser {
+function toStatus(value: unknown): boolean {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value === 1;
+  if (typeof value === "string") {
+    const normalized = value.toLowerCase().trim();
+    return normalized === "1" || normalized === "true" || normalized === "active";
+  }
+  return true;
+}
+
+function toSpecialty(source: unknown): Specialty | null {
+  if (!source || typeof source !== "object") return null;
+
+  const id = Number(source.id ?? source.specialty_id ?? 0);
+  const name = source.name ?? source.specialty ?? source.title ?? "";
+  if (!id || !name) return null;
+
+  return {
+    id,
+    name,
+    description: source.description ?? null,
+    status: toStatus(source.status),
+  };
+}
+
+function mapToClinicUser(user: unknown): ClinicUser {
   const profile = user?.dentist_profile ?? user?.dentistProfile ?? {};
+  const specialties = [
+    ...(Array.isArray(user?.specialties) ? user.specialties : []),
+    ...(Array.isArray(profile?.specialties) ? profile.specialties : []),
+  ]
+    .map(toSpecialty)
+    .filter((item): item is Specialty => Boolean(item));
+
+  const specialtyIds = [
+    ...(Array.isArray(user?.specialty_ids) ? user.specialty_ids : []),
+    ...(Array.isArray(profile?.specialty_ids) ? profile.specialty_ids : []),
+    ...specialties.map((item) => item.id),
+  ]
+    .map((value) => Number(value))
+    .filter((value, index, array) => Number.isInteger(value) && value > 0 && array.indexOf(value) === index);
 
   return {
     id: user?.id,
@@ -51,9 +92,10 @@ function mapToClinicUser(user: any): ClinicUser {
     email: user?.email ?? "",
     phone: user?.phone ?? "",
     role: user?.role ?? "client",
-    status: typeof user?.status === "boolean" ? user.status : Boolean(user?.status),
+    status: toStatus(user?.status),
     dentistProfile: {
-      specialty: profile?.specialty ?? user?.specialty ?? null,
+      specialtyIds,
+      specialties,
       licenseNumber:
         profile?.license_number ?? profile?.licenseNumber ?? user?.license_number ?? null,
       color: profile?.color ?? user?.color ?? null,

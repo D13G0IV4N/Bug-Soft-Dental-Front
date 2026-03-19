@@ -498,7 +498,7 @@ export default function ClinicDetailPage() {
                           <td>{user.status === false ? "Inactivo" : "Activo"}</td>
                           <td>
                             {user.role === "dentist"
-                              ? `${user.dentistProfile?.specialty || "Sin especialidad"} · ${
+                              ? `${user.dentistProfile?.specialties?.length ? user.dentistProfile.specialties.map((specialty) => specialty.name).join(", ") : "Sin especialidad"} · ${
                                   user.dentistProfile?.licenseNumber || "Sin licencia"
                                 }`
                               : "-"}

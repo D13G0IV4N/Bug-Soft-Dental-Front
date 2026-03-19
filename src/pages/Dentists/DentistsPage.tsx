@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import styles from "./dentists.module.css";
@@ -8,6 +8,11 @@ import { getDentistsByClinic, type Dentist } from "../../api/dentists";
 import CreateDentistModal from "./CreateDentistModal";
 import EditDentistModal from "./EditDentistModal";
 import DentistDetailsModal from "./DentistDetailsModal";
+
+function formatSpecialties(dentist: Dentist) {
+  if (dentist.specialties.length === 0) return "Sin especialidad";
+  return dentist.specialties.map((specialty) => specialty.name).join(", ");
+}
 
 export default function DentistsPage() {
   const navigate = useNavigate();
@@ -30,7 +35,7 @@ export default function DentistsPage() {
     navigate("/login", { replace: true });
   }
 
-  async function fetchDentists() {
+  const fetchDentists = useCallback(async () => {
     if (!clinicId) return;
 
     try {
@@ -39,7 +44,7 @@ export default function DentistsPage() {
 
       const list = await getDentistsByClinic(clinicId);
       setDentists(Array.isArray(list) ? list : []);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("Dentists error:", e?.response?.data || e);
       setError(
         e?.response?.data?.message ||
@@ -49,11 +54,11 @@ export default function DentistsPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [clinicId]);
 
   useEffect(() => {
     fetchDentists();
-  }, [clinicId]);
+  }, [fetchDentists]);
 
   return (
     <div className={styles.page}>
@@ -79,7 +84,6 @@ export default function DentistsPage() {
               + Crear dentista
             </button>
 
-            
             <button className={styles.btnGhost} onClick={handleLogout} disabled={loading}>
               Cerrar sesión
             </button>
@@ -135,7 +139,7 @@ export default function DentistsPage() {
                     <br />
                     {d.phone ? `Tel: ${d.phone}` : "Sin teléfono"}
                     <br />
-                    {d.specialty ? `Especialidad: ${d.specialty}` : "Sin especialidad"}
+                    {`Especialidades: ${formatSpecialties(d)}`}
                     <br />
                     {d.licenseNumber ? `Licencia: ${d.licenseNumber}` : "Sin licencia"}
                   </p>
@@ -187,7 +191,6 @@ export default function DentistsPage() {
         </div>
       </div>
 
-      {/* Modal crear */}
       {showCreate && clinicId && (
         <CreateDentistModal
           clinicId={clinicId}
@@ -196,7 +199,6 @@ export default function DentistsPage() {
         />
       )}
 
-      {/* Modal editar */}
       {showEdit && selected && clinicId && (
         <EditDentistModal
           clinicId={clinicId}
@@ -206,7 +208,6 @@ export default function DentistsPage() {
         />
       )}
 
-      {/* ✅ Modal detalles */}
       {showDetails && details && clinicId && (
         <DentistDetailsModal
           clinicId={clinicId}
