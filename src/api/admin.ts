@@ -1,4 +1,5 @@
 import { api } from "./axios";
+import type { Specialty } from "./specialties";
 
 export interface AdminClinic {
   id?: number;
@@ -19,6 +20,8 @@ export interface AdminClinicUser {
   role: string;
   status?: boolean;
   password?: string;
+  specialtyIds?: number[];
+  specialties?: Specialty[];
 }
 
 function normalizeOne<T>(payload: unknown): T {
@@ -44,7 +47,38 @@ function toStatus(value: unknown): boolean {
   return true;
 }
 
-function mapUser(raw: AdminClinicUser): AdminClinicUser {
+function toSpecialty(source: unknown): Specialty | null {
+  if (!source || typeof source !== "object") return null;
+
+  const id = Number(source.id ?? source.specialty_id ?? 0);
+  const name = source.name ?? source.specialty ?? source.title ?? "";
+  if (!id || !name) return null;
+
+  return {
+    id,
+    name,
+    description: source.description ?? null,
+    status: toStatus(source.status),
+  };
+}
+
+function mapUser(raw: unknown): AdminClinicUser {
+  const profile = raw?.dentist_profile ?? raw?.dentistProfile ?? {};
+  const specialties = [
+    ...(Array.isArray(raw?.specialties) ? raw.specialties : []),
+    ...(Array.isArray(profile?.specialties) ? profile.specialties : []),
+  ]
+    .map(toSpecialty)
+    .filter((item): item is Specialty => Boolean(item));
+
+  const specialtyIds = [
+    ...(Array.isArray(raw?.specialty_ids) ? raw.specialty_ids : []),
+    ...(Array.isArray(profile?.specialty_ids) ? profile.specialty_ids : []),
+    ...specialties.map((item) => item.id),
+  ]
+    .map((value) => Number(value))
+    .filter((value, index, array) => Number.isInteger(value) && value > 0 && array.indexOf(value) === index);
+
   return {
     id: raw.id,
     name: raw.name ?? "",
@@ -52,6 +86,8 @@ function mapUser(raw: AdminClinicUser): AdminClinicUser {
     phone: raw.phone ?? "",
     role: raw.role ?? "receptionist",
     status: toStatus(raw.status),
+    specialtyIds,
+    specialties,
   };
 }
 
@@ -93,6 +129,7 @@ export async function createAdminUser(payload: AdminClinicUser) {
     phone: payload.phone,
     role: payload.role,
     status: payload.status === false ? 0 : 1,
+    specialty_ids: payload.specialtyIds ?? [],
   });
   return normalizeOne<AdminClinicUser>(data);
 }
@@ -107,6 +144,7 @@ export async function updateAdminUser(userId: number | string, payload: Partial<
 
   if (payload.password) body.password = payload.password;
   if (typeof payload.status === "boolean") body.status = payload.status ? 1 : 0;
+  if (payload.specialtyIds) body.specialty_ids = payload.specialtyIds;
 
   const { data } = await api.patch(`/admin/users/${userId}`, body);
   return normalizeOne<AdminClinicUser>(data);

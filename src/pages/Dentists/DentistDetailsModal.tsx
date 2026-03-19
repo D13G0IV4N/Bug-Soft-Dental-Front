@@ -7,6 +7,11 @@ interface Props {
   onClose: () => void;
 }
 
+function formatSpecialties(dentist: Dentist) {
+  if (dentist.specialties.length === 0) return "—";
+  return dentist.specialties.map((specialty) => specialty.name).join(", ");
+}
+
 export default function DentistDetailsModal({ clinicId, dentist, onClose }: Props) {
   return (
     <div
@@ -59,7 +64,7 @@ export default function DentistDetailsModal({ clinicId, dentist, onClose }: Prop
             <b>Teléfono:</b> {dentist.phone || "—"}
           </div>
           <div>
-            <b>Especialidad:</b> {dentist.specialty || "—"}
+            <b>Especialidades:</b> {formatSpecialties(dentist)}
           </div>
           <div>
             <b>Número de licencia:</b> {dentist.licenseNumber || "—"}

@@ -1,123 +1,151 @@
 import { api } from "./axios";
+import type { Specialty } from "./specialties";
 
 export interface Dentist {
   id?: number;
   name: string;
   email: string;
-  password?: string; // requerido para crear
+  password?: string;
   phone?: string;
-  status?: boolean; // UI boolean
+  status?: boolean;
   role?: "dentist";
-
-  // extras
-  specialty?: string | null;
+  specialtyIds: number[];
+  specialties: Specialty[];
   licenseNumber?: string | null;
   color?: string | null;
 }
 
-/**
- * Backend: dentistas = users dentro de clínica
- * GET/POST  /super/clinics/:clinicId/users
- * PATCH/DEL /super/clinics/:clinicId/users/:userId
- */
 const BASE = (clinicId: number | string) => `/super/clinics/${clinicId}/users`;
 
-function normalizeList(res: any) {
+function normalizeList(res: unknown) {
   return res?.data?.data ?? res?.data ?? res ?? [];
 }
 
-// Convierte respuesta del backend a nuestro Dentist
-function mapToDentist(u: any): Dentist {
+function toStatus(value: unknown): boolean {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value === 1;
+  if (typeof value === "string") {
+    const normalized = value.toLowerCase().trim();
+    return normalized === "1" || normalized === "true" || normalized === "active";
+  }
+  return true;
+}
+
+function toSpecialty(source: unknown): Specialty | null {
+  if (!source || typeof source !== "object") return null;
+
+  const id = Number(source.id ?? source.specialty_id ?? 0);
+  const name = source.name ?? source.specialty ?? source.title ?? "";
+
+  if (!id || !name) return null;
+
+  return {
+    id,
+    name,
+    description: source.description ?? null,
+    status: toStatus(source.status),
+  };
+}
+
+function extractSpecialties(user: unknown): Specialty[] {
+  const profile = user?.dentist_profile ?? user?.dentistProfile ?? {};
+  const candidates = [
+    ...(Array.isArray(user?.specialties) ? user.specialties : []),
+    ...(Array.isArray(profile?.specialties) ? profile.specialties : []),
+    ...(Array.isArray(user?.dentist_specialties) ? user.dentist_specialties : []),
+  ];
+
+  const mapped = candidates.map(toSpecialty).filter((item): item is Specialty => Boolean(item));
+  const seen = new Set<number>();
+
+  return mapped.filter((item) => {
+    if (seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
+}
+
+function extractSpecialtyIds(user: unknown, specialties: Specialty[]): number[] {
+  const profile = user?.dentist_profile ?? user?.dentistProfile ?? {};
+  const nestedIds = [
+    ...(Array.isArray(user?.specialty_ids) ? user.specialty_ids : []),
+    ...(Array.isArray(profile?.specialty_ids) ? profile.specialty_ids : []),
+  ]
+    .map((value) => Number(value))
+    .filter((value) => Number.isInteger(value) && value > 0);
+
+  const ids = nestedIds.length > 0 ? nestedIds : specialties.map((item) => item.id);
+  return Array.from(new Set(ids));
+}
+
+function mapToDentist(u: unknown): Dentist {
   const profile = u?.dentist_profile ?? u?.dentistProfile ?? {};
+  const specialties = extractSpecialties(u);
+
   return {
     id: u?.id,
-    name: u?.name,
-    email: u?.email,
-    phone: u?.phone,
+    name: u?.name ?? "",
+    email: u?.email ?? "",
+    phone: u?.phone ?? "",
     role: u?.role,
-    status: typeof u?.status === "boolean" ? u.status : !!u?.status,
-    specialty: profile?.specialty ?? u?.specialty ?? null,
+    status: toStatus(u?.status),
+    specialtyIds: extractSpecialtyIds(u, specialties),
+    specialties,
     licenseNumber: profile?.license_number ?? profile?.licenseNumber ?? u?.license_number ?? null,
     color: profile?.color ?? u?.color ?? null,
   };
 }
 
-/** LISTAR dentistas de la clínica */
-export async function getDentistsByClinic(clinicId: number | string) {
-  const { data } = await api.get(BASE(clinicId), {
-    params: { role: "dentist" }, // si el back lo soporta
-  });
-
-  const list = normalizeList(data);
-  const arr = Array.isArray(list) ? list : [];
-
-  // por si el backend manda todos los users, filtramos
-  const dentists = arr.filter((u) => u?.role === "dentist").map(mapToDentist);
-  return dentists;
-}
-
-/** CREAR dentista */
-export async function createDentist(clinicId: number | string, dentist: Dentist) {
-  const payload: any = {
+function buildDentistPayload(dentist: Partial<Dentist>, includePassword = false) {
+  const payload: Record<string, unknown> = {
     name: dentist.name,
     email: dentist.email,
-    password: dentist.password, // requerido
-    role: "dentist",
     phone: dentist.phone,
-    status: dentist.status ? 1 : 0,
-
-    // por si el backend lo acepta directo:
-    specialty: dentist.specialty ?? null,
+    role: "dentist",
     license_number: dentist.licenseNumber ?? null,
     color: dentist.color ?? null,
-
-    // por si lo espera como perfil:
+    specialty_ids: dentist.specialtyIds ?? [],
     dentist_profile: {
-      specialty: dentist.specialty ?? null,
       license_number: dentist.licenseNumber ?? null,
       color: dentist.color ?? null,
     },
-  };
-
-  const { data } = await api.post(BASE(clinicId), payload);
-  return data;
-}
-
-/** ACTUALIZAR dentista (PATCH, no PUT) */
-export async function updateDentist(
-  clinicId: number | string,
-  userId: number | string,
-  dentist: Partial<Dentist>
-) {
-  const payload: any = {
-    name: dentist.name,
-    email: dentist.email,
-    phone: dentist.phone,
   };
 
   if (typeof dentist.status === "boolean") {
     payload.status = dentist.status ? 1 : 0;
   }
 
-  // opcional
-  if (dentist.password) payload.password = dentist.password;
+  if (includePassword && dentist.password) {
+    payload.password = dentist.password;
+  }
 
-  // extras
-  if (dentist.specialty !== undefined) payload.specialty = dentist.specialty;
-  if (dentist.licenseNumber !== undefined) payload.license_number = dentist.licenseNumber;
-  if (dentist.color !== undefined) payload.color = dentist.color;
+  return payload;
+}
 
-  payload.dentist_profile = {
-    specialty: dentist.specialty ?? null,
-    license_number: dentist.licenseNumber ?? null,
-    color: dentist.color ?? null,
-  };
+export async function getDentistsByClinic(clinicId: number | string) {
+  const { data } = await api.get(BASE(clinicId), {
+    params: { role: "dentist" },
+  });
 
-  const { data } = await api.patch(`${BASE(clinicId)}/${userId}`, payload);
+  const list = normalizeList(data);
+  const arr = Array.isArray(list) ? list : [];
+  return arr.filter((u) => u?.role === "dentist").map(mapToDentist);
+}
+
+export async function createDentist(clinicId: number | string, dentist: Dentist) {
+  const { data } = await api.post(BASE(clinicId), buildDentistPayload(dentist, true));
   return data;
 }
 
-/** ELIMINAR dentista */
+export async function updateDentist(
+  clinicId: number | string,
+  userId: number | string,
+  dentist: Partial<Dentist>
+) {
+  const { data } = await api.patch(`${BASE(clinicId)}/${userId}`, buildDentistPayload(dentist));
+  return data;
+}
+
 export async function deleteDentist(clinicId: number | string, userId: number | string) {
   const { data } = await api.delete(`${BASE(clinicId)}/${userId}`);
   return data;
