@@ -12,6 +12,7 @@ import AdminReceptionistsPage from "./pages/Admin/AdminReceptionistsPage";
 import AdminAppointmentsPage from "./pages/Admin/AdminAppointmentsPage";
 import AdminSpecialtiesPage from "./pages/Admin/AdminSpecialtiesPage";
 import AdminServicesPage from "./pages/Admin/AdminServicesPage";
+import SuperAdminLayout from "./pages/Admin/SuperAdminLayout";
 
 function HomeRedirect() {
   if (!isAuthenticated()) return <Navigate to="/login" replace />;
@@ -40,10 +41,14 @@ export default function App() {
 
       <Route element={<ProtectedLayout />}>
         <Route element={<RoleGuard allowedRoles={["super_admin"]} />}>
-          <Route path="/clinics" element={<ClinicsPage />} />
-          <Route path="/clinics/:clinicId" element={<ClinicDetailPage />} />
-          <Route path="/clinics/:clinicId/dentists" element={<DentistsPage />} />
-          <Route path="/clinics/:clinicId/patients" element={<PatientsPage />} />
+          <Route element={<SuperAdminLayout />}>
+            <Route path="/clinics" element={<ClinicsPage />} />
+            <Route path="/clinics/:clinicId" element={<ClinicDetailPage />} />
+            <Route path="/clinics/:clinicId/dentists" element={<DentistsPage />} />
+            <Route path="/clinics/:clinicId/patients" element={<PatientsPage />} />
+            <Route path="/specialties" element={<AdminSpecialtiesPage />} />
+            <Route path="/services" element={<AdminServicesPage />} />
+          </Route>
         </Route>
 
         <Route element={<RoleGuard allowedRoles={["admin", "receptionist"]} />}>
