@@ -4,6 +4,7 @@ import {
   getAppointments,
   getAvailableDentists,
   toErrorMessage,
+  updateAppointment,
   updateAppointmentStatus,
   type Appointment,
   type AppointmentStatus,
@@ -16,11 +17,28 @@ import formStyles from "../../styles/formSystem.module.css";
 
 const APPOINTMENT_STATUS_ACTIONS: AppointmentStatus[] = ["confirmed", "completed", "cancelled"];
 
+const EMPTY_FORM = {
+  patient_user_id: "",
+  service_id: "",
+  start_at: "",
+  dentist_user_id: "",
+  reason: "",
+  internal_notes: "",
+};
+
 function formatDateTime(value: string) {
   if (!value) return "-";
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return value;
   return parsed.toLocaleString();
+}
+
+function toDateTimeLocal(value?: string) {
+  if (!value) return "";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "";
+  const pad = (part: number) => String(part).padStart(2, "0");
+  return `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}T${pad(parsed.getHours())}:${pad(parsed.getMinutes())}`;
 }
 
 function formatDuration(minutes?: number) {
@@ -51,15 +69,11 @@ export default function AdminAppointmentsPage() {
   const [servicesError, setServicesError] = useState("");
   const [dentistsError, setDentistsError] = useState("");
   const [formError, setFormError] = useState("");
+  const [editingAppointmentId, setEditingAppointmentId] = useState<number | null>(null);
 
-  const [form, setForm] = useState({
-    patient_user_id: "",
-    service_id: "",
-    start_at: "",
-    dentist_user_id: "",
-    reason: "",
-    internal_notes: "",
-  });
+  const [form, setForm] = useState(EMPTY_FORM);
+
+  const isEditing = editingAppointmentId !== null;
 
   const selectedService = useMemo(
     () => services.find((service) => String(service.id) === form.service_id),
@@ -67,6 +81,14 @@ export default function AdminAppointmentsPage() {
   );
 
   const canSearchDentists = Boolean(form.service_id && form.start_at);
+
+  const resetForm = useCallback(() => {
+    setForm(EMPTY_FORM);
+    setEditingAppointmentId(null);
+    setAvailableDentists([]);
+    setDentistsError("");
+    setFormError("");
+  }, []);
 
   const fetchAppointments = useCallback(async () => {
     try {
@@ -133,6 +155,7 @@ export default function AdminAppointmentsPage() {
         const dentists = await getAvailableDentists({
           service_id: Number(form.service_id),
           start_at: form.start_at,
+          exclude_appointment_id: editingAppointmentId ?? undefined,
         });
 
         if (!active) return;
@@ -160,40 +183,54 @@ export default function AdminAppointmentsPage() {
     return () => {
       active = false;
     };
-  }, [canSearchDentists, form.service_id, form.start_at]);
+  }, [canSearchDentists, editingAppointmentId, form.service_id, form.start_at]);
 
-  async function onCreate(event: React.FormEvent<HTMLFormElement>) {
+  function startEdit(item: Appointment) {
+    setEditingAppointmentId(item.id ?? null);
+    setFormError("");
+    setDentistsError("");
+    setAvailableDentists([]);
+    setForm({
+      patient_user_id: item.patient_user_id ? String(item.patient_user_id) : "",
+      service_id: item.service_id ? String(item.service_id) : "",
+      start_at: toDateTimeLocal(item.start_at),
+      dentist_user_id: item.dentist_user_id ? String(item.dentist_user_id) : "",
+      reason: item.reason ?? "",
+      internal_notes: item.internal_notes ?? item.notes ?? "",
+    });
+  }
+
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError("");
 
     if (!form.patient_user_id || !form.service_id || !form.start_at || !form.dentist_user_id) {
-      setFormError("Completa paciente, servicio, horario y dentista antes de crear la cita.");
+      setFormError(`Completa paciente, servicio, horario y dentista antes de ${isEditing ? "guardar" : "crear"} la cita.`);
       return;
     }
 
     try {
       setSaving(true);
-      await createAppointment({
+
+      const payload = {
         patient_user_id: Number(form.patient_user_id),
         service_id: Number(form.service_id),
         start_at: form.start_at,
         dentist_user_id: Number(form.dentist_user_id),
         reason: form.reason.trim() || undefined,
         internal_notes: form.internal_notes.trim() || undefined,
-      });
-      setForm({
-        patient_user_id: "",
-        service_id: "",
-        start_at: "",
-        dentist_user_id: "",
-        reason: "",
-        internal_notes: "",
-      });
-      setAvailableDentists([]);
-      setDentistsError("");
+      };
+
+      if (isEditing && editingAppointmentId !== null) {
+        await updateAppointment(editingAppointmentId, payload);
+      } else {
+        await createAppointment(payload);
+      }
+
+      resetForm();
       await fetchAppointments();
     } catch (error: unknown) {
-      setFormError(toErrorMessage(error, "No se pudo crear la cita"));
+      setFormError(toErrorMessage(error, isEditing ? "No se pudo actualizar la cita" : "No se pudo crear la cita"));
     } finally {
       setSaving(false);
     }
@@ -215,20 +252,24 @@ export default function AdminAppointmentsPage() {
       <div className={styles.hero}>
         <div>
           <h2 className={styles.heroTitle}>Agenda clínica</h2>
-          <p className={styles.heroSub}>Programa citas con el flujo actual del backend: paciente, servicio, horario y dentista disponible.</p>
+          <p className={styles.heroSub}>Programa y edita citas con el flujo actual del backend: paciente, servicio, horario y dentista disponible.</p>
         </div>
       </div>
 
       <div className={styles.contentCard}>
         <div className={styles.sectionHead}>
           <div>
-            <h3 className={styles.sectionTitle}>Nueva cita</h3>
-            <p className={styles.sectionSub}>Selecciona el servicio primero para consultar únicamente dentistas compatibles y libres.</p>
+            <h3 className={styles.sectionTitle}>{isEditing ? `Editar cita #${editingAppointmentId}` : "Nueva cita"}</h3>
+            <p className={styles.sectionSub}>
+              {isEditing
+                ? "Actualiza los datos y vuelve a consultar dentistas disponibles excluyendo la cita actual para respetar la validación del backend."
+                : "Selecciona el servicio primero para consultar únicamente dentistas compatibles y libres."}
+            </p>
           </div>
         </div>
         <div className={styles.sectionBody}>
           <div className={styles.formSurface}>
-            <form className={formStyles.formGrid} onSubmit={onCreate}>
+            <form className={formStyles.formGrid} onSubmit={onSubmit}>
               <label className={formStyles.field}>
                 Paciente
                 <select
@@ -325,17 +366,26 @@ export default function AdminAppointmentsPage() {
               {servicesError && <p className={formStyles.error}>{servicesError}</p>}
               {dentistsError && <p className={formStyles.error}>{dentistsError}</p>}
               {!loadingDentists && canSearchDentists && !dentistsError && availableDentists.length === 0 && (
-                <p className={formStyles.helper}>No hay dentistas disponibles para el servicio y hora seleccionados.</p>
+                <p className={formStyles.helper}>
+                  {isEditing
+                    ? "No hay dentistas disponibles para el servicio y hora seleccionados al excluir la cita actual."
+                    : "No hay dentistas disponibles para el servicio y hora seleccionados."}
+                </p>
               )}
               {formError && <p className={formStyles.error}>{formError}</p>}
 
               <div className={formStyles.formActions}>
+                {isEditing && (
+                  <button className={styles.btnGhost} type="button" onClick={resetForm} disabled={saving}>
+                    Cancelar edición
+                  </button>
+                )}
                 <button
                   className={styles.btnPrimary}
                   type="submit"
                   disabled={saving || loadingPatients || loadingServices || !canSearchDentists || availableDentists.length === 0}
                 >
-                  {saving ? "Creando..." : "Crear cita"}
+                  {saving ? (isEditing ? "Guardando..." : "Creando...") : (isEditing ? "Guardar cambios" : "Crear cita")}
                 </button>
               </div>
             </form>
@@ -389,6 +439,13 @@ export default function AdminAppointmentsPage() {
                         <td><span className={`${styles.pill} ${item.status === "cancelled" || item.status === "canceled" ? styles.pillOff : styles.pillOn}`}>{item.status || "scheduled"}</span></td>
                         <td>
                           <div className={styles.tableActions}>
+                            <button
+                              className={styles.btnSoft}
+                              onClick={() => startEdit(item)}
+                              disabled={!item.id || saving}
+                            >
+                              Editar
+                            </button>
                             {APPOINTMENT_STATUS_ACTIONS.map((status) => (
                               <button
                                 key={status}

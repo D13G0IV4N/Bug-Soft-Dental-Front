@@ -55,6 +55,16 @@ export interface AppointmentPayload {
   notes?: string;
 }
 
+export interface AppointmentUpdatePayload {
+  patient_user_id?: number;
+  dentist_user_id?: number;
+  service_id?: number;
+  start_at?: string;
+  reason?: string;
+  internal_notes?: string;
+  notes?: string;
+}
+
 export interface AvailableDentist extends AppointmentPerson {
   specialty_ids?: number[];
   specialties?: AppointmentSpecialty[];
@@ -255,7 +265,7 @@ export async function createAppointment(payload: AppointmentPayload) {
   return normalizeAppointment(normalizeOne<unknown>(data));
 }
 
-export async function updateAppointment(appointmentId: number | string, payload: Partial<AppointmentPayload>) {
+export async function updateAppointment(appointmentId: number | string, payload: AppointmentUpdatePayload) {
   const body: Record<string, unknown> = {};
 
   if (payload.patient_user_id !== undefined) body.patient_user_id = payload.patient_user_id;
