@@ -1,8 +1,9 @@
-import { useMemo, useState, type FormEvent } from "react";
-import { toErrorMessage, type Appointment, type AppointmentPayload, type AppointmentUpdatePayload } from "../../api/appointments";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { type Appointment, type AppointmentPayload, type AppointmentUpdatePayload } from "../../api/appointments";
 import type { Service } from "../../api/services";
 import formStyles from "../../styles/formSystem.module.css";
 import { formatDateTime, toDateTimeLocal } from "./dateUtils";
+import { toDentistRequestError } from "./errorUtils";
 import styles from "./dentist.module.css";
 
 type DentistPatientOption = {
@@ -62,6 +63,16 @@ export default function DentistAppointmentFormModal({
 
   const title = mode === "create" ? "Nueva cita clínica" : `Editar cita #${appointment?.id ?? ""}`;
 
+  useEffect(() => {
+    setPatientUserId(appointment?.patient_user_id ? String(appointment.patient_user_id) : "");
+    setServiceId(appointment?.service_id ? String(appointment.service_id) : "");
+    setStartAt(appointment?.start_at ? toDateTimeLocal(appointment.start_at) : "");
+    setReason(appointment?.reason ?? "");
+    setInternalNotes(appointment?.internal_notes ?? appointment?.notes ?? "");
+    setError("");
+    setSaving(false);
+  }, [mode, appointment]);
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
@@ -111,7 +122,7 @@ export default function DentistAppointmentFormModal({
 
       await onSubmit(updatePayload);
     } catch (requestError: unknown) {
-      setError(toErrorMessage(requestError, mode === "create" ? "No se pudo crear la cita" : "No se pudo actualizar la cita"));
+      setError(toDentistRequestError(requestError, mode === "create" ? "No se pudo crear la cita" : "No se pudo actualizar la cita"));
     } finally {
       setSaving(false);
     }
@@ -169,7 +180,7 @@ export default function DentistAppointmentFormModal({
               <div className={styles.readOnlyBlock}>
                 <p className={styles.infoValue}>{appointment?.service?.name || appointment?.service_name || "Sin servicio"}</p>
                 <p className={styles.rowMeta}>{appointment?.service?.specialty?.name || appointment?.specialty_name || "Sin especialidad"}</p>
-                <p className={styles.rowMeta}>Para dentista, servicio y paciente quedan bloqueados en edición para evitar rechazos de permisos.</p>
+                <p className={styles.rowMeta}>Para dentista, servicio y paciente quedan bloqueados en edición para mantener la actualización enfocada en datos clínicos.</p>
               </div>
             )}
           </section>
@@ -178,8 +189,9 @@ export default function DentistAppointmentFormModal({
             <p className={styles.sectionHeading}>Fecha y hora</p>
             <label>
               Inicio
-              <input className={styles.input} type="datetime-local" value={startAt} onChange={(event) => setStartAt(event.target.value)} required />
+              <input className={styles.input} type="datetime-local" step={60} value={startAt} onChange={(event) => setStartAt(event.target.value)} required />
             </label>
+            <p className={styles.rowMeta}>Se enviará como hora local exacta en formato backend: YYYY-MM-DD HH:mm:ss (segundos = 00).</p>
             {mode === "edit" && appointment?.end_at && (
               <p className={styles.rowMeta}>Fin actual (informativo): {formatDateTime(appointment.end_at)}</p>
             )}

@@ -1,6 +1,5 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
-  toErrorMessage,
   updateAppointment,
   updateAppointmentStatus,
   type Appointment,
@@ -9,6 +8,7 @@ import {
 import type { Service } from "../../api/services";
 import formStyles from "../../styles/formSystem.module.css";
 import { formatDateTime, toDateTimeLocal } from "./dateUtils";
+import { toDentistRequestError } from "./errorUtils";
 import styles from "./dentist.module.css";
 
 interface Props {
@@ -56,6 +56,17 @@ export default function DentistAppointmentDetailModal({
 
   const isBusy = updatingStatus || savingEdit;
 
+
+  useEffect(() => {
+    setStartAt(toDateTimeLocal(appointment.start_at));
+    setReason(appointment.reason ?? "");
+    setInternalNotes(appointment.internal_notes ?? appointment.notes ?? "");
+    setStatus(normalizeStatus(appointment.status));
+    setError("");
+    setSuccess("");
+  }, [appointment]);
+
+
   async function handleStatusUpdate(nextStatus?: AppointmentStatus) {
     if (!appointment.id) return;
 
@@ -69,7 +80,7 @@ export default function DentistAppointmentDetailModal({
       await onUpdated();
       setSuccess(`Estado actualizado a ${targetStatus}.`);
     } catch (requestError: unknown) {
-      setError(toErrorMessage(requestError, "No se pudo actualizar el estado de la cita"));
+      setError(toDentistRequestError(requestError, "No se pudo actualizar el estado de la cita"));
     } finally {
       setUpdatingStatus(false);
     }
@@ -98,7 +109,7 @@ export default function DentistAppointmentDetailModal({
       await onUpdated();
       setSuccess("Cambios clínicos guardados correctamente.");
     } catch (requestError: unknown) {
-      setError(toErrorMessage(requestError, "No se pudo editar la cita"));
+      setError(toDentistRequestError(requestError, "No se pudo editar la cita"));
     } finally {
       setSavingEdit(false);
     }
@@ -146,8 +157,10 @@ export default function DentistAppointmentDetailModal({
 
             <label>
               Fecha y hora de inicio
-              <input className={styles.input} type="datetime-local" value={startAt} onChange={(event) => setStartAt(event.target.value)} required />
+              <input className={styles.input} type="datetime-local" step={60} value={startAt} onChange={(event) => setStartAt(event.target.value)} required />
             </label>
+
+            <p className={styles.rowMeta}>Se envía sin conversión UTC, respetando hora local exacta en formato YYYY-MM-DD HH:mm:ss.</p>
 
             <label>
               Motivo

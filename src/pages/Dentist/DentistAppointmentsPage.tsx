@@ -256,7 +256,14 @@ export default function DentistAppointmentsPage() {
           <p className={styles.heroSub}>Gestiona agenda, crea citas, edita detalles clínicos y actualiza estados en una sola vista.</p>
         </div>
 
-        <button className={styles.btn} onClick={() => setOpenCreate(true)}>
+        <button
+          className={styles.btn}
+          onClick={() => {
+            setActionError("");
+            setActionSuccess("");
+            setOpenCreate(true);
+          }}
+        >
           + Nueva cita
         </button>
       </div>
@@ -372,7 +379,10 @@ export default function DentistAppointmentsPage() {
           loadingServices={loadingServices}
           servicesError={servicesError}
           dentistUserId={dentistUserId}
-          onClose={() => setOpenCreate(false)}
+          onClose={() => {
+            setOpenCreate(false);
+            setActionError("");
+          }}
           onSubmit={async (payload) => {
             setActionError("");
             setActionSuccess("");
@@ -396,6 +406,7 @@ export default function DentistAppointmentsPage() {
           onClose={() => {
             setOpenEdit(false);
             setEditingAppointment(null);
+            setActionError("");
           }}
           onSubmit={async (payload) => {
             if (!editingAppointment?.id) return;
