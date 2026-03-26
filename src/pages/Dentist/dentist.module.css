@@ -398,3 +398,57 @@
   justify-content: flex-end;
   gap: 10px;
 }
+
+.clinicalModal {
+  width: min(860px, 100%);
+}
+
+.formSectionCard {
+  border: 1px solid rgba(33, 116, 156, 0.16);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fbfeff, #f3f9ff);
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.sectionHeading {
+  margin: 0;
+  font-size: 13px;
+  color: #1d5f81;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 800;
+}
+
+.readOnlyBlock {
+  border: 1px dashed rgba(28, 107, 140, 0.3);
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.statusActionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.errorPanel {
+  border-radius: 12px;
+  border: 1px solid rgba(176, 37, 37, 0.25);
+  background: #fff5f5;
+  padding: 10px 12px;
+}
+
+.errorTitle {
+  margin: 0;
+  color: #8e2121;
+  font-weight: 800;
+}
+
+.errorBody {
+  margin: 4px 0 0;
+  color: #a12626;
+  white-space: pre-wrap;
+}

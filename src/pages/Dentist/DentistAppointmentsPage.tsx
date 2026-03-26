@@ -4,8 +4,11 @@ import {
   getAppointmentById,
   getDentistAppointments,
   toErrorMessage,
+  updateAppointment,
   updateAppointmentStatus,
   type Appointment,
+  type AppointmentPayload,
+  type AppointmentUpdatePayload,
   type AppointmentStatus,
 } from "../../api/appointments";
 import { me } from "../../api/auth";
@@ -229,8 +232,18 @@ export default function DentistAppointmentsPage() {
     }
   }
 
-  function startEdit(item: Appointment) {
-    setEditingAppointment(item);
+  async function startEdit(item: Appointment) {
+    if (!item.id) return;
+
+    try {
+      setActionError("");
+      setActionSuccess("");
+      const detail = await getAppointmentById(item.id);
+      setEditingAppointment(detail);
+    } catch {
+      setEditingAppointment(item);
+    }
+
     setOpenEdit(true);
   }
 
@@ -318,7 +331,7 @@ export default function DentistAppointmentsPage() {
                   <td>
                     <div className={styles.tableActions}>
                       <button className={styles.btnGhost} onClick={() => void openDetail(item)}>Ver</button>
-                      <button className={styles.btnGhost} onClick={() => startEdit(item)}>Editar</button>
+                      <button className={styles.btnGhost} onClick={() => void startEdit(item)}>Editar</button>
                       {STATUS_ACTIONS.map((action) => (
                         <button
                           key={`${item.id}-${action.value}`}
@@ -361,7 +374,9 @@ export default function DentistAppointmentsPage() {
           dentistUserId={dentistUserId}
           onClose={() => setOpenCreate(false)}
           onSubmit={async (payload) => {
-            await createAppointment(payload);
+            setActionError("");
+            setActionSuccess("");
+            await createAppointment(payload as AppointmentPayload);
             await fetchAppointments();
             setOpenCreate(false);
             setActionSuccess("Cita creada correctamente.");
@@ -382,8 +397,23 @@ export default function DentistAppointmentsPage() {
             setOpenEdit(false);
             setEditingAppointment(null);
           }}
-          onSubmit={async () => {
+          onSubmit={async (payload) => {
+            if (!editingAppointment?.id) return;
+
+            setActionError("");
+            setActionSuccess("");
+            await updateAppointment(editingAppointment.id, payload as AppointmentUpdatePayload | AppointmentPayload);
             await fetchAppointments();
+
+            if (selectedAppointmentId === editingAppointment.id) {
+              try {
+                const detail = await getAppointmentById(editingAppointment.id);
+                setSelectedAppointment(detail);
+              } catch {
+                setSelectedAppointment(null);
+              }
+            }
+
             setOpenEdit(false);
             setEditingAppointment(null);
             setActionSuccess("Cita actualizada correctamente.");
