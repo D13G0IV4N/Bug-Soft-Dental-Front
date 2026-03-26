@@ -229,8 +229,11 @@ export default function DentistAppointmentFormModal({
           {servicesError && <p className={styles.feedbackError}>{servicesError}</p>}
           {loadingPatients && <p className={styles.rowMeta}>Cargando pacientes...</p>}
           {patientsError && <p className={styles.feedbackError}>{patientsError}</p>}
-          {mode === "create" && patients.length === 0 && (
-            <p className={styles.feedbackError}>No hay pacientes disponibles para crear una cita desde la vista de dentista.</p>
+          {mode === "create" && !loadingPatients && !patientsError && patients.length === 0 && (
+            <p className={styles.feedbackError}>No hay pacientes disponibles en tu clínica para crear una cita.</p>
+          )}
+          {mode === "create" && !loadingServices && !servicesError && services.length === 0 && (
+            <p className={styles.feedbackError}>No hay servicios activos disponibles en tu clínica para crear una cita.</p>
           )}
           {error && (
             <div className={`${styles.fieldFull} ${styles.errorPanel}`.trim()}>
@@ -244,7 +247,7 @@ export default function DentistAppointmentFormModal({
             <button
               type="submit"
               className={styles.btn}
-              disabled={saving || loadingServices || loadingPatients || (mode === "create" && patients.length === 0)}
+              disabled={saving || loadingServices || loadingPatients || (mode === "create" && (patients.length === 0 || services.length === 0))}
             >
               {saving ? "Guardando..." : mode === "create" ? "Crear cita" : "Guardar cambios"}
             </button>
