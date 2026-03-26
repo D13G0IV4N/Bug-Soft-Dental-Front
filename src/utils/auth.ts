@@ -30,7 +30,7 @@ export function isAuthenticated(): boolean {
 export function getPostLoginRoute(role: AppRole | null): string {
   if (role === "super_admin") return "/clinics";
   if (role === "admin") return "/admin";
-  if (role === "receptionist") return "/admin/appointments";
+  if (role === "receptionist") return "/receptionist";
   if (role === "dentist") return "/dentist";
   return "/login";
 }
