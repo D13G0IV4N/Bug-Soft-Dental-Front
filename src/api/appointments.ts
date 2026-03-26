@@ -103,7 +103,7 @@ function toNumber(value: unknown): number {
 }
 
 function toStringValue(value: unknown): string {
-  return typeof value === "string" ? value : "";
+  return typeof value === "string" ? value.trim() : "";
 }
 
 function toApiDateTime(value: string): string {
@@ -168,7 +168,7 @@ function normalizeAppointment(raw: unknown): Appointment {
   const specialty = normalizeSpecialty(source.specialty ?? service?.specialty);
 
   return {
-    id: typeof source.id === "number" ? source.id : undefined,
+    id: source.id === undefined ? undefined : toNumber(source.id) || undefined,
     patient_user_id: patientUserId,
     dentist_user_id: dentistUserId,
     service_id: serviceId,
@@ -177,7 +177,7 @@ function normalizeAppointment(raw: unknown): Appointment {
     reason: toStringValue(source.reason),
     internal_notes: internalNotes,
     notes: internalNotes,
-    status: toStringValue(source.status) || "scheduled",
+    status: toStringValue(source.status).toLowerCase() || "scheduled",
     patient,
     dentist,
     service: service

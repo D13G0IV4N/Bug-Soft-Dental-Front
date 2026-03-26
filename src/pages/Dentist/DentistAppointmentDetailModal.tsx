@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import {
   toErrorMessage,
   updateAppointment,
@@ -6,8 +6,9 @@ import {
   type Appointment,
   type AppointmentStatus,
 } from "../../api/appointments";
-import styles from "../Admin/admin.module.css";
 import formStyles from "../../styles/formSystem.module.css";
+import { formatDateTime, toDateTimeLocal } from "./dateUtils";
+import styles from "./dentist.module.css";
 
 interface Props {
   appointment: Appointment;
@@ -15,29 +16,13 @@ interface Props {
   onUpdated: () => Promise<void>;
 }
 
-const STATUS_OPTIONS: AppointmentStatus[] = ["confirmed", "completed", "canceled", "no_show"];
-
-function toDateTimeLocal(value?: string) {
-  if (!value) return "";
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return "";
-  const pad = (part: number) => String(part).padStart(2, "0");
-  return `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}T${pad(parsed.getHours())}:${pad(parsed.getMinutes())}`;
-}
-
-function formatDateTime(value?: string) {
-  if (!value) return "-";
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return value;
-  return parsed.toLocaleString();
-}
+const STATUS_OPTIONS: AppointmentStatus[] = ["confirmed", "completed", "no_show", "canceled"];
 
 export default function DentistAppointmentDetailModal({ appointment, onClose, onUpdated }: Props) {
   const [startAt, setStartAt] = useState(toDateTimeLocal(appointment.start_at));
   const [reason, setReason] = useState(appointment.reason ?? "");
   const [internalNotes, setInternalNotes] = useState(appointment.internal_notes ?? appointment.notes ?? "");
-  const [status, setStatus] = useState<AppointmentStatus>(appointment.status ?? "scheduled");
-
+  const [status, setStatus] = useState<AppointmentStatus>((appointment.status ?? "scheduled").toLowerCase());
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [savingEdit, setSavingEdit] = useState(false);
   const [error, setError] = useState("");
@@ -48,14 +33,18 @@ export default function DentistAppointmentDetailModal({ appointment, onClose, on
     [appointment]
   );
 
-  async function handleStatusUpdate() {
+  const isBusy = updatingStatus || savingEdit;
+
+  async function handleStatusUpdate(nextStatus?: AppointmentStatus) {
     if (!appointment.id) return;
 
+    const targetStatus = nextStatus ?? status;
     try {
       setUpdatingStatus(true);
       setError("");
       setSuccess("");
-      await updateAppointmentStatus(appointment.id, status);
+      await updateAppointmentStatus(appointment.id, targetStatus);
+      setStatus(targetStatus);
       await onUpdated();
       setSuccess("Estado actualizado correctamente.");
     } catch (requestError: unknown) {
@@ -65,9 +54,8 @@ export default function DentistAppointmentDetailModal({ appointment, onClose, on
     }
   }
 
-  async function handleLimitedEdit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleLimitedEdit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
     if (!appointment.id) return;
 
     try {
@@ -75,14 +63,14 @@ export default function DentistAppointmentDetailModal({ appointment, onClose, on
       setError("");
       setSuccess("");
 
-      await updateAppointment(appointment.id, {
-        start_at: startAt,
-        reason: reason.trim() || undefined,
-        internal_notes: internalNotes.trim() || undefined,
-      });
+      const payload: { start_at?: string; reason?: string; internal_notes?: string } = {};
+      if (startAt.trim()) payload.start_at = startAt;
+      payload.reason = reason.trim() || undefined;
+      payload.internal_notes = internalNotes.trim() || undefined;
 
+      await updateAppointment(appointment.id, payload);
       await onUpdated();
-      setSuccess("Cita actualizada correctamente.");
+      setSuccess("Datos clínicos actualizados.");
     } catch (requestError: unknown) {
       setError(toErrorMessage(requestError, "No se pudo editar la cita"));
     } finally {
@@ -91,84 +79,80 @@ export default function DentistAppointmentDetailModal({ appointment, onClose, on
   }
 
   return (
-    <div className={formStyles.modalOverlay} onClick={() => !(updatingStatus || savingEdit) && onClose()}>
+    <div className={formStyles.modalOverlay} onClick={() => !isBusy && onClose()}>
       <div className={formStyles.modalCard} onClick={(event) => event.stopPropagation()}>
-        <div className={formStyles.modalHeader}>
+        <header className={styles.modalHeader}>
           <div>
-            <h3 className={formStyles.modalTitle}>Detalle de cita #{appointment.id}</h3>
-            <p className={formStyles.modalText}>Visualiza y edita únicamente campos permitidos para el dentista.</p>
+            <h3 className={styles.heroTitle}>Cita #{appointment.id}</h3>
+            <p className={styles.heroSub}>Panel clínico para seguimiento, edición y acciones de estado.</p>
           </div>
-          <button type="button" className={styles.btnGhost} disabled={updatingStatus || savingEdit} onClick={onClose}>
-            Cerrar
-          </button>
-        </div>
+          <button type="button" className={styles.btnGhost} disabled={isBusy} onClick={onClose}>Cerrar</button>
+        </header>
 
-        <div className={formStyles.modalBody}>
-          <div className={styles.formSurface}>
-            <p className={styles.rowTitle}>{displayPatientName}</p>
-            <p className={styles.rowSub}>Correo: {appointment.patient?.email || "-"}</p>
-            <p className={styles.rowSub}>Teléfono: {appointment.patient?.phone || "-"}</p>
-            <p className={styles.rowSub}>Servicio: {appointment.service?.name || appointment.service_name || "-"}</p>
-            <p className={styles.rowSub}>Especialidad: {appointment.service?.specialty?.name || appointment.specialty_name || "-"}</p>
-            <p className={styles.rowSub}>Inicio: {formatDateTime(appointment.start_at)}</p>
-            <p className={styles.rowSub}>Fin: {formatDateTime(appointment.end_at)}</p>
+        <section className={styles.sectionGrid}>
+          <article className={styles.infoCard}>
+            <p className={styles.infoLabel}>Paciente</p>
+            <p className={styles.infoValue}>{displayPatientName}</p>
+            <p className={styles.rowMeta}>{appointment.patient?.email || "Sin correo"}</p>
+            <p className={styles.rowMeta}>{appointment.patient?.phone || "Sin teléfono"}</p>
+          </article>
+
+          <article className={styles.infoCard}>
+            <p className={styles.infoLabel}>Información de cita</p>
+            <p className={styles.rowMeta}>Inicio: {formatDateTime(appointment.start_at)}</p>
+            <p className={styles.rowMeta}>Fin: {formatDateTime(appointment.end_at)}</p>
+            <p className={styles.rowMeta}>Estado actual: {appointment.status || "scheduled"}</p>
+          </article>
+
+          <article className={styles.infoCard}>
+            <p className={styles.infoLabel}>Servicio clínico</p>
+            <p className={styles.infoValue}>{appointment.service?.name || appointment.service_name || "Sin servicio"}</p>
+            <p className={styles.rowMeta}>{appointment.service?.specialty?.name || appointment.specialty_name || "Sin especialidad"}</p>
+          </article>
+        </section>
+
+        <form className={styles.formGrid} onSubmit={handleLimitedEdit}>
+          <label>
+            Fecha y hora
+            <input className={styles.input} type="datetime-local" value={startAt} onChange={(event) => setStartAt(event.target.value)} />
+          </label>
+
+          <label>
+            Estado
+            <select className={styles.select} value={status} onChange={(event) => setStatus(event.target.value as AppointmentStatus)}>
+              {STATUS_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}
+            </select>
+          </label>
+
+          <label className={styles.fieldFull}>
+            Motivo
+            <textarea className={styles.textarea} value={reason} onChange={(event) => setReason(event.target.value)} rows={2} />
+          </label>
+
+          <label className={styles.fieldFull}>
+            Notas internas
+            <textarea className={styles.textarea} value={internalNotes} onChange={(event) => setInternalNotes(event.target.value)} rows={3} />
+          </label>
+
+          <div className={styles.fieldFull} style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button type="button" className={styles.btnGhost} disabled={isBusy} onClick={() => void handleStatusUpdate("confirmed")}>Marcar confirmada</button>
+            <button type="button" className={styles.btnGhost} disabled={isBusy} onClick={() => void handleStatusUpdate("completed")}>Marcar completada</button>
+            <button type="button" className={styles.btnGhost} disabled={isBusy} onClick={() => void handleStatusUpdate("no_show")}>Marcar no_show</button>
+            <button type="button" className={styles.btnDanger} disabled={isBusy} onClick={() => void handleStatusUpdate("canceled")}>Cancelar cita</button>
           </div>
 
-          <form className={formStyles.formGrid} onSubmit={handleLimitedEdit}>
-            <label className={formStyles.field}>
-              Fecha y hora
-              <input
-                className={formStyles.control}
-                type="datetime-local"
-                value={startAt}
-                onChange={(event) => setStartAt(event.target.value)}
-              />
-            </label>
+          {error && <p className={`${styles.fieldFull} ${styles.feedbackError}`}>{error}</p>}
+          {success && <p className={`${styles.fieldFull} ${styles.feedbackOk}`}>{success}</p>}
 
-            <label className={formStyles.field}>
-              Estado
-              <select
-                className={formStyles.control}
-                value={status}
-                onChange={(event) => setStatus(event.target.value as AppointmentStatus)}
-              >
-                {STATUS_OPTIONS.map((option) => (
-                  <option key={option} value={option}>{option}</option>
-                ))}
-              </select>
-            </label>
-
-            <label className={`${formStyles.field} ${formStyles.fieldFull}`}>
-              Motivo
-              <textarea
-                className={formStyles.control}
-                value={reason}
-                onChange={(event) => setReason(event.target.value)}
-              />
-            </label>
-
-            <label className={`${formStyles.field} ${formStyles.fieldFull}`}>
-              Notas internas
-              <textarea
-                className={formStyles.control}
-                value={internalNotes}
-                onChange={(event) => setInternalNotes(event.target.value)}
-              />
-            </label>
-
-            {error && <div className={formStyles.error}>{error}</div>}
-            {success && <p className={styles.rowSub}>{success}</p>}
-
-            <div className={formStyles.formActionsBetween}>
-              <button type="button" className={styles.btnGhost} disabled={updatingStatus || savingEdit} onClick={handleStatusUpdate}>
-                {updatingStatus ? "Actualizando estado..." : "Actualizar estado"}
-              </button>
-              <button type="submit" className={styles.btnPrimary} disabled={updatingStatus || savingEdit}>
-                {savingEdit ? "Guardando cambios..." : "Guardar edición"}
-              </button>
-            </div>
-          </form>
-        </div>
+          <div className={styles.fieldFull} style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+            <button type="button" className={styles.btnGhost} disabled={isBusy} onClick={() => void handleStatusUpdate()}>
+              {updatingStatus ? "Actualizando estado..." : "Guardar estado seleccionado"}
+            </button>
+            <button type="submit" className={styles.btn} disabled={isBusy}>
+              {savingEdit ? "Guardando..." : "Guardar edición"}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

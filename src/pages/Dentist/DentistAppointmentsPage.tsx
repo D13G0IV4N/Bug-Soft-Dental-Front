@@ -5,9 +5,9 @@ import {
   toErrorMessage,
   type Appointment,
 } from "../../api/appointments";
-import styles from "../Admin/admin.module.css";
-import formStyles from "../../styles/formSystem.module.css";
 import DentistAppointmentDetailModal from "./DentistAppointmentDetailModal";
+import { formatDate, formatTime, parseAppointmentDateTime } from "./dateUtils";
+import styles from "./dentist.module.css";
 
 type DentistFilter = "today" | "upcoming" | "completed" | "canceled" | "all";
 
@@ -19,55 +19,48 @@ const FILTER_LABELS: Record<DentistFilter, string> = {
   all: "Todas",
 };
 
-function parseDate(value?: string) {
-  if (!value) return null;
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
-}
-
-function formatDate(value?: string) {
-  const parsed = parseDate(value);
-  return parsed ? parsed.toLocaleDateString() : "-";
-}
-
-function formatTime(value?: string) {
-  const parsed = parseDate(value);
-  return parsed ? parsed.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-";
-}
-
 function isCanceled(status?: string) {
   return status === "canceled" || status === "cancelled";
 }
 
 function matchesFilter(item: Appointment, filter: DentistFilter) {
-  const date = parseDate(item.start_at);
-  const status = item.status ?? "scheduled";
-
+  const date = parseAppointmentDateTime(item.start_at);
+  const status = (item.status ?? "scheduled").toLowerCase();
   const now = new Date();
-  const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-  const dayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
 
   if (filter === "all") return true;
   if (filter === "completed") return status === "completed";
   if (filter === "canceled") return isCanceled(status);
-
   if (!date) return false;
-  if (filter === "today") return date >= dayStart && date <= dayEnd;
-  if (filter === "upcoming") {
-    return date > dayEnd && status !== "completed" && !isCanceled(status) && status !== "no_show";
+
+  if (filter === "today") {
+    return (
+      date.getFullYear() === now.getFullYear() &&
+      date.getMonth() === now.getMonth() &&
+      date.getDate() === now.getDate()
+    );
   }
 
-  return true;
+  return date > now && !["completed", "no_show", "canceled", "cancelled"].includes(status);
+}
+
+function statusClass(status?: string) {
+  const key = (status ?? "scheduled").toLowerCase();
+  if (key === "completed") return styles.statusCompleted;
+  if (key === "confirmed") return styles.statusConfirmed;
+  if (key === "pending") return styles.statusPending;
+  if (key === "no_show") return styles.statusNoShow;
+  if (key === "cancelled") return styles.statusCancelled;
+  if (key === "canceled") return styles.statusCanceled;
+  return styles.statusScheduled;
 }
 
 export default function DentistAppointmentsPage() {
   const [items, setItems] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
   const [selectedFilter, setSelectedFilter] = useState<DentistFilter>("all");
   const [search, setSearch] = useState("");
-
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<number | null>(null);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
@@ -127,115 +120,104 @@ export default function DentistAppointmentsPage() {
 
   async function refreshDetailAndList() {
     await fetchAppointments();
-
     if (!selectedAppointmentId) return;
 
     try {
       const detail = await getAppointmentById(selectedAppointmentId);
       setSelectedAppointment(detail);
     } catch {
-      const fallback = items.find((item) => item.id === selectedAppointmentId) ?? null;
-      setSelectedAppointment(fallback);
+      setSelectedAppointment(null);
     }
   }
 
   return (
-    <div className={styles.viewStack}>
-      <div className={styles.hero}>
-        <div>
-          <h2 className={styles.heroTitle}>Mis citas</h2>
-          <p className={styles.heroSub}>Consulta, filtra y actualiza las citas asignadas a tu usuario.</p>
+    <section className={styles.surface}>
+      <h2 className={styles.heroTitle}>Citas clínicas</h2>
+      <p className={styles.heroSub}>Busca rápido, revisa detalle clínico y actualiza estados sin salir de la agenda.</p>
+
+
+      <div className={styles.infoCard} style={{ marginBottom: 14 }}>
+        <p className={styles.infoLabel}>Nueva cita</p>
+        <p className={styles.rowMeta}>Pendiente de habilitar: el rol dentista no tiene fuentes seguras de pacientes/servicios para crear citas desde este módulo.</p>
+      </div>
+      <div className={styles.controls}>
+        <div className={styles.filters}>
+          {(Object.keys(FILTER_LABELS) as DentistFilter[]).map((filter) => (
+            <button
+              key={filter}
+              className={`${styles.filterBtn} ${filter === selectedFilter ? styles.filterBtnActive : ""}`.trim()}
+              onClick={() => setSelectedFilter(filter)}
+            >
+              {FILTER_LABELS[filter]}
+            </button>
+          ))}
         </div>
+
+        <input
+          className={styles.searchInput}
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Buscar por paciente o servicio"
+        />
       </div>
 
-      <div className={styles.contentCard}>
-        <div className={styles.sectionHead}>
-          <div>
-            <h3 className={styles.sectionTitle}>Agenda personal</h3>
-            <p className={styles.sectionSub}>{loading ? "Cargando..." : `${filteredItems.length} resultado(s)`}</p>
-          </div>
+      {loading && <div className={styles.emptyState}>Cargando citas...</div>}
+
+      {!loading && error && (
+        <div className={styles.emptyState}>
+          <p>{error}</p>
+          <button className={styles.btnGhost} onClick={() => void fetchAppointments()}>Reintentar</button>
         </div>
+      )}
 
-        <div className={styles.sectionBody}>
-          <div className={styles.actions}>
-            {(Object.keys(FILTER_LABELS) as DentistFilter[]).map((filter) => (
-              <button
-                key={filter}
-                className={filter === selectedFilter ? styles.btnPrimary : styles.btnGhost}
-                onClick={() => setSelectedFilter(filter)}
-              >
-                {FILTER_LABELS[filter]}
-              </button>
-            ))}
-          </div>
+      {!loading && !error && filteredItems.length === 0 && (
+        <div className={styles.emptyState}>No hay citas para este filtro.</div>
+      )}
 
-          <label className={styles.rowSub}>
-            Buscar por paciente o servicio
-            <input
-              className={formStyles.control}
-              style={{ marginTop: 6 }}
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Ej. Juan Pérez o Limpieza dental"
-            />
-          </label>
-
-          {loading && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Cargando citas...</p></div></div>}
-          {!loading && error && <div className={styles.empty}><div className={styles.emptyBox}><p className={styles.emptyTitle}>Error</p><p className={styles.emptyText}>{error}</p></div></div>}
-
-          {!loading && !error && filteredItems.length === 0 && (
-            <div className={styles.empty}>
-              <div className={styles.emptyBox}>
-                <p className={styles.emptyTitle}>Sin citas para este filtro</p>
-                <p className={styles.emptyText}>Ajusta el filtro o búsqueda para ver otras citas.</p>
-              </div>
-            </div>
-          )}
-
-          {!loading && !error && filteredItems.length > 0 && (
-            <div className={styles.listSurface}>
-              <div className={styles.tableWrap}>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th>Fecha</th>
-                      <th>Inicio</th>
-                      <th>Fin</th>
-                      <th>Paciente</th>
-                      <th>Servicio</th>
-                      <th>Especialidad</th>
-                      <th>Estado</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredItems.map((item) => (
-                      <tr key={item.id}>
-                        <td><p className={styles.rowSub}>{formatDate(item.start_at)}</p></td>
-                        <td><p className={styles.rowSub}>{formatTime(item.start_at)}</p></td>
-                        <td><p className={styles.rowSub}>{formatTime(item.end_at)}</p></td>
-                        <td><p className={styles.rowTitle}>{item.patient?.name || item.patient_name || `#${item.patient_user_id}`}</p></td>
-                        <td><p className={styles.rowTitle}>{item.service?.name || item.service_name || `#${item.service_id}`}</p></td>
-                        <td><p className={styles.rowSub}>{item.service?.specialty?.name || item.specialty_name || "-"}</p></td>
-                        <td>
-                          <span className={`${styles.pill} ${isCanceled(item.status) ? styles.pillOff : styles.pillOn}`}>
-                            {item.status || "scheduled"}
-                          </span>
-                        </td>
-                        <td>
-                          <button className={styles.btnSoft} onClick={() => openDetail(item)}>
-                            Ver detalle
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
+      {!loading && !error && filteredItems.length > 0 && (
+        <div className={styles.tableCard}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Horario</th>
+                <th>Paciente</th>
+                <th>Servicio</th>
+                <th>Especialidad</th>
+                <th>Estado</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredItems.map((item) => (
+                <tr key={item.id}>
+                  <td>
+                    <p className={styles.rowMain}>{formatDate(item.start_at)}</p>
+                    <p className={styles.rowMeta}>{formatTime(item.start_at)} - {formatTime(item.end_at)}</p>
+                  </td>
+                  <td>
+                    <p className={styles.rowMain}>{item.patient?.name || item.patient_name || `#${item.patient_user_id}`}</p>
+                    <p className={styles.rowMeta}>{item.patient?.phone || "Sin teléfono"}</p>
+                  </td>
+                  <td>
+                    <p className={styles.rowMain}>{item.service?.name || item.service_name || `#${item.service_id}`}</p>
+                  </td>
+                  <td>
+                    <p className={styles.rowMeta}>{item.service?.specialty?.name || item.specialty_name || "-"}</p>
+                  </td>
+                  <td>
+                    <span className={`${styles.statusPill} ${statusClass(item.status)}`.trim()}>{item.status || "scheduled"}</span>
+                  </td>
+                  <td>
+                    <button className={styles.btn} onClick={() => void openDetail(item)}>Abrir panel</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-      </div>
+      )}
+
+      {loadingDetail && <div className={styles.emptyState}>Cargando detalle...</div>}
 
       {selectedAppointment && !loadingDetail && (
         <DentistAppointmentDetailModal
@@ -244,6 +226,6 @@ export default function DentistAppointmentsPage() {
           onUpdated={refreshDetailAndList}
         />
       )}
-    </div>
+    </section>
   );
 }
