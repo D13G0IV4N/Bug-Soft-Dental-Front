@@ -354,3 +354,47 @@
   .page { grid-template-columns: 1fr; }
   .sidebar { border-right: 0; border-bottom: 1px solid rgba(26, 94, 145, 0.15); }
 }
+
+
+.workspaceHero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+  padding: 16px;
+  border-radius: 16px;
+  background: linear-gradient(120deg, rgba(7, 134, 181, 0.13), rgba(29, 164, 185, 0.06));
+  border: 1px solid rgba(14, 124, 166, 0.2);
+}
+
+.workspaceTag {
+  margin: 0 0 6px;
+  color: #0a5f83;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.tableActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.btnTiny {
+  border-radius: 10px;
+  padding: 6px 9px;
+  border: 1px solid rgba(28, 107, 140, 0.23);
+  background: #f1fbff;
+  color: #0f4f70;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
