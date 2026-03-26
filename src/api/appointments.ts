@@ -109,9 +109,20 @@ function toStringValue(value: unknown): string {
 function toApiDateTime(value: string): string {
   const trimmed = value.trim();
   if (!trimmed) return "";
-  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(trimmed)) {
-    return `${trimmed}:00`;
+
+  const localDateTime = trimmed.match(
+    /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/
+  );
+
+  if (localDateTime) {
+    const [, year, month, day, hours, minutes, seconds] = localDateTime;
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds ?? "00"}`;
   }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    return `${trimmed} 00:00:00`;
+  }
+
   return trimmed;
 }
 
