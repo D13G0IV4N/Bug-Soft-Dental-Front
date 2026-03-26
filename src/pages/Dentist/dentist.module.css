@@ -452,3 +452,274 @@
   color: #a12626;
   white-space: pre-wrap;
 }
+
+.viewModeRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.viewModeSwitch {
+  display: inline-flex;
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid rgba(22, 103, 151, 0.2);
+  background: rgba(245, 252, 255, 0.9);
+  gap: 4px;
+}
+
+.viewModeBtn {
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #35617b;
+  padding: 8px 12px;
+  font-weight: 700;
+}
+
+.viewModeBtnActive {
+  background: linear-gradient(135deg, #0a87b4, #1b9fb6);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(8, 105, 143, 0.28);
+}
+
+.weekAgendaCard {
+  border: 1px solid rgba(23, 104, 145, 0.2);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(250, 254, 255, 0.98), rgba(239, 248, 253, 0.95));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 16px 32px rgba(24, 96, 133, 0.08);
+  padding: 16px;
+  display: grid;
+  gap: 14px;
+}
+
+.weekAgendaHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.weekAgendaTag {
+  margin: 0;
+  color: #0a6288;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.weekAgendaTitle {
+  margin: 4px 0 0;
+  font-size: 22px;
+}
+
+.weekAgendaMeta {
+  margin: 0;
+  color: #4d7084;
+  font-weight: 600;
+}
+
+.weekAgendaDesktop {
+  overflow: auto;
+  border-radius: 14px;
+  border: 1px solid rgba(22, 98, 138, 0.18);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.agendaGrid {
+  min-width: 1020px;
+  display: grid;
+  grid-template-columns: 88px repeat(7, minmax(170px, 1fr));
+}
+
+.agendaRowGroup {
+  display: contents;
+}
+
+.agendaCell {
+  border-right: 1px solid rgba(30, 107, 148, 0.13);
+  border-bottom: 1px solid rgba(30, 107, 148, 0.13);
+}
+
+.agendaCorner {
+  background: linear-gradient(120deg, rgba(10, 99, 143, 0.07), rgba(21, 152, 172, 0.1));
+}
+
+.agendaDayHeader {
+  padding: 10px;
+  text-align: center;
+  background: rgba(236, 248, 255, 0.75);
+}
+
+.agendaDayName {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #517286;
+  font-weight: 800;
+}
+
+.agendaDayDate {
+  margin: 6px 0 0;
+  font-weight: 700;
+  color: #1d5c7d;
+}
+
+.agendaDayDateToday {
+  color: #fff;
+  background: linear-gradient(135deg, #0a8bbb, #159cad);
+  border-radius: 999px;
+  display: inline-block;
+  padding: 2px 9px;
+}
+
+.agendaTimeCell {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 10px;
+  color: #4d7084;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(240, 249, 255, 0.74);
+}
+
+.agendaDataCell {
+  min-height: 96px;
+  padding: 8px;
+}
+
+.agendaSlotEmpty {
+  min-height: 74px;
+  border-radius: 10px;
+}
+
+.agendaStack {
+  display: grid;
+  gap: 7px;
+}
+
+.agendaAppointmentCard {
+  border-radius: 11px;
+  border: 1px solid rgba(23, 109, 153, 0.2);
+  background: linear-gradient(180deg, #ffffff, #f2faff);
+  padding: 8px;
+  display: grid;
+  gap: 5px;
+}
+
+.agendaAppointmentHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+}
+
+.agendaAppointmentTime {
+  margin: 0;
+  color: #0f5a7f;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.agendaAppointmentPatient {
+  margin: 0;
+  font-weight: 700;
+  color: #123f59;
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.agendaAppointmentService {
+  margin: 0;
+  color: #577487;
+  font-size: 12px;
+}
+
+.agendaAppointmentActions {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.weekAgendaMobile {
+  display: none;
+}
+
+.mobileDayCard {
+  border-radius: 14px;
+  border: 1px solid rgba(25, 106, 143, 0.16);
+  background: #ffffff;
+  padding: 12px;
+}
+
+.mobileDayHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  color: #1d5e80;
+  font-weight: 700;
+}
+
+.mobileDayHeader p {
+  margin: 0;
+}
+
+.mobileDayAppointments {
+  display: grid;
+  gap: 8px;
+}
+
+.mobileAppointmentCard {
+  border-radius: 11px;
+  border: 1px solid rgba(20, 104, 145, 0.18);
+  background: linear-gradient(180deg, #fbfdff, #f3f9ff);
+  padding: 9px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mobileAppointmentMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.mobileDayEmpty {
+  margin: 0;
+  color: #678293;
+  font-size: 13px;
+}
+
+@media (max-width: 980px) {
+  .viewModeRow {
+    justify-content: stretch;
+  }
+
+  .viewModeSwitch {
+    width: 100%;
+  }
+
+  .viewModeBtn {
+    flex: 1;
+  }
+
+  .weekAgendaHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .weekAgendaDesktop {
+    display: none;
+  }
+
+  .weekAgendaMobile {
+    display: grid;
+    gap: 10px;
+  }
+}

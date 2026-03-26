@@ -17,10 +17,12 @@ import { getDentistPatients, type Patient } from "../../api/patients";
 import { getStoredUser } from "../../utils/auth";
 import DentistAppointmentDetailModal from "./DentistAppointmentDetailModal";
 import DentistAppointmentFormModal from "./DentistAppointmentFormModal";
+import DentistWeeklyAgenda from "./DentistWeeklyAgenda";
 import { formatDate, formatTime, parseAppointmentDateTime } from "./dateUtils";
 import styles from "./dentist.module.css";
 
 type DentistFilter = "today" | "upcoming" | "completed" | "canceled" | "all";
+type AgendaViewMode = "week" | "list";
 
 type DentistPatientOption = {
   id: number;
@@ -97,6 +99,7 @@ export default function DentistAppointmentsPage() {
   const [patientsError, setPatientsError] = useState("");
   const [selectedFilter, setSelectedFilter] = useState<DentistFilter>("all");
   const [search, setSearch] = useState("");
+  const [viewMode, setViewMode] = useState<AgendaViewMode>("week");
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<number | null>(null);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
@@ -291,6 +294,23 @@ export default function DentistAppointmentsPage() {
         </button>
       </div>
 
+      <div className={styles.viewModeRow}>
+        <div className={styles.viewModeSwitch}>
+          <button
+            className={`${styles.viewModeBtn} ${viewMode === "week" ? styles.viewModeBtnActive : ""}`.trim()}
+            onClick={() => setViewMode("week")}
+          >
+            Agenda semanal
+          </button>
+          <button
+            className={`${styles.viewModeBtn} ${viewMode === "list" ? styles.viewModeBtnActive : ""}`.trim()}
+            onClick={() => setViewMode("list")}
+          >
+            Lista detallada
+          </button>
+        </div>
+      </div>
+
       <div className={styles.controls}>
         <div className={styles.filters}>
           {(Object.keys(FILTER_LABELS) as DentistFilter[]).map((filter) => (
@@ -328,7 +348,19 @@ export default function DentistAppointmentsPage() {
         <div className={styles.emptyState}>No hay citas para este filtro.</div>
       )}
 
-      {!loading && !error && filteredItems.length > 0 && (
+      {!loading && !error && filteredItems.length > 0 && viewMode === "week" && (
+        <DentistWeeklyAgenda
+          appointments={filteredItems}
+          onView={(item) => {
+            void openDetail(item);
+          }}
+          onEdit={(item) => {
+            void startEdit(item);
+          }}
+        />
+      )}
+
+      {!loading && !error && filteredItems.length > 0 && viewMode === "list" && (
         <div className={styles.tableCard}>
           <table className={styles.table}>
             <thead>
