@@ -88,7 +88,7 @@ export default function DentistAppointmentsPage() {
   const [items, setItems] = useState<Appointment[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingServices, setLoadingServices] = useState(true);
+  const [loadingServices, setLoadingServices] = useState(false);
   const [error, setError] = useState("");
   const [servicesError, setServicesError] = useState("");
   const [selectedFilter, setSelectedFilter] = useState<DentistFilter>("all");
@@ -147,9 +147,13 @@ export default function DentistAppointmentsPage() {
 
   useEffect(() => {
     void fetchAppointments();
-    void fetchServices();
     void resolveDentistUserId();
-  }, [fetchAppointments, fetchServices, resolveDentistUserId]);
+  }, [fetchAppointments, resolveDentistUserId]);
+
+  const ensureServicesLoaded = useCallback(async () => {
+    if (services.length > 0 || loadingServices) return;
+    await fetchServices();
+  }, [fetchServices, loadingServices, services.length]);
 
   const patientOptions = useMemo<DentistPatientOption[]>(() => {
     const map = new Map<number, DentistPatientOption>();
@@ -262,6 +266,7 @@ export default function DentistAppointmentsPage() {
             setActionError("");
             setActionSuccess("");
             setOpenCreate(true);
+            void ensureServicesLoaded();
           }}
         >
           + Nueva cita
