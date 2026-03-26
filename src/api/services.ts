@@ -1,3 +1,4 @@
+import axios from "axios";
 import { api } from "./axios";
 import { toErrorMessage } from "./appointments";
 
@@ -133,8 +134,17 @@ export async function getServices() {
 }
 
 export async function getDentistServices() {
-  const { data } = await api.get("/dentist/services");
-  return normalizeList<unknown>(data).map(mapService).filter((service) => service.id > 0);
+  try {
+    const { data } = await api.get("/services");
+    return normalizeList<unknown>(data).map(mapService).filter((service) => service.id > 0);
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      const { data } = await api.get("/dentist/services");
+      return normalizeList<unknown>(data).map(mapService).filter((service) => service.id > 0);
+    }
+
+    throw error;
+  }
 }
 
 export async function getServiceById(serviceId: number | string) {
