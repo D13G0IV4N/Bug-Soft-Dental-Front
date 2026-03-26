@@ -13,6 +13,9 @@ import AdminAppointmentsPage from "./pages/Admin/AdminAppointmentsPage";
 import AdminSpecialtiesPage from "./pages/Admin/AdminSpecialtiesPage";
 import AdminServicesPage from "./pages/Admin/AdminServicesPage";
 import SuperAdminLayout from "./pages/Admin/SuperAdminLayout";
+import DentistLayout from "./pages/Dentist/DentistLayout";
+import DentistDashboardPage from "./pages/Dentist/DentistDashboardPage";
+import DentistAppointmentsPage from "./pages/Dentist/DentistAppointmentsPage";
 
 function HomeRedirect() {
   if (!isAuthenticated()) return <Navigate to="/login" replace />;
@@ -63,6 +66,13 @@ export default function App() {
             </Route>
             <Route path="patients" element={<PatientsPage />} />
             <Route path="appointments" element={<AdminAppointmentsPage />} />
+          </Route>
+        </Route>
+
+        <Route element={<RoleGuard allowedRoles={["dentist"]} />}>
+          <Route path="/dentist" element={<DentistLayout />}>
+            <Route index element={<DentistDashboardPage />} />
+            <Route path="appointments" element={<DentistAppointmentsPage />} />
           </Route>
         </Route>
       </Route>

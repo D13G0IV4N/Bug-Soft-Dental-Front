@@ -260,6 +260,24 @@ export async function getAppointments() {
   return normalizeList(data).map(normalizeAppointment);
 }
 
+export async function getDentistAppointments() {
+  try {
+    return await getAppointments();
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      const { data } = await api.get("/dentist/appointments");
+      return normalizeList(data).map(normalizeAppointment);
+    }
+
+    throw error;
+  }
+}
+
+export async function getAppointmentById(appointmentId: number | string) {
+  const { data } = await api.get(`/appointments/${appointmentId}`);
+  return normalizeAppointment(normalizeOne<unknown>(data));
+}
+
 export async function createAppointment(payload: AppointmentPayload) {
   const { data } = await api.post("/appointments", buildAppointmentPayload(payload));
   return normalizeAppointment(normalizeOne<unknown>(data));
