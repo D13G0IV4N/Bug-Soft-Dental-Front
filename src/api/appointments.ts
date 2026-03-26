@@ -50,9 +50,9 @@ export interface AppointmentPayload {
   dentist_user_id: number;
   service_id: number;
   start_at: string;
+  end_at?: string;
   reason?: string;
   internal_notes?: string;
-  notes?: string;
 }
 
 export interface AppointmentUpdatePayload {
@@ -60,9 +60,9 @@ export interface AppointmentUpdatePayload {
   dentist_user_id?: number;
   service_id?: number;
   start_at?: string;
+  end_at?: string;
   reason?: string;
   internal_notes?: string;
-  notes?: string;
 }
 
 export interface AvailableDentist extends AppointmentPerson {
@@ -249,9 +249,9 @@ function buildAppointmentPayload(payload: AppointmentPayload) {
     dentist_user_id: payload.dentist_user_id,
     service_id: payload.service_id,
     start_at: toApiDateTime(payload.start_at),
+    end_at: payload.end_at ? toApiDateTime(payload.end_at) : undefined,
     reason: payload.reason?.trim() || undefined,
     internal_notes: payload.internal_notes?.trim() || undefined,
-    notes: payload.notes?.trim() || undefined,
   };
 }
 
@@ -290,9 +290,9 @@ export async function updateAppointment(appointmentId: number | string, payload:
   if (payload.dentist_user_id !== undefined) body.dentist_user_id = payload.dentist_user_id;
   if (payload.service_id !== undefined) body.service_id = payload.service_id;
   if (payload.start_at !== undefined) body.start_at = toApiDateTime(payload.start_at);
+  if (payload.end_at !== undefined) body.end_at = payload.end_at ? toApiDateTime(payload.end_at) : null;
   if (payload.reason !== undefined) body.reason = payload.reason?.trim() || null;
   if (payload.internal_notes !== undefined) body.internal_notes = payload.internal_notes?.trim() || null;
-  if (payload.notes !== undefined) body.notes = payload.notes?.trim() || null;
 
   const { data } = await api.patch(`/appointments/${appointmentId}`, body);
   return normalizeAppointment(normalizeOne<unknown>(data));
