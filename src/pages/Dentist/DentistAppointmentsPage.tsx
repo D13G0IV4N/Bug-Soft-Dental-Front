@@ -12,7 +12,8 @@ import {
   type AppointmentStatus,
 } from "../../api/appointments";
 import { me } from "../../api/auth";
-import { getServices, type Service } from "../../api/services";
+import { getDentistServices, type Service } from "../../api/services";
+import { getDentistPatients, type Patient } from "../../api/patients";
 import { getStoredUser } from "../../utils/auth";
 import DentistAppointmentDetailModal from "./DentistAppointmentDetailModal";
 import DentistAppointmentFormModal from "./DentistAppointmentFormModal";
@@ -87,10 +88,13 @@ function canApplyStatus(item: Appointment, target: AppointmentStatus) {
 export default function DentistAppointmentsPage() {
   const [items, setItems] = useState<Appointment[]>([]);
   const [services, setServices] = useState<Service[]>([]);
+  const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingServices, setLoadingServices] = useState(false);
+  const [loadingPatients, setLoadingPatients] = useState(false);
   const [error, setError] = useState("");
   const [servicesError, setServicesError] = useState("");
+  const [patientsError, setPatientsError] = useState("");
   const [selectedFilter, setSelectedFilter] = useState<DentistFilter>("all");
   const [search, setSearch] = useState("");
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<number | null>(null);
@@ -121,7 +125,7 @@ export default function DentistAppointmentsPage() {
   const fetchServices = useCallback(async () => {
     try {
       setLoadingServices(true);
-      const catalog = await getServices();
+      const catalog = await getDentistServices();
       setServices(catalog.filter((service) => service.status !== false));
       setServicesError("");
     } catch (requestError: unknown) {
@@ -129,6 +133,20 @@ export default function DentistAppointmentsPage() {
       setServicesError(toErrorMessage(requestError, "No se pudieron cargar los servicios"));
     } finally {
       setLoadingServices(false);
+    }
+  }, []);
+
+  const fetchPatients = useCallback(async () => {
+    try {
+      setLoadingPatients(true);
+      const catalog = await getDentistPatients();
+      setPatients(catalog.filter((patient) => patient.status !== false));
+      setPatientsError("");
+    } catch (requestError: unknown) {
+      setPatients([]);
+      setPatientsError(toErrorMessage(requestError, "No se pudieron cargar los pacientes"));
+    } finally {
+      setLoadingPatients(false);
     }
   }, []);
 
@@ -148,29 +166,29 @@ export default function DentistAppointmentsPage() {
   useEffect(() => {
     void fetchAppointments();
     void resolveDentistUserId();
-  }, [fetchAppointments, resolveDentistUserId]);
+    void fetchPatients();
+  }, [fetchAppointments, fetchPatients, resolveDentistUserId]);
 
-  const ensureServicesLoaded = useCallback(async () => {
-    if (services.length > 0 || loadingServices) return;
-    await fetchServices();
-  }, [fetchServices, loadingServices, services.length]);
+  const ensureCreateCatalogLoaded = useCallback(async () => {
+    if (services.length === 0 && !loadingServices) {
+      await fetchServices();
+    }
+    if (patients.length === 0 && !loadingPatients) {
+      await fetchPatients();
+    }
+  }, [fetchPatients, fetchServices, loadingPatients, loadingServices, patients.length, services.length]);
 
   const patientOptions = useMemo<DentistPatientOption[]>(() => {
-    const map = new Map<number, DentistPatientOption>();
-
-    items.forEach((item) => {
-      const id = item.patient_user_id || item.patient?.id;
-      if (!id) return;
-      map.set(id, {
-        id,
-        name: item.patient?.name || item.patient_name || `Paciente #${id}`,
-        phone: item.patient?.phone,
-        email: item.patient?.email,
-      });
-    });
-
-    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [items]);
+    return patients
+      .filter((patient) => typeof patient.id === "number")
+      .map((patient) => ({
+        id: patient.id as number,
+        name: patient.name || `Paciente #${patient.id}`,
+        phone: patient.phone,
+        email: patient.email,
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [patients]);
 
   const filteredItems = useMemo(() => {
     const searchTerm = search.trim().toLowerCase();
@@ -266,7 +284,7 @@ export default function DentistAppointmentsPage() {
             setActionError("");
             setActionSuccess("");
             setOpenCreate(true);
-            void ensureServicesLoaded();
+            void ensureCreateCatalogLoaded();
           }}
         >
           + Nueva cita
@@ -383,6 +401,8 @@ export default function DentistAppointmentsPage() {
           services={services}
           loadingServices={loadingServices}
           servicesError={servicesError}
+          loadingPatients={loadingPatients}
+          patientsError={patientsError}
           dentistUserId={dentistUserId}
           onClose={() => {
             setOpenCreate(false);
@@ -393,6 +413,7 @@ export default function DentistAppointmentsPage() {
             setActionSuccess("");
             await createAppointment(payload as AppointmentPayload);
             await fetchAppointments();
+            await fetchPatients();
             setOpenCreate(false);
             setActionSuccess("Cita creada correctamente.");
           }}
@@ -407,6 +428,8 @@ export default function DentistAppointmentsPage() {
           services={services}
           loadingServices={loadingServices}
           servicesError={servicesError}
+          loadingPatients={loadingPatients}
+          patientsError={patientsError}
           dentistUserId={dentistUserId}
           onClose={() => {
             setOpenEdit(false);

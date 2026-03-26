@@ -1,4 +1,5 @@
 import { api } from "./axios";
+import axios from "axios";
 
 export type PatientStatus = boolean | number | string | null | undefined;
 
@@ -140,6 +141,19 @@ export async function deleteSuperClinicPatient(clinicId: number | string, patien
 export async function getAdminPatients() {
   const { data } = await api.get(adminBase);
   return normalizeListPayload(data).map(normalizePatient);
+}
+
+export async function getDentistPatients() {
+  try {
+    const { data } = await api.get("/dentist/patients");
+    return normalizeListPayload(data).map(normalizePatient);
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      const { data } = await api.get("/patients");
+      return normalizeListPayload(data).map(normalizePatient);
+    }
+    throw error;
+  }
 }
 
 export async function createAdminPatient(patient: Patient) {
