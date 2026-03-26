@@ -2,56 +2,77 @@ function pad(value: number) {
   return String(value).padStart(2, "0");
 }
 
-export function parseAppointmentDateTime(value?: string): Date | null {
+type DateTimeParts = {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  second: number;
+};
+
+function getDateTimeParts(value?: string): DateTimeParts | null {
   if (!value || typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
 
-  const normalized = value.trim().replace(" ", "T");
-
-  if (/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
-    const [year, month, day] = normalized.split("-").map(Number);
-    return new Date(year, month - 1, day, 0, 0, 0, 0);
+  const dateOnlyMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (dateOnlyMatch) {
+    const [, year, month, day] = dateOnlyMatch;
+    return {
+      year: Number(year),
+      month: Number(month),
+      day: Number(day),
+      hour: 0,
+      minute: 0,
+      second: 0,
+    };
   }
 
-  const localLike = normalized.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/);
-  if (localLike) {
-    const [, year, month, day, hour, minute, second] = localLike;
-    return new Date(
-      Number(year),
-      Number(month) - 1,
-      Number(day),
-      Number(hour),
-      Number(minute),
-      Number(second ?? "0"),
-      0
-    );
-  }
+  const dateTimeMatch = trimmed.match(
+    /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/
+  );
+  if (!dateTimeMatch) return null;
 
-  const parsed = new Date(normalized);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
+  const [, year, month, day, hour, minute, second] = dateTimeMatch;
+  return {
+    year: Number(year),
+    month: Number(month),
+    day: Number(day),
+    hour: Number(hour),
+    minute: Number(minute),
+    second: Number(second ?? "0"),
+  };
+}
+
+export function parseAppointmentDateTime(value?: string): Date | null {
+  const parts = getDateTimeParts(value);
+  if (!parts) return null;
+  return new Date(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second, 0);
 }
 
 export function formatDate(value?: string) {
-  const parsed = parseAppointmentDateTime(value);
-  if (!parsed) return "-";
-  return parsed.toLocaleDateString();
+  const parts = getDateTimeParts(value);
+  if (!parts) return "-";
+  return `${pad(parts.day)}/${pad(parts.month)}/${parts.year}`;
 }
 
 export function formatTime(value?: string) {
-  const parsed = parseAppointmentDateTime(value);
-  if (!parsed) return "-";
-  return parsed.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const parts = getDateTimeParts(value);
+  if (!parts) return "-";
+  return `${pad(parts.hour)}:${pad(parts.minute)}`;
 }
 
 export function formatDateTime(value?: string) {
-  const parsed = parseAppointmentDateTime(value);
-  if (!parsed) return "-";
-  return parsed.toLocaleString();
+  const parts = getDateTimeParts(value);
+  if (!parts) return "-";
+  return `${pad(parts.day)}/${pad(parts.month)}/${parts.year} ${pad(parts.hour)}:${pad(parts.minute)}`;
 }
 
 export function toDateTimeLocal(value?: string) {
-  const parsed = parseAppointmentDateTime(value);
-  if (!parsed) return "";
-  return `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}T${pad(parsed.getHours())}:${pad(parsed.getMinutes())}`;
+  const parts = getDateTimeParts(value);
+  if (!parts) return "";
+  return `${parts.year}-${pad(parts.month)}-${pad(parts.day)}T${pad(parts.hour)}:${pad(parts.minute)}`;
 }
 
 export function isSameLocalDay(date: Date, comparison: Date) {
