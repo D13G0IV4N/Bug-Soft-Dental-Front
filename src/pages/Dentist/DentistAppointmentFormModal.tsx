@@ -20,6 +20,8 @@ interface Props {
   services: Service[];
   loadingServices: boolean;
   servicesError: string;
+  loadingPatients: boolean;
+  patientsError: string;
   dentistUserId: number | null;
   onClose: () => void;
   onSubmit: (payload: AppointmentPayload | AppointmentUpdatePayload) => Promise<void>;
@@ -37,6 +39,8 @@ export default function DentistAppointmentFormModal({
   services,
   loadingServices,
   servicesError,
+  loadingPatients,
+  patientsError,
   dentistUserId,
   onClose,
   onSubmit,
@@ -223,6 +227,8 @@ export default function DentistAppointmentFormModal({
           )}
           {loadingServices && <p className={styles.rowMeta}>Cargando servicios...</p>}
           {servicesError && <p className={styles.feedbackError}>{servicesError}</p>}
+          {loadingPatients && <p className={styles.rowMeta}>Cargando pacientes...</p>}
+          {patientsError && <p className={styles.feedbackError}>{patientsError}</p>}
           {mode === "create" && patients.length === 0 && (
             <p className={styles.feedbackError}>No hay pacientes disponibles para crear una cita desde la vista de dentista.</p>
           )}
@@ -235,7 +241,11 @@ export default function DentistAppointmentFormModal({
 
           <div className={styles.modalActions}>
             <button type="button" className={styles.btnGhost} onClick={onClose} disabled={saving}>Cancelar</button>
-            <button type="submit" className={styles.btn} disabled={saving || loadingServices || (mode === "create" && patients.length === 0)}>
+            <button
+              type="submit"
+              className={styles.btn}
+              disabled={saving || loadingServices || loadingPatients || (mode === "create" && patients.length === 0)}
+            >
               {saving ? "Guardando..." : mode === "create" ? "Crear cita" : "Guardar cambios"}
             </button>
           </div>
