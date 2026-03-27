@@ -530,6 +530,7 @@
 
 .weekAgendaDesktop {
   overflow: auto;
+  max-height: min(68vh, 620px);
   border-radius: 16px;
   border: 1px solid rgba(22, 98, 138, 0.16);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(246, 252, 255, 0.95));
@@ -537,9 +538,9 @@
 }
 
 .agendaGrid {
-  min-width: 930px;
+  min-width: 900px;
   display: grid;
-  grid-template-columns: 72px repeat(7, minmax(122px, 1fr));
+  grid-template-columns: 62px repeat(7, minmax(112px, 1fr));
 }
 
 .agendaRowGroup {
@@ -556,7 +557,7 @@
 }
 
 .agendaDayHeader {
-  padding: 10px 6px;
+  padding: 8px 5px;
   text-align: center;
   background: linear-gradient(180deg, rgba(238, 249, 255, 0.9), rgba(248, 253, 255, 0.74));
 }
@@ -590,37 +591,74 @@
   justify-content: center;
   align-items: center;
   color: #4d7084;
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 0.04em;
   font-weight: 700;
   background: rgba(240, 249, 255, 0.74);
 }
 
 .agendaDataCell {
-  min-height: 84px;
-  padding: 6px;
+  min-height: 60px;
+  padding: 4px;
   vertical-align: top;
 }
 
 .agendaSlotEmpty {
-  min-height: 70px;
-  border-radius: 10px;
+  min-height: 50px;
+  border-radius: 8px;
 }
 
 .agendaStack {
   display: grid;
-  gap: 5px;
+  gap: 4px;
   align-content: start;
 }
 
 .agendaAppointmentCard {
-  border-radius: 10px;
-  border: 1px solid rgba(20, 113, 157, 0.22);
+  border-radius: 8px;
+  border: 1px solid rgba(20, 113, 157, 0.28);
   background: linear-gradient(160deg, #ffffff 0%, #eaf7ff 100%);
-  padding: 6px 7px;
+  padding: 5px 6px;
   display: grid;
-  gap: 4px;
-  box-shadow: 0 3px 10px rgba(17, 95, 140, 0.1);
+  gap: 3px;
+  box-shadow: 0 2px 7px rgba(17, 95, 140, 0.12);
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.agendaAppointmentCard:hover,
+.agendaAppointmentCard:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(17, 95, 140, 0.18);
+  outline: none;
+}
+
+.agendaAppointmentChip {
+  border-left-width: 4px;
+  border-left-style: solid;
+  border-left-color: #1d739f;
+}
+
+.agendaAppointmentChip.statusScheduled,
+.agendaAppointmentChip.statusPending {
+  border-left-color: #2f7db0;
+}
+
+.agendaAppointmentChip.statusConfirmed {
+  border-left-color: #0b9e7f;
+}
+
+.agendaAppointmentChip.statusCompleted {
+  border-left-color: #2f9651;
+}
+
+.agendaAppointmentChip.statusCanceled,
+.agendaAppointmentChip.statusCancelled {
+  border-left-color: #c04d4d;
+}
+
+.agendaAppointmentChip.statusNoShow {
+  border-left-color: #95631d;
 }
 
 .agendaAppointmentHead {
@@ -633,7 +671,7 @@
 .agendaAppointmentTime {
   margin: 0;
   color: #0f5a7f;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
 }
 
@@ -641,7 +679,7 @@
   margin: 0;
   font-weight: 800;
   color: #123f59;
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
@@ -651,16 +689,21 @@
 .agendaAppointmentService {
   margin: 0;
   color: #577487;
-  font-size: 11px;
+  font-size: 10px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.agendaAppointmentActions {
-  display: flex;
-  justify-content: space-between;
-  gap: 4px;
+.agendaEditAction {
+  justify-self: start;
+  border: 0;
+  background: rgba(15, 90, 127, 0.08);
+  color: #0f5a7f;
+  border-radius: 999px;
+  padding: 2px 7px;
+  font-size: 10px;
+  font-weight: 700;
 }
 
 .weekAgendaMobile {
@@ -754,12 +797,12 @@
   }
 
   .agendaGrid {
-    min-width: 880px;
-    grid-template-columns: 68px repeat(7, minmax(116px, 1fr));
+    min-width: 840px;
+    grid-template-columns: 58px repeat(7, minmax(104px, 1fr));
   }
 
   .agendaDataCell {
-    min-height: 78px;
-    padding: 5px;
+    min-height: 54px;
+    padding: 4px;
   }
 }

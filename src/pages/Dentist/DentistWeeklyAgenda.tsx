@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, type KeyboardEvent } from "react";
 import type { Appointment } from "../../api/appointments";
 import { formatTime, parseAppointmentDateTime } from "./dateUtils";
 import styles from "./dentist.module.css";
@@ -62,12 +62,18 @@ function toTimeKey(date: Date) {
 }
 
 function buildTimeSlots(appointments: AgendaItem[]) {
-  const defaultStart = 7;
-  const defaultEnd = 20;
+  const defaultStart = 8;
+  const defaultEnd = 18;
+  const absoluteStart = 6;
+  const absoluteEnd = 21;
 
   const hours = appointments.map((item) => item.date.getHours());
-  const minHour = hours.length ? Math.min(defaultStart, ...hours) : defaultStart;
-  const maxHour = hours.length ? Math.max(defaultEnd, ...hours) : defaultEnd;
+  const minHour = hours.length
+    ? Math.max(absoluteStart, Math.min(...hours) - 1)
+    : defaultStart;
+  const maxHour = hours.length
+    ? Math.min(absoluteEnd, Math.max(...hours) + 1)
+    : defaultEnd;
 
   return Array.from({ length: maxHour - minHour + 1 }, (_, index) => {
     const hour = minHour + index;
@@ -89,6 +95,13 @@ function statusClass(status?: string) {
   if (key === "cancelled") return styles.statusCancelled;
   if (key === "canceled") return styles.statusCanceled;
   return styles.statusScheduled;
+}
+
+function handleCardKeyDown(event: KeyboardEvent<HTMLElement>, onView: () => void) {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    onView();
+  }
 }
 
 export default function DentistWeeklyAgenda({ appointments, onView, onEdit }: WeeklyAgendaProps) {
@@ -175,7 +188,14 @@ export default function DentistWeeklyAgenda({ appointments, onView, onEdit }: We
                       {appointmentsAtTime.length > 0 ? (
                         <div className={styles.agendaStack}>
                           {appointmentsAtTime.map(({ appointment, date }) => (
-                            <article key={`${appointment.id}-${date.toISOString()}`} className={styles.agendaAppointmentCard}>
+                            <article
+                              key={`${appointment.id}-${date.toISOString()}`}
+                              className={`${styles.agendaAppointmentCard} ${styles.agendaAppointmentChip} ${statusClass(appointment.status)}`.trim()}
+                              role="button"
+                              tabIndex={0}
+                              onClick={() => onView(appointment)}
+                              onKeyDown={(event) => handleCardKeyDown(event, () => onView(appointment))}
+                            >
                               <div className={styles.agendaAppointmentHead}>
                                 <p className={styles.agendaAppointmentTime}>{formatTime(appointment.start_at)}</p>
                                 <span className={`${styles.statusPill} ${statusClass(appointment.status)}`.trim()}>
@@ -188,15 +208,16 @@ export default function DentistWeeklyAgenda({ appointments, onView, onEdit }: We
                               <p className={styles.agendaAppointmentService}>
                                 {appointment.service?.name || appointment.service_name || `Servicio #${appointment.service_id}`}
                               </p>
-
-                              <div className={styles.agendaAppointmentActions}>
-                                <button className={styles.btnGhost} onClick={() => onView(appointment)}>
-                                  Ver
-                                </button>
-                                <button className={styles.btnTiny} onClick={() => onEdit(appointment)}>
-                                  Editar
-                                </button>
-                              </div>
+                              <button
+                                type="button"
+                                className={styles.agendaEditAction}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  onEdit(appointment);
+                                }}
+                              >
+                                Editar
+                              </button>
                             </article>
                           ))}
                         </div>
