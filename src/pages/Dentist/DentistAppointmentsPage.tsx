@@ -17,6 +17,7 @@ import { getDentistPatients, type Patient } from "../../api/patients";
 import { getStoredUser } from "../../utils/auth";
 import DentistAppointmentDetailModal from "./DentistAppointmentDetailModal";
 import DentistAppointmentFormModal from "./DentistAppointmentFormModal";
+import DentistCompleteAppointmentModal from "./DentistCompleteAppointmentModal";
 import DentistWeeklyAgenda from "./DentistWeeklyAgenda";
 import { formatDate, formatTime, parseAppointmentDateTime } from "./dateUtils";
 import styles from "./dentist.module.css";
@@ -109,6 +110,7 @@ export default function DentistAppointmentsPage() {
   const [actionError, setActionError] = useState("");
   const [actionSuccess, setActionSuccess] = useState("");
   const [statusBusyId, setStatusBusyId] = useState<number | null>(null);
+  const [completeModalAppointment, setCompleteModalAppointment] = useState<Appointment | null>(null);
   const [dentistUserId, setDentistUserId] = useState<number | null>(getStoredUser()?.id ?? null);
 
   const fetchAppointments = useCallback(async () => {
@@ -242,6 +244,13 @@ export default function DentistAppointmentsPage() {
 
   async function handleQuickStatus(item: Appointment, status: AppointmentStatus) {
     if (!item.id || !canApplyStatus(item, status)) return;
+
+    if (status === "completed") {
+      setActionError("");
+      setActionSuccess("");
+      setCompleteModalAppointment(item);
+      return;
+    }
 
     try {
       setStatusBusyId(item.id);
@@ -448,6 +457,21 @@ export default function DentistAppointmentsPage() {
             await fetchPatients();
             setOpenCreate(false);
             setActionSuccess("Cita creada correctamente.");
+          }}
+        />
+      )}
+
+
+      {completeModalAppointment && (
+        <DentistCompleteAppointmentModal
+          appointment={completeModalAppointment}
+          onClose={() => {
+            setCompleteModalAppointment(null);
+          }}
+          onCompleted={async () => {
+            await fetchAppointments();
+            setActionSuccess(`Cita #${completeModalAppointment.id} actualizada a completed.`);
+            setCompleteModalAppointment(null);
           }}
         />
       )}
