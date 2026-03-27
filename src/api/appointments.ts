@@ -70,6 +70,10 @@ export interface AvailableDentist extends AppointmentPerson {
   specialties?: AppointmentSpecialty[];
 }
 
+export interface AppointmentNotePayload {
+  note: string;
+}
+
 export interface AvailableDentistsParams {
   service_id: number;
   start_at: string;
@@ -319,6 +323,14 @@ export async function getAvailableDentists(params: AvailableDentistsParams) {
   });
 
   return normalizeList(data).map(normalizeAvailableDentist).filter((dentist) => dentist.id);
+}
+
+export async function createAppointmentNote(appointmentId: number | string, payload: AppointmentNotePayload) {
+  const { data } = await api.post(`/appointments/${appointmentId}/notes`, {
+    note: payload.note.trim(),
+  });
+
+  return normalizeOne<unknown>(data);
 }
 
 export async function updateAppointmentStatus(appointmentId: number | string, status: AppointmentStatus) {
