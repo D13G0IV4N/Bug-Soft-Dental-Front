@@ -18,6 +18,7 @@ import { getStoredUser } from "../../utils/auth";
 import DentistAppointmentDetailModal from "./DentistAppointmentDetailModal";
 import DentistAppointmentFormModal from "./DentistAppointmentFormModal";
 import DentistCompleteAppointmentModal from "./DentistCompleteAppointmentModal";
+import DentistAppointmentNotesModal from "./DentistAppointmentNotesModal";
 import DentistWeeklyAgenda from "./DentistWeeklyAgenda";
 import { formatDate, formatTime, parseAppointmentDateTime } from "./dateUtils";
 import styles from "./dentist.module.css";
@@ -111,6 +112,7 @@ export default function DentistAppointmentsPage() {
   const [actionSuccess, setActionSuccess] = useState("");
   const [statusBusyId, setStatusBusyId] = useState<number | null>(null);
   const [completeModalAppointment, setCompleteModalAppointment] = useState<Appointment | null>(null);
+  const [notesModalAppointment, setNotesModalAppointment] = useState<Appointment | null>(null);
   const [dentistUserId, setDentistUserId] = useState<number | null>(getStoredUser()?.id ?? null);
 
   const fetchAppointments = useCallback(async () => {
@@ -402,6 +404,7 @@ export default function DentistAppointmentsPage() {
                   <td>
                     <div className={styles.tableActions}>
                       <button className={styles.btnGhost} onClick={() => void openDetail(item)}>Ver</button>
+                      <button className={styles.btnGhost} onClick={() => setNotesModalAppointment(item)}>Ver nota</button>
                       <button className={styles.btnGhost} onClick={() => void startEdit(item)}>Editar</button>
                       {STATUS_ACTIONS.map((action) => (
                         <button
@@ -473,6 +476,13 @@ export default function DentistAppointmentsPage() {
             setActionSuccess(`Cita #${completeModalAppointment.id} actualizada a completed.`);
             setCompleteModalAppointment(null);
           }}
+        />
+      )}
+
+      {notesModalAppointment && (
+        <DentistAppointmentNotesModal
+          appointment={notesModalAppointment}
+          onClose={() => setNotesModalAppointment(null)}
         />
       )}
 

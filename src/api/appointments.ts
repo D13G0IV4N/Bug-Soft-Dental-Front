@@ -74,6 +74,15 @@ export interface AppointmentNotePayload {
   note: string;
 }
 
+export interface AppointmentNote {
+  id?: number;
+  appointment_id?: number;
+  note: string;
+  created_at?: string;
+  updated_at?: string;
+  author_name?: string;
+}
+
 export interface AvailableDentistsParams {
   service_id: number;
   start_at: string;
@@ -210,6 +219,20 @@ function normalizeAppointment(raw: unknown): Appointment {
   };
 }
 
+function normalizeAppointmentNote(raw: unknown): AppointmentNote {
+  const source = asRecord(raw);
+  const author = asRecord(source.author ?? source.user ?? source.created_by);
+
+  return {
+    id: source.id === undefined ? undefined : toNumber(source.id) || undefined,
+    appointment_id: source.appointment_id === undefined ? undefined : toNumber(source.appointment_id) || undefined,
+    note: toStringValue(source.note ?? source.notes ?? source.content ?? source.body),
+    created_at: toStringValue(source.created_at ?? source.createdAt),
+    updated_at: toStringValue(source.updated_at ?? source.updatedAt),
+    author_name: toStringValue(source.author_name ?? author.name),
+  };
+}
+
 function normalizeAvailableDentist(raw: unknown): AvailableDentist {
   const source = asRecord(raw);
   const specialties = [
@@ -331,6 +354,11 @@ export async function createAppointmentNote(appointmentId: number | string, payl
   });
 
   return normalizeOne<unknown>(data);
+}
+
+export async function getAppointmentNotes(appointmentId: number | string) {
+  const { data } = await api.get(`/appointments/${appointmentId}/notes`);
+  return normalizeList(data).map(normalizeAppointmentNote);
 }
 
 export async function updateAppointmentStatus(appointmentId: number | string, status: AppointmentStatus) {
