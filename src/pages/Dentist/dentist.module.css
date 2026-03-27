@@ -488,9 +488,11 @@
   border-radius: 18px;
   background: linear-gradient(180deg, rgba(250, 254, 255, 0.98), rgba(239, 248, 253, 0.95));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 16px 32px rgba(24, 96, 133, 0.08);
-  padding: 16px;
+  padding: 18px;
   display: grid;
   gap: 14px;
+  max-width: 1220px;
+  margin: 0 auto;
 }
 
 .weekAgendaHeader {
@@ -520,17 +522,24 @@
   font-weight: 600;
 }
 
+.weekAgendaDesktopWrap {
+  width: 100%;
+  max-width: 1160px;
+  margin: 0 auto;
+}
+
 .weekAgendaDesktop {
   overflow: auto;
-  border-radius: 14px;
-  border: 1px solid rgba(22, 98, 138, 0.18);
-  background: rgba(255, 255, 255, 0.8);
+  border-radius: 16px;
+  border: 1px solid rgba(22, 98, 138, 0.16);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(246, 252, 255, 0.95));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.88);
 }
 
 .agendaGrid {
-  min-width: 1020px;
+  min-width: 930px;
   display: grid;
-  grid-template-columns: 88px repeat(7, minmax(170px, 1fr));
+  grid-template-columns: 72px repeat(7, minmax(122px, 1fr));
 }
 
 .agendaRowGroup {
@@ -538,8 +547,8 @@
 }
 
 .agendaCell {
-  border-right: 1px solid rgba(30, 107, 148, 0.13);
-  border-bottom: 1px solid rgba(30, 107, 148, 0.13);
+  border-right: 1px solid rgba(30, 107, 148, 0.1);
+  border-bottom: 1px solid rgba(30, 107, 148, 0.1);
 }
 
 .agendaCorner {
@@ -547,9 +556,9 @@
 }
 
 .agendaDayHeader {
-  padding: 10px;
+  padding: 10px 6px;
   text-align: center;
-  background: rgba(236, 248, 255, 0.75);
+  background: linear-gradient(180deg, rgba(238, 249, 255, 0.9), rgba(248, 253, 255, 0.74));
 }
 
 .agendaDayName {
@@ -562,9 +571,10 @@
 }
 
 .agendaDayDate {
-  margin: 6px 0 0;
+  margin: 4px 0 0;
   font-weight: 700;
   color: #1d5c7d;
+  font-size: 12px;
 }
 
 .agendaDayDateToday {
@@ -578,36 +588,39 @@
 .agendaTimeCell {
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  padding-top: 10px;
+  align-items: center;
   color: #4d7084;
-  font-size: 12px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
   font-weight: 700;
   background: rgba(240, 249, 255, 0.74);
 }
 
 .agendaDataCell {
-  min-height: 96px;
-  padding: 8px;
+  min-height: 84px;
+  padding: 6px;
+  vertical-align: top;
 }
 
 .agendaSlotEmpty {
-  min-height: 74px;
+  min-height: 70px;
   border-radius: 10px;
 }
 
 .agendaStack {
   display: grid;
-  gap: 7px;
+  gap: 5px;
+  align-content: start;
 }
 
 .agendaAppointmentCard {
-  border-radius: 11px;
-  border: 1px solid rgba(23, 109, 153, 0.2);
-  background: linear-gradient(180deg, #ffffff, #f2faff);
-  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(20, 113, 157, 0.22);
+  background: linear-gradient(160deg, #ffffff 0%, #eaf7ff 100%);
+  padding: 6px 7px;
   display: grid;
-  gap: 5px;
+  gap: 4px;
+  box-shadow: 0 3px 10px rgba(17, 95, 140, 0.1);
 }
 
 .agendaAppointmentHead {
@@ -620,28 +633,34 @@
 .agendaAppointmentTime {
   margin: 0;
   color: #0f5a7f;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
 }
 
 .agendaAppointmentPatient {
   margin: 0;
-  font-weight: 700;
+  font-weight: 800;
   color: #123f59;
-  font-size: 13px;
-  line-height: 1.25;
+  font-size: 12px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .agendaAppointmentService {
   margin: 0;
   color: #577487;
-  font-size: 12px;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .agendaAppointmentActions {
   display: flex;
   justify-content: space-between;
-  gap: 6px;
+  gap: 4px;
 }
 
 .weekAgendaMobile {
@@ -721,5 +740,26 @@
   .weekAgendaMobile {
     display: grid;
     gap: 10px;
+  }
+}
+
+@media (max-width: 1360px) {
+  .weekAgendaCard {
+    padding: 14px;
+    max-width: 100%;
+  }
+
+  .weekAgendaDesktopWrap {
+    max-width: 100%;
+  }
+
+  .agendaGrid {
+    min-width: 880px;
+    grid-template-columns: 68px repeat(7, minmax(116px, 1fr));
+  }
+
+  .agendaDataCell {
+    min-height: 78px;
+    padding: 5px;
   }
 }

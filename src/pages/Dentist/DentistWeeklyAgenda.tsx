@@ -144,69 +144,71 @@ export default function DentistWeeklyAgenda({ appointments, onView, onEdit }: We
         </p>
       </header>
 
-      <div className={styles.weekAgendaDesktop}>
-        <div className={styles.agendaGrid}>
-          <div className={`${styles.agendaCell} ${styles.agendaCorner}`} />
-          {weekDays.map((day) => {
-            const isToday = isSameDay(day.date, new Date());
-            return (
-              <div key={day.key} className={`${styles.agendaCell} ${styles.agendaDayHeader}`.trim()}>
-                <p className={styles.agendaDayName}>{day.shortLabel}</p>
-                <p className={`${styles.agendaDayDate} ${isToday ? styles.agendaDayDateToday : ""}`.trim()}>
-                  {day.date.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit" })}
-                </p>
+      <div className={styles.weekAgendaDesktopWrap}>
+        <div className={styles.weekAgendaDesktop}>
+          <div className={styles.agendaGrid}>
+            <div className={`${styles.agendaCell} ${styles.agendaCorner}`} />
+            {weekDays.map((day) => {
+              const isToday = isSameDay(day.date, new Date());
+              return (
+                <div key={day.key} className={`${styles.agendaCell} ${styles.agendaDayHeader}`.trim()}>
+                  <p className={styles.agendaDayName}>{day.shortLabel}</p>
+                  <p className={`${styles.agendaDayDate} ${isToday ? styles.agendaDayDateToday : ""}`.trim()}>
+                    {day.date.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit" })}
+                  </p>
+                </div>
+              );
+            })}
+
+            {timeSlots.map((time) => (
+              <div key={time} className={styles.agendaRowGroup}>
+                <div key={`${time}-time`} className={`${styles.agendaCell} ${styles.agendaTimeCell}`}>
+                  {time}
+                </div>
+
+                {weekDays.map((day) => {
+                  const key = `${day.key}-${time}`;
+                  const appointmentsAtTime = cellMap.get(key) ?? [];
+
+                  return (
+                    <div key={key} className={`${styles.agendaCell} ${styles.agendaDataCell}`}>
+                      {appointmentsAtTime.length > 0 ? (
+                        <div className={styles.agendaStack}>
+                          {appointmentsAtTime.map(({ appointment, date }) => (
+                            <article key={`${appointment.id}-${date.toISOString()}`} className={styles.agendaAppointmentCard}>
+                              <div className={styles.agendaAppointmentHead}>
+                                <p className={styles.agendaAppointmentTime}>{formatTime(appointment.start_at)}</p>
+                                <span className={`${styles.statusPill} ${statusClass(appointment.status)}`.trim()}>
+                                  {statusLabel(appointment.status)}
+                                </span>
+                              </div>
+                              <p className={styles.agendaAppointmentPatient}>
+                                {appointment.patient?.name || appointment.patient_name || `Paciente #${appointment.patient_user_id}`}
+                              </p>
+                              <p className={styles.agendaAppointmentService}>
+                                {appointment.service?.name || appointment.service_name || `Servicio #${appointment.service_id}`}
+                              </p>
+
+                              <div className={styles.agendaAppointmentActions}>
+                                <button className={styles.btnGhost} onClick={() => onView(appointment)}>
+                                  Ver
+                                </button>
+                                <button className={styles.btnTiny} onClick={() => onEdit(appointment)}>
+                                  Editar
+                                </button>
+                              </div>
+                            </article>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className={styles.agendaSlotEmpty} />
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
-
-          {timeSlots.map((time) => (
-            <div key={time} className={styles.agendaRowGroup}>
-              <div key={`${time}-time`} className={`${styles.agendaCell} ${styles.agendaTimeCell}`}>
-                {time}
-              </div>
-
-              {weekDays.map((day) => {
-                const key = `${day.key}-${time}`;
-                const appointmentsAtTime = cellMap.get(key) ?? [];
-
-                return (
-                  <div key={key} className={`${styles.agendaCell} ${styles.agendaDataCell}`}>
-                    {appointmentsAtTime.length > 0 ? (
-                      <div className={styles.agendaStack}>
-                        {appointmentsAtTime.map(({ appointment, date }) => (
-                          <article key={`${appointment.id}-${date.toISOString()}`} className={styles.agendaAppointmentCard}>
-                            <div className={styles.agendaAppointmentHead}>
-                              <p className={styles.agendaAppointmentTime}>{formatTime(appointment.start_at)}</p>
-                              <span className={`${styles.statusPill} ${statusClass(appointment.status)}`.trim()}>
-                                {statusLabel(appointment.status)}
-                              </span>
-                            </div>
-                            <p className={styles.agendaAppointmentPatient}>
-                              {appointment.patient?.name || appointment.patient_name || `Paciente #${appointment.patient_user_id}`}
-                            </p>
-                            <p className={styles.agendaAppointmentService}>
-                              {appointment.service?.name || appointment.service_name || `Servicio #${appointment.service_id}`}
-                            </p>
-
-                            <div className={styles.agendaAppointmentActions}>
-                              <button className={styles.btnGhost} onClick={() => onView(appointment)}>
-                                Ver
-                              </button>
-                              <button className={styles.btnTiny} onClick={() => onEdit(appointment)}>
-                                Editar
-                              </button>
-                            </div>
-                          </article>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className={styles.agendaSlotEmpty} />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
 
