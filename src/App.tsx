@@ -14,7 +14,6 @@ import AdminSpecialtiesPage from "./pages/Admin/AdminSpecialtiesPage";
 import AdminServicesPage from "./pages/Admin/AdminServicesPage";
 import SuperAdminLayout from "./pages/Admin/SuperAdminLayout";
 import DentistLayout from "./pages/Dentist/DentistLayout";
-import DentistDashboardPage from "./pages/Dentist/DentistDashboardPage";
 import DentistAppointmentsPage from "./pages/Dentist/DentistAppointmentsPage";
 import ReceptionistLayout from "./pages/Receptionist/ReceptionistLayout";
 import ReceptionistDashboardPage from "./pages/Receptionist/ReceptionistDashboardPage";
@@ -82,7 +81,7 @@ export default function App() {
 
         <Route element={<RoleGuard allowedRoles={["dentist"]} />}>
           <Route path="/dentist" element={<DentistLayout />}>
-            <Route index element={<DentistDashboardPage />} />
+            <Route index element={<Navigate to="/dentist/appointments" replace />} />
             <Route path="appointments" element={<DentistAppointmentsPage />} />
           </Route>
         </Route>

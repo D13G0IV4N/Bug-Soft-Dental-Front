@@ -20,7 +20,7 @@ import DentistAppointmentFormModal from "./DentistAppointmentFormModal";
 import DentistCompleteAppointmentModal from "./DentistCompleteAppointmentModal";
 import DentistAppointmentNotesModal from "./DentistAppointmentNotesModal";
 import DentistWeeklyAgenda from "./DentistWeeklyAgenda";
-import { formatDate, formatTime, parseAppointmentDateTime } from "./dateUtils";
+import { formatDate, formatTime, isSameLocalDay, parseAppointmentDateTime } from "./dateUtils";
 import styles from "./dentist.module.css";
 
 type DentistFilter = "today" | "upcoming" | "completed" | "canceled" | "all";
@@ -211,6 +211,31 @@ export default function DentistAppointmentsPage() {
     });
   }, [items, search, selectedFilter]);
 
+  const summary = useMemo(() => {
+    const now = new Date();
+
+    return items.reduce(
+      (acc, item) => {
+        const startAt = parseAppointmentDateTime(item.start_at);
+        const status = (item.status ?? "scheduled").toLowerCase();
+
+        if (status === "completed") acc.completed += 1;
+        if (isCanceled(status)) acc.canceled += 1;
+
+        if (startAt && isSameLocalDay(startAt, now)) {
+          acc.today += 1;
+        }
+
+        if (startAt && startAt > now && !["completed", "no_show", "canceled", "cancelled"].includes(status)) {
+          acc.upcoming += 1;
+        }
+
+        return acc;
+      },
+      { today: 0, upcoming: 0, completed: 0, canceled: 0 }
+    );
+  }, [items]);
+
   async function openDetail(item: Appointment) {
     if (!item.id) return;
 
@@ -288,7 +313,7 @@ export default function DentistAppointmentsPage() {
       <div className={styles.workspaceHero}>
         <div>
           <p className={styles.workspaceTag}>Dental Flow · Operación diaria</p>
-          <h2 className={styles.heroTitle}>Workspace de citas clínicas</h2>
+          <h2 className={styles.heroTitle}>Mi agenda clínica</h2>
           <p className={styles.heroSub}>Gestiona agenda, crea citas, edita detalles clínicos y actualiza estados en una sola vista.</p>
         </div>
 
@@ -304,6 +329,15 @@ export default function DentistAppointmentsPage() {
           + Nueva cita
         </button>
       </div>
+
+      {!error && (
+        <div className={styles.statsGrid}>
+          <article className={styles.statCard}><p className={styles.statLabel}>Citas de hoy</p><p className={styles.statValue}>{summary.today}</p></article>
+          <article className={styles.statCard}><p className={styles.statLabel}>Próximas</p><p className={styles.statValue}>{summary.upcoming}</p></article>
+          <article className={styles.statCard}><p className={styles.statLabel}>Completadas</p><p className={styles.statValue}>{summary.completed}</p></article>
+          <article className={styles.statCard}><p className={styles.statLabel}>Canceladas</p><p className={styles.statValue}>{summary.canceled}</p></article>
+        </div>
+      )}
 
       <div className={styles.viewModeRow}>
         <div className={styles.viewModeSwitch}>
