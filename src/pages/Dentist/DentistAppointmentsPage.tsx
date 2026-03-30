@@ -339,34 +339,34 @@ export default function DentistAppointmentsPage() {
         </div>
       )}
 
-      <div className={styles.viewModeRow}>
-        <div className={styles.viewModeSwitch}>
-          <button
-            className={`${styles.viewModeBtn} ${viewMode === "week" ? styles.viewModeBtnActive : ""}`.trim()}
-            onClick={() => setViewMode("week")}
-          >
-            Agenda semanal
-          </button>
-          <button
-            className={`${styles.viewModeBtn} ${viewMode === "list" ? styles.viewModeBtnActive : ""}`.trim()}
-            onClick={() => setViewMode("list")}
-          >
-            Lista detallada
-          </button>
-        </div>
-      </div>
+      <div className={styles.controlsShell}>
+        <div className={styles.controlsHeader}>
+          <div className={styles.filters}>
+            {(Object.keys(FILTER_LABELS) as DentistFilter[]).map((filter) => (
+              <button
+                key={filter}
+                className={`${styles.filterBtn} ${filter === selectedFilter ? styles.filterBtnActive : ""}`.trim()}
+                onClick={() => setSelectedFilter(filter)}
+              >
+                {FILTER_LABELS[filter]}
+              </button>
+            ))}
+          </div>
 
-      <div className={styles.controls}>
-        <div className={styles.filters}>
-          {(Object.keys(FILTER_LABELS) as DentistFilter[]).map((filter) => (
+          <div className={styles.viewModeSwitch}>
             <button
-              key={filter}
-              className={`${styles.filterBtn} ${filter === selectedFilter ? styles.filterBtnActive : ""}`.trim()}
-              onClick={() => setSelectedFilter(filter)}
+              className={`${styles.viewModeBtn} ${viewMode === "week" ? styles.viewModeBtnActive : ""}`.trim()}
+              onClick={() => setViewMode("week")}
             >
-              {FILTER_LABELS[filter]}
+              Agenda semanal
             </button>
-          ))}
+            <button
+              className={`${styles.viewModeBtn} ${viewMode === "list" ? styles.viewModeBtnActive : ""}`.trim()}
+              onClick={() => setViewMode("list")}
+            >
+              Lista detallada
+            </button>
+          </div>
         </div>
 
         <input
@@ -394,68 +394,72 @@ export default function DentistAppointmentsPage() {
       )}
 
       {!loading && !error && filteredItems.length > 0 && viewMode === "week" && (
-        <DentistWeeklyAgenda
-          appointments={filteredItems}
-          onView={(item) => {
-            void openDetail(item);
-          }}
-          onEdit={(item) => {
-            void startEdit(item);
-          }}
-        />
+        <div className={styles.workspacePanel}>
+          <DentistWeeklyAgenda
+            appointments={filteredItems}
+            onView={(item) => {
+              void openDetail(item);
+            }}
+            onEdit={(item) => {
+              void startEdit(item);
+            }}
+          />
+        </div>
       )}
 
       {!loading && !error && filteredItems.length > 0 && viewMode === "list" && (
-        <div className={styles.tableCard}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Horario</th>
-                <th>Paciente</th>
-                <th>Servicio</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredItems.map((item) => (
-                <tr key={item.id}>
-                  <td>
-                    <p className={styles.rowMain}>{formatDate(item.start_at)}</p>
-                    <p className={styles.rowMeta}>{formatTime(item.start_at)} - {formatTime(item.end_at)}</p>
-                  </td>
-                  <td>
-                    <p className={styles.rowMain}>{item.patient?.name || item.patient_name || `#${item.patient_user_id}`}</p>
-                    <p className={styles.rowMeta}>{item.patient?.phone || "Sin teléfono"}</p>
-                  </td>
-                  <td>
-                    <p className={styles.rowMain}>{item.service?.name || item.service_name || `#${item.service_id}`}</p>
-                    <p className={styles.rowMeta}>{item.service?.specialty?.name || item.specialty_name || "-"}</p>
-                  </td>
-                  <td>
-                    <span className={`${styles.statusPill} ${statusClass(item.status)}`.trim()}>{item.status || "scheduled"}</span>
-                  </td>
-                  <td>
-                    <div className={styles.tableActions}>
-                      <button className={styles.btnGhost} onClick={() => void openDetail(item)}>Ver</button>
-                      <button className={styles.btnGhost} onClick={() => setNotesModalAppointment(item)}>Ver nota</button>
-                      <button className={styles.btnGhost} onClick={() => void startEdit(item)}>Editar</button>
-                      {STATUS_ACTIONS.map((action) => (
-                        <button
-                          key={`${item.id}-${action.value}`}
-                          className={action.kind === "danger" ? styles.btnDanger : styles.btnTiny}
-                          disabled={statusBusyId === item.id || !canApplyStatus(item, action.value)}
-                          onClick={() => void handleQuickStatus(item, action.value)}
-                        >
-                          {statusBusyId === item.id ? "..." : action.label}
-                        </button>
-                      ))}
-                    </div>
-                  </td>
+        <div className={styles.workspacePanel}>
+          <div className={styles.tableCard}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Horario</th>
+                  <th>Paciente</th>
+                  <th>Servicio</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filteredItems.map((item) => (
+                  <tr key={item.id}>
+                    <td>
+                      <p className={styles.rowMain}>{formatDate(item.start_at)}</p>
+                      <p className={styles.rowMeta}>{formatTime(item.start_at)} - {formatTime(item.end_at)}</p>
+                    </td>
+                    <td>
+                      <p className={styles.rowMain}>{item.patient?.name || item.patient_name || `#${item.patient_user_id}`}</p>
+                      <p className={styles.rowMeta}>{item.patient?.phone || "Sin teléfono"}</p>
+                    </td>
+                    <td>
+                      <p className={styles.rowMain}>{item.service?.name || item.service_name || `#${item.service_id}`}</p>
+                      <p className={styles.rowMeta}>{item.service?.specialty?.name || item.specialty_name || "-"}</p>
+                    </td>
+                    <td>
+                      <span className={`${styles.statusPill} ${statusClass(item.status)}`.trim()}>{item.status || "scheduled"}</span>
+                    </td>
+                    <td>
+                      <div className={styles.tableActions}>
+                        <button className={styles.btnGhost} onClick={() => void openDetail(item)}>Ver</button>
+                        <button className={styles.btnGhost} onClick={() => setNotesModalAppointment(item)}>Ver nota</button>
+                        <button className={styles.btnGhost} onClick={() => void startEdit(item)}>Editar</button>
+                        {STATUS_ACTIONS.map((action) => (
+                          <button
+                            key={`${item.id}-${action.value}`}
+                            className={action.kind === "danger" ? styles.btnDanger : styles.btnTiny}
+                            disabled={statusBusyId === item.id || !canApplyStatus(item, action.value)}
+                            onClick={() => void handleQuickStatus(item, action.value)}
+                          >
+                            {statusBusyId === item.id ? "..." : action.label}
+                          </button>
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

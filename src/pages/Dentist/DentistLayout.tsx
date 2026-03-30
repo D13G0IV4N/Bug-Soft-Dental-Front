@@ -96,7 +96,7 @@ export default function DentistLayout() {
 
       <main className={styles.main}>
         <header className={styles.topBar}>
-          <p className={styles.topHeading}>Operación diaria odontológica</p>
+          <h2 className={styles.topHeading}>Operación diaria odontológica</h2>
           <p className={styles.topMeta}>Vista personal de citas y actualización de estado clínico.</p>
         </header>
         <Outlet />
