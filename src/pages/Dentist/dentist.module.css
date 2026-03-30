@@ -665,13 +665,15 @@
 }
 
 .weekAgendaCard {
-  border: 1px solid rgba(23, 104, 145, 0.12);
-  border-radius: 16px;
-  background: linear-gradient(180deg, rgba(250, 254, 255, 0.98), rgba(243, 249, 254, 0.96));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 10px 24px rgba(24, 96, 133, 0.06);
-  padding: 14px;
+  border: 1px solid rgba(23, 104, 145, 0.18);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top right, rgba(26, 142, 184, 0.08), transparent 42%),
+    linear-gradient(180deg, rgba(250, 254, 255, 0.99), rgba(242, 249, 254, 0.97));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.96), 0 14px 28px rgba(24, 96, 133, 0.07);
+  padding: 16px;
   display: grid;
-  gap: 14px;
+  gap: 16px;
   max-width: 1220px;
   margin: 0 auto;
 }
@@ -713,9 +715,9 @@
   overflow: auto;
   max-height: min(68vh, 620px);
   border-radius: 16px;
-  border: 1px solid rgba(22, 98, 138, 0.16);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(246, 252, 255, 0.95));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(22, 98, 138, 0.22);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(246, 252, 255, 0.96));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .agendaGrid {
@@ -729,18 +731,21 @@
 }
 
 .agendaCell {
-  border-right: 1px solid rgba(30, 107, 148, 0.1);
-  border-bottom: 1px solid rgba(30, 107, 148, 0.1);
+  border-right: 1px solid rgba(30, 107, 148, 0.18);
+  border-bottom: 1px solid rgba(30, 107, 148, 0.16);
 }
 
 .agendaCorner {
-  background: linear-gradient(120deg, rgba(10, 99, 143, 0.07), rgba(21, 152, 172, 0.1));
+  background:
+    linear-gradient(120deg, rgba(10, 99, 143, 0.1), rgba(21, 152, 172, 0.12)),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.36) 0 10px, rgba(255, 255, 255, 0.18) 10px 20px);
 }
 
 .agendaDayHeader {
-  padding: 8px 5px;
+  padding: 10px 8px;
   text-align: center;
-  background: linear-gradient(180deg, rgba(238, 249, 255, 0.9), rgba(248, 253, 255, 0.74));
+  background: linear-gradient(180deg, rgba(233, 246, 255, 0.98), rgba(245, 251, 255, 0.86));
+  box-shadow: inset 0 -1px 0 rgba(22, 97, 137, 0.16);
 }
 
 .agendaDayName {
@@ -753,8 +758,8 @@
 }
 
 .agendaDayDate {
-  margin: 4px 0 0;
-  font-weight: 700;
+  margin: 5px 0 0;
+  font-weight: 800;
   color: #1d5c7d;
   font-size: 12px;
 }
@@ -771,46 +776,63 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  color: #4d7084;
+  color: #3f6479;
   font-size: 10px;
-  letter-spacing: 0.04em;
-  font-weight: 700;
-  background: rgba(240, 249, 255, 0.74);
+  letter-spacing: 0.05em;
+  font-weight: 800;
+  background: linear-gradient(180deg, rgba(233, 245, 252, 0.98), rgba(239, 249, 255, 0.92));
+  border-right-color: rgba(26, 100, 140, 0.26);
 }
 
 .agendaDataCell {
-  min-height: 60px;
-  padding: 4px;
+  min-height: 64px;
+  padding: 5px;
   vertical-align: top;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.agendaRowGroup:nth-of-type(even) .agendaDataCell {
+  background: linear-gradient(180deg, rgba(248, 252, 255, 0.8), rgba(245, 251, 255, 0.72));
+}
+
+.agendaRowGroup:hover .agendaDataCell {
+  background: linear-gradient(180deg, rgba(242, 249, 255, 0.92), rgba(238, 247, 254, 0.86));
 }
 
 .agendaSlotEmpty {
-  min-height: 50px;
-  border-radius: 8px;
+  min-height: 52px;
+  border-radius: 10px;
+  border: 1px dashed rgba(31, 114, 156, 0.14);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(246, 252, 255, 0.38)),
+    repeating-linear-gradient(-45deg, rgba(29, 113, 155, 0.035) 0 8px, transparent 8px 16px);
 }
 
 .agendaStack {
   display: grid;
-  gap: 4px;
+  gap: 6px;
   align-content: start;
 }
 
 .agendaAppointmentCard {
-  border-radius: 8px;
-  border: 1px solid rgba(20, 113, 157, 0.28);
-  background: linear-gradient(160deg, #ffffff 0%, #eaf7ff 100%);
-  padding: 5px 6px;
+  border-radius: 10px;
+  border: 1px solid rgba(20, 113, 157, 0.34);
+  background:
+    radial-gradient(circle at top right, rgba(28, 151, 194, 0.13), transparent 40%),
+    linear-gradient(160deg, #ffffff 0%, #edf8ff 100%);
+  padding: 7px 8px 8px;
   display: grid;
-  gap: 3px;
-  box-shadow: 0 2px 7px rgba(17, 95, 140, 0.12);
+  gap: 4px;
+  box-shadow: 0 3px 9px rgba(17, 95, 140, 0.13);
   cursor: pointer;
-  transition: transform 160ms ease, box-shadow 160ms ease;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
 }
 
 .agendaAppointmentCard:hover,
 .agendaAppointmentCard:focus-visible {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(17, 95, 140, 0.18);
+  box-shadow: 0 7px 16px rgba(17, 95, 140, 0.2);
+  border-color: rgba(20, 113, 157, 0.48);
   outline: none;
 }
 
@@ -847,20 +869,22 @@
   justify-content: space-between;
   align-items: center;
   gap: 6px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid rgba(16, 95, 133, 0.12);
 }
 
 .agendaAppointmentTime {
   margin: 0;
-  color: #0f5a7f;
-  font-size: 10px;
+  color: #0d5578;
+  font-size: 11px;
   font-weight: 800;
 }
 
 .agendaAppointmentPatient {
   margin: 0;
   font-weight: 800;
-  color: #123f59;
-  font-size: 11px;
+  color: #0f3f59;
+  font-size: 12px;
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
@@ -868,8 +892,8 @@
 }
 
 .agendaAppointmentService {
-  margin: 0;
-  color: #577487;
+  margin: -1px 0 0;
+  color: #4c6d82;
   font-size: 10px;
   white-space: nowrap;
   overflow: hidden;
@@ -878,13 +902,28 @@
 
 .agendaEditAction {
   justify-self: start;
-  border: 0;
-  background: rgba(15, 90, 127, 0.08);
+  border: 1px solid rgba(15, 90, 127, 0.18);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(233, 245, 252, 0.92));
   color: #0f5a7f;
   border-radius: 999px;
-  padding: 2px 7px;
+  padding: 3px 8px;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 800;
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.agendaEditAction:hover,
+.agendaEditAction:focus-visible {
+  background: linear-gradient(180deg, rgba(233, 245, 252, 0.98), rgba(223, 240, 250, 0.96));
+  border-color: rgba(15, 90, 127, 0.28);
+  color: #0a4a69;
+  outline: none;
+}
+
+.agendaAppointmentCard .statusPill {
+  padding: 3px 8px;
+  font-size: 10px;
+  border: 1px solid rgba(12, 80, 114, 0.14);
 }
 
 .weekAgendaMobile {
