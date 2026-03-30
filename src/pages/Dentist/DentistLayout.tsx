@@ -1,51 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { me } from "../../api/auth";
-import { getStoredUser } from "../../utils/auth";
+import { getStoredUser, resolveClinicName } from "../../utils/auth";
 import styles from "./dentist.module.css";
 
 const dentistLinks = [{ to: "/dentist/appointments", label: "Mi agenda" }];
 
-type JsonRecord = Record<string, unknown>;
-
-function asRecord(value: unknown): JsonRecord | null {
-  return typeof value === "object" && value !== null ? (value as JsonRecord) : null;
-}
-
-function readString(value: unknown): string {
-  return typeof value === "string" ? value.trim() : "";
-}
-
-function resolveClinicNameFromCandidate(candidate: unknown): string {
-  const record = asRecord(candidate);
-  if (!record) return "";
-
-  const directPaths: unknown[] = [
-    record.clinic_name,
-    asRecord(record.clinic)?.name,
-    asRecord(record.clinic)?.nombre,
-    asRecord(record.tenant)?.name,
-    asRecord(record.tenant)?.nombre,
-    asRecord(record.profile)?.clinic_name,
-    asRecord(asRecord(record.profile)?.clinic)?.name,
-    asRecord(asRecord(record.profile)?.clinic)?.nombre,
-    asRecord(record.dentist)?.clinic_name,
-    asRecord(asRecord(record.dentist)?.clinic)?.name,
-    asRecord(asRecord(record.dentist)?.clinic)?.nombre,
-  ];
-
-  for (const pathValue of directPaths) {
-    const name = readString(pathValue);
-    if (name) return name;
-  }
-
-  return "";
-}
-
 export default function DentistLayout() {
   const navigate = useNavigate();
   const storedUser = useMemo(() => getStoredUser(), []);
-  const [clinicName, setClinicName] = useState(() => resolveClinicNameFromCandidate(storedUser));
+  const [clinicName, setClinicName] = useState(() => resolveClinicName(storedUser));
 
   useEffect(() => {
     if (clinicName) return;
@@ -54,7 +18,7 @@ export default function DentistLayout() {
       try {
         const response = await me();
         const payload = response?.data?.data ?? response?.data;
-        const resolved = resolveClinicNameFromCandidate(payload);
+        const resolved = resolveClinicName(payload);
         if (resolved) setClinicName(resolved);
       } catch {
         setClinicName("");
