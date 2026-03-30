@@ -3,10 +3,23 @@ import { getAppointmentNotes, toErrorMessage, type Appointment, type Appointment
 import formStyles from "../../styles/formSystem.module.css";
 import { formatDate, formatTime } from "./dateUtils";
 import styles from "./dentist.module.css";
+import AppModal from "../../components/ui/AppModal";
 
 interface Props {
   appointment: Appointment;
   onClose: () => void;
+}
+
+function getStatusLabel(status?: string) {
+  if (!status) return "Sin estado";
+  const normalized = status.toLowerCase();
+  if (normalized === "scheduled") return "Programada";
+  if (normalized === "pending") return "Pendiente";
+  if (normalized === "confirmed") return "Confirmada";
+  if (normalized === "completed") return "Completada";
+  if (normalized === "canceled" || normalized === "cancelled") return "Cancelada";
+  if (normalized === "no_show") return "Ausencia";
+  return status;
 }
 
 function formatNoteDate(value?: string) {
@@ -74,38 +87,47 @@ export default function DentistAppointmentNotesModal({ appointment, onClose }: P
   }, [appointment.id]);
 
   return (
-    <div className={formStyles.modalOverlay} onClick={onClose}>
-      <aside className={styles.notesDrawer} onClick={(event) => event.stopPropagation()}>
-        <header className={styles.notesHeader}>
-          <div>
-            <p className={styles.workspaceTag}>Historia clínica · Cita #{appointment.id ?? "-"}</p>
-            <h3 className={styles.notesTitle}>Notas y observaciones</h3>
-            <p className={styles.heroSub}>Consulta el registro clínico guardado durante la atención.</p>
-          </div>
+    <AppModal
+      open
+      size="wide"
+      eyebrow={`Historia clínica · Cita #${appointment.id ?? "-"}`}
+      title="Notas y observaciones"
+      subtitle="Consulta la evolución clínica registrada durante la atención y revisa cada anotación con contexto de cita."
+      onClose={onClose}
+      actions={(
+        <div className={formStyles.formActions}>
           <button type="button" className={styles.btnGhost} onClick={onClose}>Cerrar</button>
-        </header>
-
-        <section className={styles.notesAppointmentCard}>
-          <p className={styles.sectionHeading}>Resumen de cita</p>
+        </div>
+      )}
+    >
+      <div className={styles.notesModalLayout}>
+        <section className={`${formStyles.formSectionCard} ${styles.notesSummaryCard}`.trim()}>
+          <div className={styles.notesSummaryHeader}>
+            <p className={formStyles.sectionHeading}>Resumen de cita</p>
+            <span className={formStyles.statusChip}>{getStatusLabel(appointment.status)}</span>
+          </div>
           <div className={styles.notesSummaryGrid}>
-            <div>
+            <article className={styles.notesSummaryItem}>
               <p className={styles.infoLabel}>Paciente</p>
               <p className={styles.infoValue}>{patientName}</p>
-            </div>
-            <div>
+            </article>
+            <article className={styles.notesSummaryItem}>
               <p className={styles.infoLabel}>Servicio</p>
               <p className={styles.infoValue}>{serviceName}</p>
-            </div>
-            <div>
+            </article>
+            <article className={`${styles.notesSummaryItem} ${styles.notesSummaryItemWide}`.trim()}>
               <p className={styles.infoLabel}>Fecha y hora</p>
               <p className={styles.infoValue}>{formatDate(appointment.start_at)} · {formatTime(appointment.start_at)} - {formatTime(appointment.end_at)}</p>
-            </div>
+            </article>
           </div>
         </section>
 
-        <section className={styles.notesBody}>
+        <section className={`${formStyles.formSectionCard} ${styles.notesBody}`.trim()}>
           <div className={styles.notesBodyHeader}>
-            <p className={styles.sectionHeading}>Notas clínicas</p>
+            <div>
+              <p className={formStyles.sectionHeading}>Notas clínicas</p>
+              <p className={styles.notesSectionText}>Bitácora cronológica de hallazgos, procedimientos y observaciones de seguimiento.</p>
+            </div>
             {!loading && !error && (
               <span className={styles.notesCount}>{notes.length} {notes.length === 1 ? "registro" : "registros"}</span>
             )}
@@ -128,21 +150,23 @@ export default function DentistAppointmentNotesModal({ appointment, onClose }: P
           )}
 
           {!loading && !error && notes.length > 0 && (
-            <div className={styles.notesList}>
+            <div className={styles.notesList} role="list" aria-label="Listado de notas clínicas">
               {notes.map((entry, index) => (
-                <article className={styles.noteCard} key={entry.id ?? `${appointment.id}-note-${index}`}>
+                <article className={styles.noteCard} key={entry.id ?? `${appointment.id}-note-${index}`} role="listitem">
                   <div className={styles.noteCardHeader}>
-                    <p className={styles.noteCardTitle}>Nota clínica #{index + 1}</p>
+                    <div>
+                      <p className={styles.noteCardTitle}>Nota clínica #{index + 1}</p>
+                      {entry.author_name ? <p className={styles.noteAuthor}>Registrada por: {entry.author_name}</p> : null}
+                    </div>
                     <p className={styles.noteCardMeta}>{formatNoteDate(entry.created_at)}</p>
                   </div>
-                  {entry.author_name && <p className={styles.noteAuthor}>Registrada por: {entry.author_name}</p>}
                   <p className={styles.noteText}>{entry.note}</p>
                 </article>
               ))}
             </div>
           )}
         </section>
-      </aside>
-    </div>
+      </div>
+    </AppModal>
   );
 }

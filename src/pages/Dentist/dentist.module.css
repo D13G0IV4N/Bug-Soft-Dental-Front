@@ -1040,72 +1040,78 @@
   }
 }
 
-.notesDrawer {
-  width: min(740px, 96vw);
-  max-height: min(92vh, 920px);
-  margin-left: auto;
+.notesModalLayout {
+  display: grid;
+  gap: 14px;
+}
+
+.notesSummaryCard {
+  padding: 16px;
+  gap: 14px;
   background:
-    radial-gradient(circle at top right, rgba(16, 138, 182, 0.12), transparent 42%),
-    linear-gradient(180deg, #ffffff 0%, #f3fbff 100%);
-  border: 1px solid rgba(12, 99, 134, 0.28);
-  border-radius: 22px 0 0 22px;
-  box-shadow: -16px 0 38px rgba(15, 88, 122, 0.22);
-  padding: 20px;
-  display: grid;
-  gap: 14px;
-  overflow: auto;
+    linear-gradient(180deg, rgba(252, 255, 255, 0.98), rgba(244, 251, 255, 0.95)),
+    radial-gradient(circle at 100% 0%, rgba(13, 152, 170, 0.1), transparent 44%);
 }
 
-.notesHeader {
+.notesSummaryHeader {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  align-items: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-.notesTitle {
-  margin: 0;
-  font-size: 28px;
-}
-
-.notesAppointmentCard {
-  border-radius: 16px;
-  border: 1px solid rgba(27, 106, 143, 0.2);
-  background: rgba(255, 255, 255, 0.92);
-  padding: 14px;
-  display: grid;
-  gap: 12px;
-}
 
 .notesSummaryGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 12px;
 }
 
+.notesSummaryItem {
+  border-radius: 12px;
+  border: 1px solid rgba(27, 104, 139, 0.14);
+  background: rgba(255, 255, 255, 0.76);
+  padding: 11px 12px;
+}
+
+.notesSummaryItemWide {
+  grid-column: 1 / -1;
+}
+
 .notesBody {
-  border-radius: 16px;
-  border: 1px solid rgba(24, 110, 151, 0.18);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(248, 252, 255, 0.95));
-  padding: 14px;
-  display: grid;
-  gap: 12px;
+  padding: 16px;
+  gap: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(246, 251, 255, 0.96)),
+    radial-gradient(circle at 0% 100%, rgba(34, 141, 188, 0.08), transparent 46%);
 }
 
 .notesBodyHeader {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  gap: 8px;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.notesSectionText {
+  margin: 7px 0 0;
+  color: #577486;
+  font-size: 13px;
+  line-height: 1.45;
+  max-width: 62ch;
 }
 
 .notesCount {
   border-radius: 999px;
-  background: rgba(8, 130, 173, 0.12);
-  color: #0b6286;
-  padding: 6px 10px;
+  background: linear-gradient(145deg, rgba(18, 141, 188, 0.16), rgba(16, 120, 171, 0.1));
+  color: #0b5f82;
+  border: 1px solid rgba(18, 130, 170, 0.22);
+  padding: 6px 11px;
   font-weight: 800;
   font-size: 12px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 .notesEmptyState {
@@ -1126,44 +1132,55 @@
 
 .notesList {
   display: grid;
-  gap: 10px;
+  gap: 12px;
+  max-height: min(52vh, 560px);
+  overflow-y: auto;
+  padding-right: 6px;
 }
 
 .noteCard {
   border-radius: 14px;
-  border: 1px solid rgba(22, 109, 148, 0.2);
-  background: #ffffff;
-  padding: 12px;
+  border: 1px solid rgba(22, 109, 148, 0.18);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 252, 255, 0.96)),
+    radial-gradient(circle at 100% 0%, rgba(24, 149, 173, 0.09), transparent 34%);
+  padding: 14px;
   display: grid;
-  gap: 8px;
+  gap: 10px;
+  box-shadow:
+    0 10px 22px rgba(12, 86, 126, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.74);
 }
 
 .noteCardHeader {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
-  gap: 8px;
+  align-items: flex-start;
+  gap: 12px;
 }
 
 .noteCardTitle {
-  margin: 0;
+  margin: 0 0 4px;
   font-size: 15px;
-  color: #134f6e;
+  color: #124b69;
   font-weight: 800;
 }
 
 .noteCardMeta {
-  margin: 0;
+  margin: 2px 0 0;
   color: #5a788b;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
+  text-align: right;
 }
 
 .noteAuthor {
   margin: 0;
-  color: #2f6987;
-  font-size: 13px;
+  color: #336f8f;
+  font-size: 12px;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .noteText {
@@ -1174,26 +1191,22 @@
 }
 
 @media (max-width: 820px) {
-  .notesDrawer {
-    width: 100%;
-    border-radius: 20px 20px 0 0;
-    margin: auto 0 0;
-    max-height: 92vh;
-    padding: 16px;
-  }
-
-  .notesHeader {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .notesTitle {
-    font-size: 24px;
+  .notesSummaryItemWide {
+    grid-column: auto;
   }
 
   .noteCardHeader {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .noteCardMeta {
+    text-align: left;
+  }
+
+  .notesList {
+    max-height: min(48vh, 460px);
+    padding-right: 2px;
   }
 }
 
