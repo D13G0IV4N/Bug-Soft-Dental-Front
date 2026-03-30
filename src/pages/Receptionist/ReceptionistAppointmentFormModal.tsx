@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { type Appointment, type AppointmentPayload, type AppointmentUpdatePayload, type AvailableDentist } from "../../api/appointments";
+import AppModal from "../../components/ui/AppModal";
 import formStyles from "../../styles/formSystem.module.css";
 import { toDateTimeLocal } from "../Dentist/dateUtils";
 import { toDentistRequestError } from "../Dentist/errorUtils";
@@ -139,19 +140,25 @@ export default function ReceptionistAppointmentFormModal({
   }
 
   return (
-    <div className={formStyles.modalOverlay} onClick={() => !saving && onClose()}>
-      <div className={`${formStyles.modalCard} ${dentistStyles.clinicalModal}`.trim()} onClick={(event) => event.stopPropagation()}>
-        <header className={dentistStyles.modalHeader}>
-          <div>
-            <p className={dentistStyles.workspaceTag}>Recepción · Citas</p>
-            <h3 className={dentistStyles.heroTitle}>{mode === "create" ? "Nueva cita" : `Editar cita #${appointment?.id ?? ""}`}</h3>
-            <p className={dentistStyles.heroSub}>Backend real: /api/appointments y /api/appointments/available-dentists.</p>
-          </div>
-          <button type="button" className={dentistStyles.btnGhost} disabled={saving} onClick={onClose}>Cerrar</button>
-        </header>
-
-        <form className={dentistStyles.formGrid} onSubmit={handleSubmit}>
-          <section className={`${dentistStyles.fieldFull} ${dentistStyles.formSectionCard}`.trim()}>
+    <AppModal
+      open
+      size="wide"
+      eyebrow="Recepción · Citas"
+      title={mode === "create" ? "Nueva cita" : `Editar cita #${appointment?.id ?? ""}`}
+      subtitle="Backend real: /api/appointments y /api/appointments/available-dentists."
+      closeDisabled={saving}
+      onClose={onClose}
+      actions={(
+        <div className={formStyles.formActions}>
+          <button type="button" className={dentistStyles.btnGhost} onClick={onClose} disabled={saving}>Cancelar</button>
+          <button type="submit" form="receptionist-appointment-form" className={dentistStyles.btn} disabled={saving || loadingPatients || loadingDentists}>
+            {saving ? "Guardando..." : mode === "create" ? "Crear cita" : "Guardar cambios"}
+          </button>
+        </div>
+      )}
+    >
+      <form id="receptionist-appointment-form" className={formStyles.formGrid} onSubmit={handleSubmit}>
+          <section className={`${formStyles.fieldFull} ${dentistStyles.formSectionCard}`.trim()}>
             <p className={dentistStyles.sectionHeading}>Paciente</p>
             <label>
               Paciente
@@ -167,7 +174,7 @@ export default function ReceptionistAppointmentFormModal({
             )}
           </section>
 
-          <section className={`${dentistStyles.fieldFull} ${dentistStyles.formSectionCard}`.trim()}>
+          <section className={`${formStyles.fieldFull} ${dentistStyles.formSectionCard}`.trim()}>
             <p className={dentistStyles.sectionHeading}>Servicio</p>
             <label>
               ID del servicio
@@ -195,7 +202,7 @@ export default function ReceptionistAppointmentFormModal({
             )}
           </section>
 
-          <section className={`${dentistStyles.fieldFull} ${dentistStyles.formSectionCard}`.trim()}>
+          <section className={`${formStyles.fieldFull} ${dentistStyles.formSectionCard}`.trim()}>
             <p className={dentistStyles.sectionHeading}>Horario y dentista disponible</p>
             <label>
               Inicio
@@ -223,7 +230,7 @@ export default function ReceptionistAppointmentFormModal({
             {dentistsError && <p className={dentistStyles.feedbackError}>{dentistsError}</p>}
           </section>
 
-          <section className={`${dentistStyles.fieldFull} ${dentistStyles.formSectionCard}`.trim()}>
+          <section className={`${formStyles.fieldFull} ${dentistStyles.formSectionCard}`.trim()}>
             <p className={dentistStyles.sectionHeading}>Motivo y notas</p>
             <label>
               Motivo
@@ -245,20 +252,12 @@ export default function ReceptionistAppointmentFormModal({
           {loadingPatients && <p className={dentistStyles.rowMeta}>Cargando pacientes...</p>}
           {patientsError && <p className={dentistStyles.feedbackError}>{patientsError}</p>}
           {error && (
-            <div className={`${dentistStyles.fieldFull} ${dentistStyles.errorPanel}`.trim()}>
+            <div className={`${formStyles.fieldFull} ${dentistStyles.errorPanel}`.trim()}>
               <p className={dentistStyles.errorTitle}>No se pudo guardar la cita.</p>
               <p className={dentistStyles.errorBody}>{error}</p>
             </div>
           )}
-
-          <div className={dentistStyles.modalActions}>
-            <button type="button" className={dentistStyles.btnGhost} onClick={onClose} disabled={saving}>Cancelar</button>
-            <button type="submit" className={dentistStyles.btn} disabled={saving || loadingPatients || loadingDentists}>
-              {saving ? "Guardando..." : mode === "create" ? "Crear cita" : "Guardar cambios"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </form>
+    </AppModal>
   );
 }
