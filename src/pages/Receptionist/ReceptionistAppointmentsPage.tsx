@@ -12,7 +12,7 @@ import {
   type AvailableDentist,
 } from "../../api/appointments";
 import { getAdminPatients } from "../../api/patients";
-import { formatDate, formatTime, parseAppointmentDateTime } from "../Dentist/dateUtils";
+import { formatDate, formatTime, isSameLocalDay, parseAppointmentDateTime } from "../Dentist/dateUtils";
 import DentistWeeklyAgenda from "../Dentist/DentistWeeklyAgenda";
 import styles from "../Dentist/dentist.module.css";
 import ReceptionistAppointmentFormModal, {
@@ -32,8 +32,6 @@ const FILTER_LABELS: Record<ReceptionistFilter, string> = {
 };
 
 const STATUS_ACTIONS: Array<{ label: string; value: AppointmentStatus; kind?: "danger" }> = [
-  { label: "Confirmar", value: "confirmed" },
-  { label: "Completar", value: "completed" },
   { label: "No asistió", value: "no_show" },
   { label: "Cancelar", value: "cancelled", kind: "danger" },
 ];
@@ -219,6 +217,31 @@ export default function ReceptionistAppointmentsPage() {
     });
   }, [items, search, selectedFilter]);
 
+  const summary = useMemo(() => {
+    const now = new Date();
+
+    return items.reduce(
+      (acc, item) => {
+        const startAt = parseAppointmentDateTime(item.start_at);
+        const status = (item.status ?? "scheduled").toLowerCase();
+
+        if (status === "completed") acc.completed += 1;
+        if (isCanceled(status)) acc.canceled += 1;
+
+        if (startAt && isSameLocalDay(startAt, now)) {
+          acc.today += 1;
+        }
+
+        if (startAt && startAt > now && !["completed", "no_show", "canceled", "cancelled"].includes(status)) {
+          acc.upcoming += 1;
+        }
+
+        return acc;
+      },
+      { today: 0, upcoming: 0, completed: 0, canceled: 0 }
+    );
+  }, [items]);
+
   async function handleQuickStatus(item: Appointment, status: AppointmentStatus) {
     if (!item.id || !canApplyStatus(item, status)) return;
 
@@ -275,6 +298,15 @@ export default function ReceptionistAppointmentsPage() {
           + Nueva cita
         </button>
       </div>
+
+      {!error && (
+        <div className={styles.statsGrid}>
+          <article className={styles.statCard}><p className={styles.statLabel}>Citas de hoy</p><p className={styles.statValue}>{summary.today}</p></article>
+          <article className={styles.statCard}><p className={styles.statLabel}>Próximas</p><p className={styles.statValue}>{summary.upcoming}</p></article>
+          <article className={styles.statCard}><p className={styles.statLabel}>Completadas</p><p className={styles.statValue}>{summary.completed}</p></article>
+          <article className={styles.statCard}><p className={styles.statLabel}>Canceladas</p><p className={styles.statValue}>{summary.canceled}</p></article>
+        </div>
+      )}
 
       <div className={styles.controlsShell}>
         <div className={styles.controlsHeader}>
