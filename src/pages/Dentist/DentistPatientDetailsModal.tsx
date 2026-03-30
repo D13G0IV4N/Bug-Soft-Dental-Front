@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import type { Appointment } from "../../api/appointments";
 import type { Patient } from "../../api/patients";
 import styles from "./dentist.module.css";
@@ -62,9 +64,30 @@ function getStatusClass(status?: string | null) {
 }
 
 export default function DentistPatientDetailsModal({ patient, recentAppointments, onClose }: Props) {
-  return (
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    function handleEsc(event: KeyboardEvent) {
+      if (event.key === "Escape") onClose();
+    }
+
+    window.addEventListener("keydown", handleEsc);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, [onClose]);
+
+  return createPortal(
     <div className={styles.detailsOverlay} onClick={onClose}>
-      <aside className={styles.detailsDrawer} onClick={(event) => event.stopPropagation()} aria-modal="true" role="dialog">
+      <aside
+        className={styles.detailsDrawer}
+        onClick={(event) => event.stopPropagation()}
+        aria-modal="true"
+        role="dialog"
+      >
         <header className={styles.detailsHeader}>
           <div>
             <p className={styles.detailsEyebrow}>Ficha clínica del paciente</p>
@@ -138,6 +161,7 @@ export default function DentistPatientDetailsModal({ patient, recentAppointments
           </section>
         </div>
       </aside>
-    </div>
+    </div>,
+    document.body,
   );
 }
