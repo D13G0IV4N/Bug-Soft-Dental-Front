@@ -1,4 +1,4 @@
-import { useMemo, type KeyboardEvent } from "react";
+import { useMemo, type CSSProperties, type KeyboardEvent } from "react";
 import type { Appointment } from "../../api/appointments";
 import { formatTime, parseAppointmentDateTime } from "./dateUtils";
 import styles from "./dentist.module.css";
@@ -104,6 +104,52 @@ function handleCardKeyDown(event: KeyboardEvent<HTMLElement>, onView: () => void
   }
 }
 
+function normalizeHexColor(color: string) {
+  const value = color.trim();
+  const shortHexMatch = value.match(/^#([0-9a-f]{3})$/i);
+  if (shortHexMatch) {
+    const [r, g, b] = shortHexMatch[1].split("");
+    return `#${r}${r}${g}${g}${b}${b}`.toUpperCase();
+  }
+
+  const longHexMatch = value.match(/^#([0-9a-f]{6})(?:[0-9a-f]{2})?$/i);
+  return longHexMatch ? `#${longHexMatch[1].toUpperCase()}` : "";
+}
+
+function toRgb(hex: string) {
+  const normalized = normalizeHexColor(hex);
+  if (!normalized) return null;
+  const value = normalized.slice(1);
+  const red = Number.parseInt(value.slice(0, 2), 16);
+  const green = Number.parseInt(value.slice(2, 4), 16);
+  const blue = Number.parseInt(value.slice(4, 6), 16);
+  return { red, green, blue };
+}
+
+function resolveDentistColor(appointment: Appointment) {
+  const candidate = appointment.dentist_color || appointment.dentist?.color;
+  if (!candidate) return "";
+  if (typeof CSS !== "undefined" && CSS.supports("color", candidate.trim())) {
+    return candidate.trim();
+  }
+  return "";
+}
+
+function buildDentistAccentStyle(appointment: Appointment): CSSProperties | undefined {
+  const color = resolveDentistColor(appointment);
+  if (!color) return undefined;
+
+  const rgb = toRgb(color);
+  const softColor = rgb ? `rgba(${rgb.red}, ${rgb.green}, ${rgb.blue}, 0.13)` : "rgba(11, 117, 152, 0.1)";
+  const borderColor = rgb ? `rgba(${rgb.red}, ${rgb.green}, ${rgb.blue}, 0.45)` : "rgba(11, 117, 152, 0.35)";
+
+  return {
+    "--dentist-accent": color,
+    "--dentist-accent-soft": softColor,
+    "--dentist-accent-border": borderColor,
+  } as CSSProperties;
+}
+
 export default function DentistWeeklyAgenda({ appointments, onView, onEdit }: WeeklyAgendaProps) {
   const weekStart = useMemo(() => startOfWeek(new Date()), []);
   const weekDays = useMemo(() => buildDayColumns(weekStart), [weekStart]);
@@ -190,7 +236,8 @@ export default function DentistWeeklyAgenda({ appointments, onView, onEdit }: We
                           {appointmentsAtTime.map(({ appointment, date }) => (
                             <article
                               key={`${appointment.id}-${date.toISOString()}`}
-                              className={`${styles.agendaAppointmentCard} ${styles.agendaAppointmentChip} ${statusClass(appointment.status)}`.trim()}
+                              className={`${styles.agendaAppointmentCard} ${styles.agendaAppointmentDentistAccent} ${statusClass(appointment.status)}`.trim()}
+                              style={buildDentistAccentStyle(appointment)}
                               role="button"
                               tabIndex={0}
                               onClick={() => onView(appointment)}
@@ -207,6 +254,10 @@ export default function DentistWeeklyAgenda({ appointments, onView, onEdit }: We
                               </p>
                               <p className={styles.agendaAppointmentService}>
                                 {appointment.service?.name || appointment.service_name || `Servicio #${appointment.service_id}`}
+                              </p>
+                              <p className={styles.agendaAppointmentDentist}>
+                                <span className={styles.agendaDentistDot} />
+                                {appointment.dentist?.name || appointment.dentist_name || `Dentista #${appointment.dentist_user_id}`}
                               </p>
                               <button
                                 type="button"
@@ -251,13 +302,21 @@ export default function DentistWeeklyAgenda({ appointments, onView, onEdit }: We
               ) : (
                 <div className={styles.mobileDayAppointments}>
                   {appointmentsOfDay.map(({ appointment, date }) => (
-                    <article key={`${appointment.id}-${date.toISOString()}-mobile`} className={styles.mobileAppointmentCard}>
+                    <article
+                      key={`${appointment.id}-${date.toISOString()}-mobile`}
+                      className={`${styles.mobileAppointmentCard} ${styles.agendaAppointmentDentistAccent}`.trim()}
+                      style={buildDentistAccentStyle(appointment)}
+                    >
                       <div>
                         <p className={styles.agendaAppointmentPatient}>
                           {appointment.patient?.name || appointment.patient_name || `Paciente #${appointment.patient_user_id}`}
                         </p>
                         <p className={styles.agendaAppointmentService}>
                           {appointment.service?.name || appointment.service_name || `Servicio #${appointment.service_id}`}
+                        </p>
+                        <p className={styles.agendaAppointmentDentist}>
+                          <span className={styles.agendaDentistDot} />
+                          {appointment.dentist?.name || appointment.dentist_name || `Dentista #${appointment.dentist_user_id}`}
                         </p>
                       </div>
 

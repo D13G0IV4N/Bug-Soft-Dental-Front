@@ -828,6 +828,21 @@
   transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
 }
 
+.agendaAppointmentDentistAccent {
+  --dentist-accent: #1d739f;
+  --dentist-accent-soft: rgba(22, 122, 165, 0.12);
+  --dentist-accent-border: rgba(20, 113, 157, 0.34);
+  border-left-width: 4px;
+  border-left-style: solid;
+  border-left-color: var(--dentist-accent);
+  border-top: 2px solid color-mix(in srgb, var(--dentist-accent) 55%, white);
+  border-color: var(--dentist-accent-border);
+  background:
+    linear-gradient(92deg, var(--dentist-accent-soft) 0%, rgba(255, 255, 255, 0) 45%),
+    radial-gradient(circle at top right, rgba(28, 151, 194, 0.13), transparent 40%),
+    linear-gradient(160deg, #ffffff 0%, #edf8ff 100%);
+}
+
 .agendaAppointmentCard:hover,
 .agendaAppointmentCard:focus-visible {
   transform: translateY(-1px);
@@ -898,6 +913,28 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.agendaAppointmentDentist {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: #325f77;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.agendaDentistDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--dentist-accent);
+  border: 1px solid color-mix(in srgb, var(--dentist-accent) 62%, #0f4f6f);
+  flex-shrink: 0;
 }
 
 .agendaEditAction {

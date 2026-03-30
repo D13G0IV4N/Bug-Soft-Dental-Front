@@ -8,6 +8,7 @@ export interface AppointmentPerson {
   name?: string;
   email?: string;
   phone?: string;
+  color?: string;
 }
 
 export interface AppointmentSpecialty {
@@ -39,6 +40,7 @@ export interface Appointment {
   service?: AppointmentService;
   patient_name?: string;
   dentist_name?: string;
+  dentist_color?: string;
   service_name?: string;
   specialty_name?: string;
   created_at?: string;
@@ -141,6 +143,7 @@ function toApiDateTime(value: string): string {
 
 function normalizePerson(raw: unknown): AppointmentPerson | undefined {
   const source = asRecord(raw);
+  const profile = asRecord(source.dentist_profile ?? source.profile);
 
   if (!Object.keys(source).length) return undefined;
 
@@ -149,6 +152,7 @@ function normalizePerson(raw: unknown): AppointmentPerson | undefined {
     name: toStringValue(source.name),
     email: toStringValue(source.email),
     phone: toStringValue(source.phone),
+    color: toStringValue(source.color ?? profile.color),
   };
 }
 
@@ -212,6 +216,7 @@ function normalizeAppointment(raw: unknown): Appointment {
       : undefined,
     patient_name: toStringValue(source.patient_name ?? patient?.name),
     dentist_name: toStringValue(source.dentist_name ?? dentist?.name),
+    dentist_color: toStringValue(source.dentist_color ?? dentist?.color ?? asRecord(source.dentist_profile).color),
     service_name: toStringValue(source.service_name ?? service?.name),
     specialty_name: toStringValue(source.specialty_name ?? specialty?.name ?? service?.specialty?.name),
     created_at: toStringValue(source.created_at),
