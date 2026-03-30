@@ -17,6 +17,10 @@ export interface Patient {
   password?: string;
   phone?: string;
   status?: boolean;
+  created_at?: string | null;
+  updated_at?: string | null;
+  clinic_name?: string | null;
+  dentist_name?: string | null;
   profile: PatientProfile;
 }
 
@@ -42,6 +46,10 @@ function normalizePatient(raw: unknown): Patient {
     email: typeof source.email === "string" ? source.email : "",
     phone: typeof source.phone === "string" ? source.phone : "",
     status: toBooleanStatus(status as PatientStatus),
+    created_at: typeof source.created_at === "string" ? source.created_at : null,
+    updated_at: typeof source.updated_at === "string" ? source.updated_at : null,
+    clinic_name: typeof source.clinic_name === "string" ? source.clinic_name : null,
+    dentist_name: typeof source.dentist_name === "string" ? source.dentist_name : null,
     profile: {
       birth_date: typeof profile.birth_date === "string"
         ? profile.birth_date

@@ -15,6 +15,7 @@ import AdminServicesPage from "./pages/Admin/AdminServicesPage";
 import SuperAdminLayout from "./pages/Admin/SuperAdminLayout";
 import DentistLayout from "./pages/Dentist/DentistLayout";
 import DentistAppointmentsPage from "./pages/Dentist/DentistAppointmentsPage";
+import DentistPatientsPage from "./pages/Dentist/DentistPatientsPage";
 import ReceptionistLayout from "./pages/Receptionist/ReceptionistLayout";
 import ReceptionistDashboardPage from "./pages/Receptionist/ReceptionistDashboardPage";
 import ReceptionistAppointmentsPage from "./pages/Receptionist/ReceptionistAppointmentsPage";
@@ -83,6 +84,7 @@ export default function App() {
           <Route path="/dentist" element={<DentistLayout />}>
             <Route index element={<Navigate to="/dentist/appointments" replace />} />
             <Route path="appointments" element={<DentistAppointmentsPage />} />
+            <Route path="patients" element={<DentistPatientsPage />} />
           </Route>
         </Route>
       </Route>
