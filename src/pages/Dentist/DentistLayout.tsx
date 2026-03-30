@@ -5,7 +5,10 @@ import { getPublicClinics } from "../../api/clinics";
 import { getStoredUser, resolveClinicId, resolveClinicName } from "../../utils/auth";
 import styles from "./dentist.module.css";
 
-const dentistLinks = [{ to: "/dentist/appointments", label: "Mi agenda" }];
+const dentistLinks = [
+  { to: "/dentist/appointments", label: "Mi agenda" },
+  { to: "/dentist/patients", label: "Pacientes" },
+];
 
 export default function DentistLayout() {
   const navigate = useNavigate();
