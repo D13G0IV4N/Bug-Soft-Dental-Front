@@ -174,47 +174,81 @@
   margin-top: 12px;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(152px, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
 
 .statCard {
+  position: relative;
+  overflow: hidden;
   border-radius: 14px;
-  padding: 10px 12px;
-  border: 1px solid rgba(24, 113, 154, 0.11);
-  background: rgba(250, 254, 255, 0.88);
+  padding: 11px 12px 12px;
+  border: 1px solid rgba(18, 104, 145, 0.22);
+  background: linear-gradient(180deg, rgba(249, 253, 255, 0.98), rgba(241, 249, 254, 0.93));
   display: grid;
-  gap: 4px;
+  gap: 5px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 8px 18px rgba(16, 89, 122, 0.08);
+}
+
+.statCard::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, rgba(9, 130, 170, 0.9), rgba(23, 161, 175, 0.52));
 }
 
 .statLabel {
   margin: 0;
-  font-size: 12px;
-  color: #6a8595;
+  font-size: 11px;
+  font-weight: 600;
+  color: #7490a0;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .statValue {
   margin: 0;
-  font-size: 28px;
+  font-size: clamp(31px, 2.5vw, 34px);
   line-height: 1;
-  font-weight: 800;
-  color: #123f58;
+  font-weight: 850;
+  color: #0f344b;
+  letter-spacing: -0.02em;
 }
 
 .controlsShell {
+  position: relative;
+  overflow: hidden;
   margin: 14px 0 16px;
   border-radius: 16px;
-  border: 1px solid rgba(21, 103, 143, 0.12);
-  background: rgba(245, 251, 255, 0.72);
-  padding: 12px;
+  border: 1px solid rgba(18, 102, 143, 0.22);
+  background:
+    linear-gradient(180deg, rgba(247, 252, 255, 0.96), rgba(239, 247, 253, 0.9)),
+    radial-gradient(circle at 92% -10%, rgba(16, 145, 170, 0.12), transparent 45%);
+  padding: 13px;
   display: grid;
-  gap: 10px;
+  gap: 12px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 12px 26px rgba(16, 84, 118, 0.08);
+}
+
+.controlsShell::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 14px;
+  right: 14px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(13, 123, 161, 0), rgba(13, 123, 161, 0.4), rgba(13, 123, 161, 0));
 }
 
 .controlsHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
@@ -246,8 +280,8 @@
 .textarea {
   width: 100%;
   border-radius: 11px;
-  border: 1px solid rgba(26, 103, 136, 0.18);
-  background: #ffffff;
+  border: 1px solid rgba(20, 101, 139, 0.24);
+  background: rgba(255, 255, 255, 0.96);
   color: #173f59;
   padding: 10px 12px;
   font: inherit;
