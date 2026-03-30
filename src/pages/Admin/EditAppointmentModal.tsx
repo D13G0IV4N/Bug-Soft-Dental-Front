@@ -1,8 +1,7 @@
 import type { AvailableDentist, Appointment } from "../../api/appointments";
 import type { Service } from "../../api/services";
-import formStyles from "../../styles/formSystem.module.css";
-import styles from "./admin.module.css";
 import AppointmentForm, { type AppointmentFormState } from "./AppointmentForm";
+import AppModal from "../../components/ui/AppModal";
 
 interface Props {
   appointment: Appointment;
@@ -46,43 +45,36 @@ export default function EditAppointmentModal({
   onSubmit,
 }: Props) {
   return (
-    <div className={formStyles.modalOverlay} onClick={() => !saving && onClose()}>
-      <div className={formStyles.modalCard} onClick={(event) => event.stopPropagation()}>
-        <div className={formStyles.modalHeader}>
-          <div>
-            <h3 className={formStyles.modalTitle}>Editar cita #{appointment.id}</h3>
-            <p className={formStyles.modalText}>
-              Actualiza paciente, servicio, horario y dentista desde un modal sin alterar el formulario principal.
-            </p>
-          </div>
-          <button type="button" className={styles.btnGhost} onClick={onClose} disabled={saving}>
-            Cerrar
-          </button>
-        </div>
-
-        <div className={formStyles.modalBody}>
-          <AppointmentForm
-            form={form}
-            patients={patients}
-            services={services}
-            availableDentists={availableDentists}
-            selectedService={selectedService}
-            canSearchDentists={canSearchDentists}
-            loadingPatients={loadingPatients}
-            loadingServices={loadingServices}
-            loadingDentists={loadingDentists}
-            patientsError={patientsError}
-            servicesError={servicesError}
-            dentistsError={dentistsError}
-            formError={formError}
-            saving={saving}
-            mode="edit"
-            onChange={onChange}
-            onSubmit={onSubmit}
-            onCancel={onClose}
-          />
-        </div>
-      </div>
-    </div>
+    <AppModal
+      open
+      size="wide"
+      eyebrow="Agenda administrativa"
+      title={`Editar cita #${appointment.id}`}
+      subtitle="Actualiza paciente, servicio, horario y dentista sin alterar el formulario principal."
+      onClose={onClose}
+      closeDisabled={saving}
+      disableClose={saving}
+    >
+      <AppointmentForm
+        form={form}
+        patients={patients}
+        services={services}
+        availableDentists={availableDentists}
+        selectedService={selectedService}
+        canSearchDentists={canSearchDentists}
+        loadingPatients={loadingPatients}
+        loadingServices={loadingServices}
+        loadingDentists={loadingDentists}
+        patientsError={patientsError}
+        servicesError={servicesError}
+        dentistsError={dentistsError}
+        formError={formError}
+        saving={saving}
+        mode="edit"
+        onChange={onChange}
+        onSubmit={onSubmit}
+        onCancel={onClose}
+      />
+    </AppModal>
   );
 }

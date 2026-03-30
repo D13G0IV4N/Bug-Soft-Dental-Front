@@ -10,6 +10,7 @@ import formStyles from "../../styles/formSystem.module.css";
 import { formatDateTime, toDateTimeLocal } from "./dateUtils";
 import { toDentistRequestError } from "./errorUtils";
 import styles from "./dentist.module.css";
+import AppModal from "../../components/ui/AppModal";
 
 interface Props {
   appointment: Appointment;
@@ -56,7 +57,6 @@ export default function DentistAppointmentDetailModal({
 
   const isBusy = updatingStatus || savingEdit;
 
-
   useEffect(() => {
     setStartAt(toDateTimeLocal(appointment.start_at));
     setReason(appointment.reason ?? "");
@@ -65,7 +65,6 @@ export default function DentistAppointmentDetailModal({
     setError("");
     setSuccess("");
   }, [appointment]);
-
 
   async function handleStatusUpdate(nextStatus?: AppointmentStatus) {
     if (!appointment.id) return;
@@ -116,103 +115,98 @@ export default function DentistAppointmentDetailModal({
   }
 
   return (
-    <div className={formStyles.modalOverlay} onClick={() => !isBusy && onClose()}>
-      <div className={`${formStyles.modalCard} ${styles.clinicalModal}`.trim()} onClick={(event) => event.stopPropagation()}>
-        <header className={styles.modalHeader}>
-          <div>
-            <p className={styles.workspaceTag}>Ficha clínica</p>
-            <h3 className={styles.heroTitle}>Cita #{appointment.id}</h3>
-            <p className={styles.heroSub}>Edición de datos clínicos y actualización de estado con rutas separadas.</p>
-          </div>
+    <AppModal
+      open
+      size="wide"
+      eyebrow="Ficha clínica"
+      title={`Cita #${appointment.id}`}
+      subtitle="Edición de datos clínicos y actualización de estado con rutas separadas."
+      onClose={onClose}
+      closeDisabled={isBusy}
+      disableClose={isBusy}
+      actions={(
+        <div className={formStyles.formActions}>
           <button type="button" className={styles.btnGhost} disabled={isBusy} onClick={onClose}>Cerrar</button>
-        </header>
-
-        <section className={styles.sectionGrid}>
-          <article className={styles.infoCard}>
-            <p className={styles.infoLabel}>Paciente</p>
-            <p className={styles.infoValue}>{displayPatientName}</p>
-            <p className={styles.rowMeta}>{appointment.patient?.email || "Sin correo"}</p>
-            <p className={styles.rowMeta}>{appointment.patient?.phone || "Sin teléfono"}</p>
-          </article>
-
-          <article className={styles.infoCard}>
-            <p className={styles.infoLabel}>Servicio / especialidad</p>
-            <p className={styles.infoValue}>{appointment.service?.name || appointment.service_name || "Sin servicio"}</p>
-            <p className={styles.rowMeta}>{appointment.service?.specialty?.name || appointment.specialty_name || "Sin especialidad"}</p>
-            <p className={styles.rowMeta}>Duración estimada: {selectedService?.duration_minutes || appointment.service?.duration_minutes || "-"} min.</p>
-          </article>
-
-          <article className={styles.infoCard}>
-            <p className={styles.infoLabel}>Fecha</p>
-            <p className={styles.rowMeta}>Inicio: {formatDateTime(appointment.start_at)}</p>
-            <p className={styles.rowMeta}>Fin: {formatDateTime(appointment.end_at)}</p>
-            <p className={styles.rowMeta}>Estado actual: {normalizeStatus(appointment.status)}</p>
-          </article>
+          <button type="submit" form="dentist-appointment-detail-edit" className={styles.btn} disabled={isBusy || loadingServices}>
+            {savingEdit ? "Guardando..." : "Guardar cambios"}
+          </button>
+        </div>
+      )}
+    >
+      <div className={formStyles.formGrid}>
+        <section className={formStyles.formSectionCard}>
+          <p className={formStyles.sectionHeading}>Paciente</p>
+          <p className={styles.infoValue}>{displayPatientName}</p>
+          <p className={styles.rowMeta}>{appointment.patient?.email || "Sin correo"}</p>
+          <p className={styles.rowMeta}>{appointment.patient?.phone || "Sin teléfono"}</p>
         </section>
 
-        <form className={styles.formGrid} onSubmit={handleEdit}>
-          <section className={`${styles.fieldFull} ${styles.formSectionCard}`.trim()}>
-            <p className={styles.sectionHeading}>Guardar cambios (PATCH /appointments/{'{id}'})</p>
-            <p className={styles.rowMeta}>Campos habilitados para dentista: fecha/hora de inicio, motivo y notas internas.</p>
+        <section className={formStyles.formSectionCard}>
+          <p className={formStyles.sectionHeading}>Servicio / especialidad</p>
+          <p className={styles.infoValue}>{appointment.service?.name || appointment.service_name || "Sin servicio"}</p>
+          <p className={styles.rowMeta}>{appointment.service?.specialty?.name || appointment.specialty_name || "Sin especialidad"}</p>
+          <p className={styles.rowMeta}>Duración estimada: {selectedService?.duration_minutes || appointment.service?.duration_minutes || "-"} min.</p>
+        </section>
 
-            <label>
+        <section className={formStyles.formSectionCard}>
+          <p className={formStyles.sectionHeading}>Fecha y estado actual</p>
+          <p className={styles.rowMeta}>Inicio: {formatDateTime(appointment.start_at)}</p>
+          <p className={styles.rowMeta}>Fin: {formatDateTime(appointment.end_at)}</p>
+          <span className={formStyles.statusChip}>{normalizeStatus(appointment.status)}</span>
+        </section>
+
+        <section className={`${formStyles.formSectionCard} ${formStyles.fieldFull}`.trim()}>
+          <p className={formStyles.sectionHeading}>Guardar cambios (PATCH /appointments/{'{id}'})</p>
+          <p className={formStyles.helper}>Campos habilitados para dentista: fecha/hora de inicio, motivo y notas internas.</p>
+
+          <form id="dentist-appointment-detail-edit" className={formStyles.formSectionGrid} onSubmit={handleEdit}>
+            <label className={formStyles.field}>
               Fecha y hora de inicio
-              <input className={styles.input} type="datetime-local" step={60} value={startAt} onChange={(event) => setStartAt(event.target.value)} required />
+              <input className={formStyles.control} type="datetime-local" step={60} value={startAt} onChange={(event) => setStartAt(event.target.value)} required />
             </label>
 
-            <p className={styles.rowMeta}>Se envía sin conversión UTC, respetando hora local exacta en formato YYYY-MM-DD HH:mm:ss.</p>
-
-            <label>
+            <label className={`${formStyles.field} ${formStyles.fieldFull}`}>
               Motivo
-              <textarea className={styles.textarea} value={reason} onChange={(event) => setReason(event.target.value)} rows={2} />
+              <textarea className={formStyles.control} value={reason} onChange={(event) => setReason(event.target.value)} rows={2} />
             </label>
 
-            <label>
+            <label className={`${formStyles.field} ${formStyles.fieldFull}`}>
               Notas internas
-              <textarea className={styles.textarea} value={internalNotes} onChange={(event) => setInternalNotes(event.target.value)} rows={3} />
+              <textarea className={formStyles.control} value={internalNotes} onChange={(event) => setInternalNotes(event.target.value)} rows={3} />
             </label>
+          </form>
+        </section>
 
-            <div className={styles.modalActions}>
-              <button type="submit" className={styles.btn} disabled={isBusy || loadingServices}>
-                {savingEdit ? "Guardando..." : "Save changes"}
-              </button>
-            </div>
-          </section>
-
-          <section className={`${styles.fieldFull} ${styles.formSectionCard}`.trim()}>
-            <p className={styles.sectionHeading}>Actualizar estado (PATCH /appointments/{'{id}'}/status)</p>
-            <label>
+        <section className={`${formStyles.formSectionCard} ${formStyles.fieldFull}`.trim()}>
+          <p className={formStyles.sectionHeading}>Actualizar estado (PATCH /appointments/{'{id}'}/status)</p>
+          <div className={formStyles.formSectionGrid}>
+            <label className={formStyles.field}>
               Estado
-              <select className={styles.select} value={status} onChange={(event) => setStatus(event.target.value as AppointmentStatus)}>
+              <select className={formStyles.control} value={status} onChange={(event) => setStatus(event.target.value as AppointmentStatus)}>
                 {STATUS_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}
               </select>
             </label>
+          </div>
 
-            <div className={styles.statusActionsRow}>
-              <button type="button" className={styles.btnTiny} disabled={isBusy} onClick={() => void handleStatusUpdate("confirmed")}>Confirmar</button>
-              <button type="button" className={styles.btnTiny} disabled={isBusy} onClick={() => void handleStatusUpdate("completed")}>Completar</button>
-              <button type="button" className={styles.btnTiny} disabled={isBusy} onClick={() => void handleStatusUpdate("no_show")}>No_show</button>
-              <button type="button" className={styles.btnDanger} disabled={isBusy} onClick={() => void handleStatusUpdate("canceled")}>Cancelar cita</button>
-            </div>
+          <div className={styles.statusActionsRow}>
+            <button type="button" className={styles.btnTiny} disabled={isBusy} onClick={() => void handleStatusUpdate("confirmed")}>Confirmar</button>
+            <button type="button" className={styles.btnTiny} disabled={isBusy} onClick={() => void handleStatusUpdate("completed")}>Completar</button>
+            <button type="button" className={styles.btnTiny} disabled={isBusy} onClick={() => void handleStatusUpdate("no_show")}>No_show</button>
+            <button type="button" className={styles.btnDanger} disabled={isBusy} onClick={() => void handleStatusUpdate("canceled")}>Cancelar cita</button>
+          </div>
 
-            <div className={styles.modalActions}>
-              <button type="button" className={styles.btnGhost} disabled={isBusy} onClick={() => void handleStatusUpdate()}>
-                {updatingStatus ? "Actualizando estado..." : "Update status"}
-              </button>
-            </div>
-          </section>
+          <div className={formStyles.formActions}>
+            <button type="button" className={styles.btnGhost} disabled={isBusy} onClick={() => void handleStatusUpdate()}>
+              {updatingStatus ? "Actualizando estado..." : "Actualizar estado"}
+            </button>
+          </div>
+        </section>
 
-          {loadingServices && <p className={styles.rowMeta}>Cargando servicios...</p>}
-          {servicesError && <p className={styles.feedbackError}>{servicesError}</p>}
-          {error && (
-            <div className={`${styles.fieldFull} ${styles.errorPanel}`.trim()}>
-              <p className={styles.errorTitle}>No se pudo completar la acción.</p>
-              <p className={styles.errorBody}>{error}</p>
-            </div>
-          )}
-          {success && <p className={`${styles.fieldFull} ${styles.feedbackOk}`}>{success}</p>}
-        </form>
+        {loadingServices && <p className={formStyles.helper}>Cargando servicios...</p>}
+        {servicesError && <p className={formStyles.error}>{servicesError}</p>}
+        {error && <div className={formStyles.error}>{error}</div>}
+        {success && <p className={styles.feedbackOk}>{success}</p>}
       </div>
-    </div>
+    </AppModal>
   );
 }
