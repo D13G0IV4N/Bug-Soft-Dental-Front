@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { me } from "../../api/auth";
-import { getStoredUser, resolveClinicName } from "../../utils/auth";
+import { getPublicClinics } from "../../api/clinics";
+import { getStoredUser, resolveClinicId, resolveClinicName } from "../../utils/auth";
 import styles from "./dentist.module.css";
 
 const dentistLinks = [{ to: "/dentist/appointments", label: "Mi agenda" }];
@@ -12,21 +13,40 @@ export default function DentistLayout() {
   const [clinicName, setClinicName] = useState(() => resolveClinicName(storedUser));
 
   useEffect(() => {
-    if (clinicName) return;
-
     async function loadClinicName() {
       try {
         const response = await me();
         const payload = response?.data?.data ?? response?.data;
+        if (import.meta.env.DEV) {
+          console.debug("[DentistLayout] auth/me payload for clinic resolution", payload);
+        }
+
         const resolved = resolveClinicName(payload);
-        if (resolved) setClinicName(resolved);
+        if (resolved) {
+          setClinicName(resolved);
+          return;
+        }
+
+        const clinicId = resolveClinicId(payload);
+        if (!clinicId) {
+          setClinicName("");
+          return;
+        }
+
+        const clinicsResponse = await getPublicClinics();
+        const clinicsPayload = clinicsResponse?.data?.data ?? clinicsResponse?.data ?? clinicsResponse ?? [];
+        const clinics = Array.isArray(clinicsPayload) ? clinicsPayload : [];
+        const matchedClinic = clinics.find((clinic) => Number(clinic?.id) === clinicId);
+        const matchedName = typeof matchedClinic?.name === "string" ? matchedClinic.name.trim() : "";
+
+        setClinicName(matchedName);
       } catch {
         setClinicName("");
       }
     }
 
     void loadClinicName();
-  }, [clinicName]);
+  }, []);
 
   function handleLogout() {
     localStorage.removeItem("authToken");
@@ -39,7 +59,7 @@ export default function DentistLayout() {
       <aside className={styles.sidebar}>
         <section className={styles.brand}>
           <span className={styles.badge}>workspace dentist</span>
-          <h1 className={styles.title}>{clinicName || "Clínica dental"}</h1>
+          <h1 className={styles.title}>{clinicName || "Clínica"}</h1>
           <p className={styles.subtitle}>Diseñado para revisar agenda, resolver cambios y cerrar citas con rapidez.</p>
         </section>
 
