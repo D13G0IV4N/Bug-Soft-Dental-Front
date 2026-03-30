@@ -17,7 +17,6 @@ import DentistLayout from "./pages/Dentist/DentistLayout";
 import DentistAppointmentsPage from "./pages/Dentist/DentistAppointmentsPage";
 import DentistPatientsPage from "./pages/Dentist/DentistPatientsPage";
 import ReceptionistLayout from "./pages/Receptionist/ReceptionistLayout";
-import ReceptionistDashboardPage from "./pages/Receptionist/ReceptionistDashboardPage";
 import ReceptionistAppointmentsPage from "./pages/Receptionist/ReceptionistAppointmentsPage";
 
 function HomeRedirect() {
@@ -74,7 +73,7 @@ export default function App() {
 
         <Route element={<RoleGuard allowedRoles={["receptionist"]} />}>
           <Route path="/receptionist" element={<ReceptionistLayout />}>
-            <Route index element={<ReceptionistDashboardPage />} />
+            <Route index element={<Navigate to="/receptionist/appointments" replace />} />
             <Route path="appointments" element={<ReceptionistAppointmentsPage />} />
             <Route path="patients" element={<PatientsPage />} />
           </Route>

@@ -13,6 +13,7 @@ import {
 } from "../../api/appointments";
 import { getAdminPatients } from "../../api/patients";
 import { formatDate, formatTime, parseAppointmentDateTime } from "../Dentist/dateUtils";
+import DentistWeeklyAgenda from "../Dentist/DentistWeeklyAgenda";
 import styles from "../Dentist/dentist.module.css";
 import ReceptionistAppointmentFormModal, {
   type ReceptionistPatientOption,
@@ -20,6 +21,7 @@ import ReceptionistAppointmentFormModal, {
 } from "./ReceptionistAppointmentFormModal";
 
 type ReceptionistFilter = "today" | "upcoming" | "completed" | "canceled" | "all";
+type AgendaViewMode = "week" | "list";
 
 const FILTER_LABELS: Record<ReceptionistFilter, string> = {
   today: "Hoy",
@@ -103,6 +105,7 @@ export default function ReceptionistAppointmentsPage() {
   const [patientsError, setPatientsError] = useState("");
   const [selectedFilter, setSelectedFilter] = useState<ReceptionistFilter>("all");
   const [search, setSearch] = useState("");
+  const [viewMode, setViewMode] = useState<AgendaViewMode>("week");
   const [openCreate, setOpenCreate] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
@@ -273,17 +276,34 @@ export default function ReceptionistAppointmentsPage() {
         </button>
       </div>
 
-      <div className={styles.controls}>
-        <div className={styles.filters}>
-          {(Object.keys(FILTER_LABELS) as ReceptionistFilter[]).map((filter) => (
+      <div className={styles.controlsShell}>
+        <div className={styles.controlsHeader}>
+          <div className={styles.filters}>
+            {(Object.keys(FILTER_LABELS) as ReceptionistFilter[]).map((filter) => (
+              <button
+                key={filter}
+                className={`${styles.filterBtn} ${filter === selectedFilter ? styles.filterBtnActive : ""}`.trim()}
+                onClick={() => setSelectedFilter(filter)}
+              >
+                {FILTER_LABELS[filter]}
+              </button>
+            ))}
+          </div>
+
+          <div className={styles.viewModeSwitch}>
             <button
-              key={filter}
-              className={`${styles.filterBtn} ${filter === selectedFilter ? styles.filterBtnActive : ""}`.trim()}
-              onClick={() => setSelectedFilter(filter)}
+              className={`${styles.viewModeBtn} ${viewMode === "week" ? styles.viewModeBtnActive : ""}`.trim()}
+              onClick={() => setViewMode("week")}
             >
-              {FILTER_LABELS[filter]}
+              Agenda semanal
             </button>
-          ))}
+            <button
+              className={`${styles.viewModeBtn} ${viewMode === "list" ? styles.viewModeBtnActive : ""}`.trim()}
+              onClick={() => setViewMode("list")}
+            >
+              Vista detallada
+            </button>
+          </div>
         </div>
 
         <input
@@ -310,7 +330,23 @@ export default function ReceptionistAppointmentsPage() {
         <div className={styles.emptyState}>No hay citas para este filtro.</div>
       )}
 
-      {!loading && !error && filteredItems.length > 0 && (
+      {!loading && !error && filteredItems.length > 0 && viewMode === "week" && (
+        <div className={styles.workspacePanel}>
+          <DentistWeeklyAgenda
+            appointments={filteredItems}
+            onView={(item) => {
+              setEditingAppointment(item);
+              setOpenEdit(true);
+            }}
+            onEdit={(item) => {
+              setEditingAppointment(item);
+              setOpenEdit(true);
+            }}
+          />
+        </div>
+      )}
+
+      {!loading && !error && filteredItems.length > 0 && viewMode === "list" && (
         <div className={styles.tableCard}>
           <table className={styles.table}>
             <thead>

@@ -2,7 +2,6 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import dentistStyles from "../Dentist/dentist.module.css";
 
 const receptionistLinks = [
-  { to: "/receptionist", label: "Resumen", end: true },
   { to: "/receptionist/appointments", label: "Citas" },
   { to: "/receptionist/patients", label: "Pacientes" },
 ];
@@ -30,7 +29,6 @@ export default function ReceptionistLayout() {
             <NavLink
               key={link.to}
               to={link.to}
-              end={link.end}
               className={({ isActive }) => `${dentistStyles.navItem} ${isActive ? dentistStyles.navActive : ""}`.trim()}
             >
               {link.label}
