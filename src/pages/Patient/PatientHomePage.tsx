@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAppointments, toErrorMessage, type Appointment } from "../../api/appointments";
+import { getPacientAppointments, toErrorMessage, type Appointment } from "../../api/appointments";
 import { getStoredUser } from "../../utils/auth";
 import { parseAppointmentDateTime } from "../Dentist/dateUtils";
 import styles from "./patient.module.css";
@@ -61,7 +61,7 @@ export default function PatientHomePage() {
     async function loadAppointments() {
       try {
         setLoading(true);
-        const response = await getAppointments();
+        const response = await getPacientAppointments();
         if (!active) return;
 
         const sorted = [...response].sort((a, b) => {

@@ -316,6 +316,11 @@ export async function getDentistAppointments() {
   }
 }
 
+export async function getPacientAppointments() {
+  const { data } = await api.get("/pacient/appointments");
+  return normalizeList(data).map(normalizeAppointment);
+}
+
 export async function getAppointmentById(appointmentId: number | string) {
   const { data } = await api.get(`/appointments/${appointmentId}`);
   return normalizeAppointment(normalizeOne<unknown>(data));

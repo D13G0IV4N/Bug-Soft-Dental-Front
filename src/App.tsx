@@ -90,7 +90,7 @@ export default function App() {
           </Route>
         </Route>
 
-        <Route element={<RoleGuard allowedRoles={["client"]} />}>
+        <Route element={<RoleGuard allowedRoles={["pacient"]} />}>
           <Route path="/patient" element={<PatientLayout />}>
             <Route index element={<PatientHomePage />} />
             <Route path="appointments" element={<PatientPlaceholderPage />} />
