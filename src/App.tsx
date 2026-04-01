@@ -18,6 +18,8 @@ import DentistAppointmentsPage from "./pages/Dentist/DentistAppointmentsPage";
 import DentistPatientsPage from "./pages/Dentist/DentistPatientsPage";
 import ReceptionistLayout from "./pages/Receptionist/ReceptionistLayout";
 import ReceptionistAppointmentsPage from "./pages/Receptionist/ReceptionistAppointmentsPage";
+import PatientLayout from "./pages/Patient/PatientLayout";
+import PatientHomePage from "./pages/Patient/PatientHomePage";
 
 function HomeRedirect() {
   if (!isAuthenticated()) return <Navigate to="/login" replace />;
@@ -84,6 +86,12 @@ export default function App() {
             <Route index element={<Navigate to="/dentist/appointments" replace />} />
             <Route path="appointments" element={<DentistAppointmentsPage />} />
             <Route path="patients" element={<DentistPatientsPage />} />
+          </Route>
+        </Route>
+
+        <Route element={<RoleGuard allowedRoles={["client"]} />}>
+          <Route path="/patient" element={<PatientLayout />}>
+            <Route index element={<PatientHomePage />} />
           </Route>
         </Route>
       </Route>

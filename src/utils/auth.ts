@@ -147,5 +147,6 @@ export function getPostLoginRoute(role: AppRole | null): string {
   if (role === "admin") return "/admin";
   if (role === "receptionist") return "/receptionist";
   if (role === "dentist") return "/dentist";
+  if (role === "client") return "/patient";
   return "/login";
 }
