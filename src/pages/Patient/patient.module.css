@@ -1,22 +1,23 @@
 .pageShell {
-  --bg: #f1f6ff;
-  --bg-strong: #e4eeff;
-  --panel: #ffffff;
-  --ink: #0f1f40;
-  --muted: #607196;
-  --line: #d6e4ff;
+  --bg: #f4f8ff;
+  --bg-soft: #eef4ff;
+  --surface: #ffffff;
+  --surface-soft: #f8fbff;
+  --ink: #12284d;
+  --muted: #607499;
+  --line: #d7e4fb;
   --primary: #1f5eff;
-  --primary-deep: #123fae;
+  --primary-deep: #123ea8;
 
   min-height: 100%;
-  padding: 1.4rem;
+  padding: 1.5rem;
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr);
-  gap: 1rem;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 1.1rem;
   background:
-    radial-gradient(circle at -15% 0%, rgba(31, 94, 255, 0.2), transparent 38%),
-    radial-gradient(circle at 110% 10%, rgba(17, 67, 181, 0.16), transparent 34%),
-    linear-gradient(170deg, var(--bg) 0%, var(--bg-strong) 100%);
+    radial-gradient(circle at 0% 0%, rgba(31, 94, 255, 0.15), transparent 34%),
+    radial-gradient(circle at 100% 10%, rgba(16, 69, 190, 0.16), transparent 38%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg-soft) 100%);
   color: var(--ink);
 }
 
@@ -35,46 +36,46 @@
 
 .skipLink:focus-visible {
   transform: translateY(0);
-  outline: 2px solid rgba(31, 94, 255, 0.65);
+  outline: 2px solid rgba(31, 94, 255, 0.6);
 }
 
 .sidebar {
   border: 1px solid var(--line);
-  border-radius: 28px;
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
   padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.84);
-  backdrop-filter: blur(8px);
   display: flex;
   flex-direction: column;
   gap: 1.2rem;
-  box-shadow: 0 20px 45px rgba(16, 58, 156, 0.14);
+  box-shadow: 0 20px 50px rgba(17, 60, 158, 0.14);
 }
 
 .brandBlock {
-  padding: 0.8rem 0.75rem;
+  padding: 0.7rem;
 }
 
 .brandEyebrow,
-.panelLabel,
-.heroEyebrow,
+.topBarLabel,
+.sectionEyebrow,
 .placeholderEyebrow,
-.topBarLabel {
+.welcomeEyebrow {
   margin: 0;
   color: var(--muted);
-  font: 700 0.72rem/1.1 "Manrope", "Segoe UI", sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.14em;
+  font: 700 0.72rem/1 "Manrope", "Segoe UI", sans-serif;
 }
 
 .brandTitle {
   margin: 0.5rem 0 0;
-  font: 700 1.7rem/1.05 "Fraunces", "Georgia", serif;
+  font: 700 1.78rem/1.05 "Fraunces", "Georgia", serif;
 }
 
 .brandMeta {
-  margin: 0.4rem 0 0;
+  margin: 0.45rem 0 0;
   color: var(--muted);
-  font: 500 0.92rem/1.45 "Manrope", "Segoe UI", sans-serif;
+  font: 500 0.92rem/1.5 "Manrope", "Segoe UI", sans-serif;
 }
 
 .sidebarNav {
@@ -84,34 +85,33 @@
 
 .navItem {
   border-radius: 14px;
-  text-decoration: none;
-  color: #22335c;
   padding: 0.82rem 0.9rem;
+  text-decoration: none;
+  color: #243f70;
   border: 1px solid transparent;
-  font: 700 0.9rem/1.1 "Manrope", "Segoe UI", sans-serif;
+  font: 700 0.88rem/1.1 "Manrope", "Segoe UI", sans-serif;
   transition: 170ms ease;
 }
 
 .navItem:hover {
+  background: #fff;
   border-color: var(--line);
-  background: rgba(255, 255, 255, 0.75);
 }
 
 .navItemActive {
   color: #fff;
-  border-color: transparent;
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-deep) 100%);
-  box-shadow: 0 10px 24px rgba(25, 74, 193, 0.32);
+  box-shadow: 0 12px 24px rgba(19, 72, 192, 0.28);
 }
 
 .logoutButton {
   margin-top: auto;
+  border-radius: 14px;
   border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 0.7rem 0.9rem;
-  color: var(--ink);
   background: #fff;
-  font: 700 0.9rem/1.1 "Manrope", "Segoe UI", sans-serif;
+  color: var(--ink);
+  padding: 0.72rem 0.9rem;
+  font: 700 0.88rem/1.1 "Manrope", "Segoe UI", sans-serif;
   cursor: pointer;
 }
 
@@ -119,234 +119,253 @@
   min-width: 0;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
-  gap: 0.9rem;
+  gap: 0.95rem;
 }
 
 .mainTopBar {
   border: 1px solid var(--line);
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.72);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.78);
   padding: 1rem 1.2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
 }
 
 .topBarName {
-  margin: 0.35rem 0 0;
-  font: 700 1.4rem/1 "Fraunces", "Georgia", serif;
+  margin: 0.36rem 0 0;
+  font: 700 1.45rem/1 "Fraunces", "Georgia", serif;
 }
 
 .topBarSection {
   margin: 0;
-  padding: 0.45rem 0.82rem;
   border-radius: 999px;
   border: 1px solid var(--line);
-  color: #274172;
-  background: rgba(255, 255, 255, 0.9);
-  font: 700 0.81rem/1 "Manrope", "Segoe UI", sans-serif;
-  letter-spacing: 0.04em;
+  background: #fff;
+  color: #2d4679;
+  padding: 0.46rem 0.84rem;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font: 700 0.8rem/1 "Manrope", "Segoe UI", sans-serif;
 }
 
 .outletSurface {
-  border-radius: 28px;
+  border-radius: 30px;
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.84);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
   padding: 1.35rem;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
-.dashboardHome {
+.dashboardRoot {
   display: grid;
   gap: 1.1rem;
 }
 
-.heroHeader {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  align-items: end;
+.welcomeHero {
+  border-radius: 26px;
+  padding: 1.45rem;
+  background: linear-gradient(145deg, #ffffff 0%, #f6faff 55%, #edf4ff 100%);
+  border: 1px solid var(--line);
 }
 
-.heroTitle {
-  margin: 0.42rem 0 0;
-  font: 700 clamp(1.9rem, 3.2vw, 2.7rem)/1.03 "Fraunces", "Georgia", serif;
+.welcomeTitle {
+  margin: 0.45rem 0 0;
+  font: 700 clamp(2rem, 3.1vw, 2.7rem)/1.03 "Fraunces", "Georgia", serif;
 }
 
-.heroHint {
+.welcomeDescription {
+  margin: 0.8rem 0 0;
+  color: var(--muted);
+  max-width: 62ch;
+  font: 500 0.96rem/1.6 "Manrope", "Segoe UI", sans-serif;
+}
+
+.featuredCard,
+.surfaceCard,
+.placeholderPage {
+  border-radius: 26px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 1.4rem;
+}
+
+.featuredCard {
+  background: linear-gradient(150deg, #f7fbff 0%, #eef5ff 45%, #fafdff 100%);
+}
+
+.sectionHeader {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.sectionTitle,
+.placeholderTitle,
+.errorTitle,
+.emptyStateTitle {
+  margin: 0;
+  font: 700 1.35rem/1.2 "Fraunces", "Georgia", serif;
+}
+
+.sectionDescription,
+.placeholderText,
+.errorBody,
+.emptyStateText,
+.compactState,
+.featuredState,
+.careTipText {
   margin: 0;
   color: var(--muted);
-  font: 500 0.95rem/1.5 "Manrope", "Segoe UI", sans-serif;
-  max-width: 28ch;
+  font: 500 0.93rem/1.6 "Manrope", "Segoe UI", sans-serif;
 }
 
-.dashboardGrid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.9fr);
-  gap: 1rem;
-}
-
-.nextAppointmentPanel {
-  border-radius: 26px;
-  padding: 1.4rem;
-  background: linear-gradient(150deg, #1852e0 0%, #3b7aff 56%, #7fa9ff 100%);
-  color: #eef4ff;
-  min-height: 360px;
-  display: flex;
-  flex-direction: column;
+.appointmentSpotlight,
+.emptyStateCard,
+.errorCard {
+  margin-top: 1rem;
+  border-radius: 22px;
+  padding: 1.2rem;
+  border: 1px solid var(--line);
+  background: #fff;
 }
 
 .appointmentDate {
-  margin: 1rem 0 0;
-  font: 700 1.08rem/1.3 "Manrope", "Segoe UI", sans-serif;
+  margin: 0;
   text-transform: capitalize;
+  color: #3a5487;
+  font: 700 1rem/1.3 "Manrope", "Segoe UI", sans-serif;
 }
 
 .appointmentTime {
-  margin: 0.35rem 0 0;
-  font: 700 clamp(2.2rem, 5vw, 3.2rem)/0.95 "Fraunces", "Georgia", serif;
+  margin: 0.3rem 0 0;
+  color: #143d9c;
+  font: 700 clamp(2rem, 5vw, 3rem)/0.96 "Fraunces", "Georgia", serif;
 }
 
 .appointmentService {
-  margin: 1rem 0 0;
-  font: 700 1.05rem/1.35 "Manrope", "Segoe UI", sans-serif;
+  margin: 0.86rem 0 0;
+  font: 700 1.02rem/1.4 "Manrope", "Segoe UI", sans-serif;
 }
 
-.metaRow {
-  margin-top: auto;
-  padding-top: 1rem;
-  display: flex;
-  justify-content: space-between;
-  gap: 0.8rem;
-  color: rgba(237, 245, 255, 0.95);
-  font: 600 0.92rem/1.4 "Manrope", "Segoe UI", sans-serif;
-}
-
-.statusChip {
-  border-radius: 999px;
-  padding: 0.42rem 0.7rem;
-  background: rgba(255, 255, 255, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-size: 0.72rem;
-}
-
-.actionRail {
-  display: grid;
-  gap: 0.8rem;
-  align-content: start;
-}
-
-.nextStepPanel,
-.quickActionsPanel,
-.summaryPanel,
-.placeholderPage {
-  border-radius: 20px;
-  border: 1px solid var(--line);
-  background: #fff;
-  padding: 1rem;
-}
-
-.nextStepText,
-.smallInfo,
-.errorBody,
-.placeholderText {
-  margin: 0.75rem 0 0;
-  color: var(--muted);
-  font: 500 0.93rem/1.55 "Manrope", "Segoe UI", sans-serif;
-}
-
-.quickActionList {
-  margin-top: 0.75rem;
-  display: grid;
-  gap: 0.55rem;
-}
-
-.ghostAction,
-.primaryAction {
-  border-radius: 12px;
-  cursor: pointer;
-  font: 700 0.88rem/1.1 "Manrope", "Segoe UI", sans-serif;
-}
-
-.ghostAction {
-  border: 1px solid var(--line);
-  background: #f8fbff;
-  padding: 0.64rem 0.76rem;
-  color: #1a3363;
-  text-align: left;
-}
-
-.primaryAction {
-  width: max-content;
-  border: 0;
-  background: #fff;
-  color: #1848c4;
-  padding: 0.64rem 0.85rem;
-}
-
-.summaryRow {
-  margin-top: 0.78rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  color: #29426f;
-  font: 600 0.92rem/1.3 "Manrope", "Segoe UI", sans-serif;
-}
-
-.summaryRow strong {
-  font: 700 1.38rem/1 "Fraunces", "Georgia", serif;
-}
-
-.errorWrap {
+.appointmentMeta {
   margin-top: 1rem;
-  display: grid;
-  gap: 0.55rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  color: #324b7f;
+  font: 600 0.9rem/1.4 "Manrope", "Segoe UI", sans-serif;
 }
 
-.errorTitle,
-.largeInfo,
-.placeholderTitle {
-  margin: 0.65rem 0 0;
-  font: 700 1.3rem/1.15 "Fraunces", "Georgia", serif;
+.statusPill {
+  border-radius: 999px;
+  padding: 0.4rem 0.7rem;
+  background: #edf3ff;
+  border: 1px solid #cadbff;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.72rem;
+  color: #29498e;
+}
+
+.primaryAction {
+  margin-top: 0.9rem;
+  border: 0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-deep) 100%);
+  color: #fff;
+  padding: 0.7rem 0.9rem;
+  font: 700 0.88rem/1 "Manrope", "Segoe UI", sans-serif;
+  cursor: pointer;
+}
+
+.secondaryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.quickActionGrid {
+  margin-top: 0.95rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.quickActionButton {
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--surface-soft);
+  color: #1f3d76;
+  padding: 0.78rem 0.8rem;
+  text-align: left;
+  font: 700 0.86rem/1.25 "Manrope", "Segoe UI", sans-serif;
+  cursor: pointer;
+}
+
+.quickActionButton:hover {
+  background: #fff;
+}
+
+.careTipText {
+  margin-top: 1rem;
+}
+
+.historyList {
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.historyItem {
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: #f9fbff;
+  padding: 0.72rem 0.82rem;
+}
+
+.historyDate {
+  margin: 0;
+  color: #425c8e;
+  font: 700 0.82rem/1.2 "Manrope", "Segoe UI", sans-serif;
+}
+
+.historyService {
+  margin: 0.35rem 0 0;
+  color: #1f355f;
+  font: 600 0.9rem/1.35 "Manrope", "Segoe UI", sans-serif;
 }
 
 .placeholderPage {
   max-width: 560px;
 }
 
-@media (max-width: 1080px) {
+@media (max-width: 1140px) {
   .pageShell {
     grid-template-columns: 1fr;
   }
 
-  .sidebar {
-    padding: 1rem;
-  }
-
   .sidebarNav {
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   }
 
   .logoutButton {
-    margin-top: 0.2rem;
+    margin-top: 0.15rem;
   }
 
-  .dashboardGrid {
+  .secondaryGrid {
     grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 680px) {
   .pageShell {
     padding: 0.8rem;
   }
 
-  .mainTopBar,
-  .heroHeader {
+  .mainTopBar {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -355,9 +374,13 @@
     padding: 1rem;
   }
 
-  .metaRow {
+  .appointmentMeta {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .quickActionGrid {
+    grid-template-columns: 1fr;
   }
 
   .primaryAction {
