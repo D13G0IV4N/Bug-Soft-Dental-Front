@@ -1,299 +1,366 @@
 .pageShell {
-  --bg: #eef4ff;
-  --bg-soft: #f7faff;
-  --ink: #11213f;
-  --muted: #5d6d8f;
-  --line: #d8e4ff;
-  --blue: #2d6bff;
-  --blue-deep: #1f4ed8;
-  --card: rgba(255, 255, 255, 0.86);
-  --shadow: 0 20px 45px rgba(31, 78, 216, 0.12);
+  --bg: #f1f6ff;
+  --bg-strong: #e4eeff;
+  --panel: #ffffff;
+  --ink: #0f1f40;
+  --muted: #607196;
+  --line: #d6e4ff;
+  --primary: #1f5eff;
+  --primary-deep: #123fae;
 
   min-height: 100%;
   padding: 1.4rem;
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 1rem;
   background:
-    radial-gradient(circle at 10% 0%, rgba(45, 107, 255, 0.18), transparent 36%),
-    radial-gradient(circle at 100% 0%, rgba(112, 157, 255, 0.2), transparent 30%),
-    linear-gradient(180deg, var(--bg-soft) 0%, var(--bg) 100%);
+    radial-gradient(circle at -15% 0%, rgba(31, 94, 255, 0.2), transparent 38%),
+    radial-gradient(circle at 110% 10%, rgba(17, 67, 181, 0.16), transparent 34%),
+    linear-gradient(170deg, var(--bg) 0%, var(--bg-strong) 100%);
   color: var(--ink);
 }
 
 .skipLink {
   position: absolute;
-  left: 16px;
-  top: 16px;
-  transform: translateY(-180%);
+  left: 12px;
+  top: 10px;
+  transform: translateY(-150%);
+  padding: 0.65rem 1rem;
+  border-radius: 999px;
   background: #fff;
   color: var(--ink);
-  border-radius: 999px;
-  padding: 0.65rem 1rem;
+  font: 700 0.86rem/1 "Manrope", "Segoe UI", sans-serif;
   text-decoration: none;
-  font: 700 0.85rem/1.1 "Segoe UI", sans-serif;
 }
 
 .skipLink:focus-visible {
   transform: translateY(0);
-  outline: 2px solid rgba(45, 107, 255, 0.6);
+  outline: 2px solid rgba(31, 94, 255, 0.65);
 }
 
-.chromeHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 1.35rem;
+.sidebar {
   border: 1px solid var(--line);
-  border-radius: 24px;
-  background: var(--card);
-  backdrop-filter: blur(6px);
-  box-shadow: var(--shadow);
+  border-radius: 28px;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.84);
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  box-shadow: 0 20px 45px rgba(16, 58, 156, 0.14);
 }
 
-.chromeEyebrow,
-.sectionEyebrow,
-.welcomeEyebrow {
+.brandBlock {
+  padding: 0.8rem 0.75rem;
+}
+
+.brandEyebrow,
+.panelLabel,
+.heroEyebrow,
+.placeholderEyebrow,
+.topBarLabel {
   margin: 0;
   color: var(--muted);
+  font: 700 0.72rem/1.1 "Manrope", "Segoe UI", sans-serif;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
-  font: 700 0.7rem/1.1 "Segoe UI", sans-serif;
+  letter-spacing: 0.14em;
 }
 
-.chromeTitle {
-  margin: 0.35rem 0 0;
-  font: 700 clamp(1.2rem, 2vw, 1.75rem)/1.1 "Georgia", "Times New Roman", serif;
+.brandTitle {
+  margin: 0.5rem 0 0;
+  font: 700 1.7rem/1.05 "Fraunces", "Georgia", serif;
 }
 
-.chromeMeta {
-  margin: 0.35rem 0 0;
+.brandMeta {
+  margin: 0.4rem 0 0;
   color: var(--muted);
-  font: 500 0.94rem/1.4 "Segoe UI", sans-serif;
+  font: 500 0.92rem/1.45 "Manrope", "Segoe UI", sans-serif;
 }
 
-.chromeActions {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
+.sidebarNav {
+  display: grid;
+  gap: 0.5rem;
 }
 
-.pillNav {
-  display: flex;
-  padding: 0.25rem;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-}
-
-.pillNavItem {
+.navItem {
+  border-radius: 14px;
   text-decoration: none;
-  color: var(--muted);
-  padding: 0.5rem 0.85rem;
-  border-radius: 999px;
-  font: 700 0.85rem/1 "Segoe UI", sans-serif;
+  color: #22335c;
+  padding: 0.82rem 0.9rem;
+  border: 1px solid transparent;
+  font: 700 0.9rem/1.1 "Manrope", "Segoe UI", sans-serif;
+  transition: 170ms ease;
 }
 
-.pillNavItemActive {
+.navItem:hover {
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.navItemActive {
   color: #fff;
-  background: linear-gradient(135deg, var(--blue) 0%, var(--blue-deep) 100%);
-}
-
-.logoutButton,
-.primaryButton,
-.secondaryButton {
-  border: 0;
-  border-radius: 12px;
-  cursor: pointer;
-  font: 700 0.88rem/1 "Segoe UI", sans-serif;
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-deep) 100%);
+  box-shadow: 0 10px 24px rgba(25, 74, 193, 0.32);
 }
 
 .logoutButton {
+  margin-top: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.7rem 0.9rem;
   color: var(--ink);
   background: #fff;
-  border: 1px solid var(--line);
-  padding: 0.6rem 0.9rem;
+  font: 700 0.9rem/1.1 "Manrope", "Segoe UI", sans-serif;
+  cursor: pointer;
 }
 
 .main {
-  margin-top: 1.2rem;
-}
-
-.home {
+  min-width: 0;
   display: grid;
-  gap: 1rem;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 0.9rem;
 }
 
-.welcomeBlock,
-.actionsCard,
-.reminderCard,
-.spotlightCard {
+.mainTopBar {
   border: 1px solid var(--line);
   border-radius: 24px;
-  background: var(--card);
-  box-shadow: var(--shadow);
+  background: rgba(255, 255, 255, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.2rem;
 }
 
-.welcomeBlock {
-  padding: 1.5rem;
+.topBarName {
+  margin: 0.35rem 0 0;
+  font: 700 1.4rem/1 "Fraunces", "Georgia", serif;
 }
 
-.welcomeTitle {
-  margin: 0.45rem 0 0;
-  font: 700 clamp(1.7rem, 3vw, 2.3rem)/1.02 "Georgia", "Times New Roman", serif;
+.topBarSection {
+  margin: 0;
+  padding: 0.45rem 0.82rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: #274172;
+  background: rgba(255, 255, 255, 0.9);
+  font: 700 0.81rem/1 "Manrope", "Segoe UI", sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-.welcomeLead {
-  margin: 0.75rem 0 0;
-  max-width: 62ch;
-  color: var(--muted);
-  font: 500 0.98rem/1.6 "Segoe UI", sans-serif;
+.outletSurface {
+  border-radius: 28px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.84);
+  padding: 1.35rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
-.spotlightCard {
-  padding: 1.5rem;
-  background: linear-gradient(130deg, rgba(25, 76, 213, 0.98) 0%, rgba(42, 106, 255, 0.96) 100%);
-  color: #f6f9ff;
+.dashboardHome {
+  display: grid;
+  gap: 1.1rem;
 }
 
-.spotlightHeader {
+.heroHeader {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  align-items: flex-start;
+  align-items: end;
 }
 
-.spotlightTitle {
-  margin: 0.45rem 0 0;
-  font: 700 clamp(1.4rem, 2.6vw, 2rem)/1.06 "Georgia", "Times New Roman", serif;
+.heroTitle {
+  margin: 0.42rem 0 0;
+  font: 700 clamp(1.9rem, 3.2vw, 2.7rem)/1.03 "Fraunces", "Georgia", serif;
 }
 
-.statusBadge {
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.42);
-  background: rgba(255, 255, 255, 0.16);
-  padding: 0.45rem 0.75rem;
-  font: 700 0.75rem/1 "Segoe UI", sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.spotlightBody {
-  margin-top: 1.25rem;
-}
-
-.spotlightDate {
+.heroHint {
   margin: 0;
-  text-transform: capitalize;
-  font: 700 1.05rem/1.3 "Segoe UI", sans-serif;
-}
-
-.spotlightTime {
-  margin: 0.15rem 0 0;
-  font: 700 1.8rem/1 "Georgia", "Times New Roman", serif;
-}
-
-.spotlightService {
-  margin: 0.9rem 0 0;
-  font: 700 1.02rem/1.35 "Segoe UI", sans-serif;
-}
-
-.spotlightMeta,
-.spotlightLoading,
-.emptyText,
-.feedbackBody,
-.inlineHelper,
-.reminderBody {
-  margin: 0.45rem 0 0;
-  font: 500 0.95rem/1.55 "Segoe UI", sans-serif;
-  color: rgba(237, 245, 255, 0.92);
-}
-
-.feedbackPanel {
-  margin-top: 1rem;
-  display: grid;
-  gap: 0.7rem;
-}
-
-.feedbackTitle {
-  margin: 0;
-  font: 700 1rem/1.2 "Segoe UI", sans-serif;
-}
-
-.primaryButton {
-  width: max-content;
-  background: #fff;
-  color: var(--blue-deep);
-  padding: 0.65rem 0.9rem;
-}
-
-.bottomGrid {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: minmax(0, 1.25fr) minmax(250px, 0.75fr);
-}
-
-.actionsCard,
-.reminderCard {
-  padding: 1.25rem;
-}
-
-.actionsTitle,
-.reminderTitle {
-  margin: 0.35rem 0 0;
-  font: 700 1.3rem/1.15 "Georgia", "Times New Roman", serif;
-}
-
-.actionsRow {
-  margin-top: 1rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-}
-
-.secondaryButton {
-  background: #fff;
-  color: var(--ink);
-  border: 1px solid var(--line);
-  padding: 0.65rem 0.85rem;
-}
-
-.inlineHelper,
-.reminderBody {
-  margin-top: 0.9rem;
   color: var(--muted);
+  font: 500 0.95rem/1.5 "Manrope", "Segoe UI", sans-serif;
+  max-width: 28ch;
 }
 
-@media (max-width: 900px) {
-  .chromeHeader {
-    flex-direction: column;
-    align-items: stretch;
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.9fr);
+  gap: 1rem;
+}
+
+.nextAppointmentPanel {
+  border-radius: 26px;
+  padding: 1.4rem;
+  background: linear-gradient(150deg, #1852e0 0%, #3b7aff 56%, #7fa9ff 100%);
+  color: #eef4ff;
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+}
+
+.appointmentDate {
+  margin: 1rem 0 0;
+  font: 700 1.08rem/1.3 "Manrope", "Segoe UI", sans-serif;
+  text-transform: capitalize;
+}
+
+.appointmentTime {
+  margin: 0.35rem 0 0;
+  font: 700 clamp(2.2rem, 5vw, 3.2rem)/0.95 "Fraunces", "Georgia", serif;
+}
+
+.appointmentService {
+  margin: 1rem 0 0;
+  font: 700 1.05rem/1.35 "Manrope", "Segoe UI", sans-serif;
+}
+
+.metaRow {
+  margin-top: auto;
+  padding-top: 1rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  color: rgba(237, 245, 255, 0.95);
+  font: 600 0.92rem/1.4 "Manrope", "Segoe UI", sans-serif;
+}
+
+.statusChip {
+  border-radius: 999px;
+  padding: 0.42rem 0.7rem;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.72rem;
+}
+
+.actionRail {
+  display: grid;
+  gap: 0.8rem;
+  align-content: start;
+}
+
+.nextStepPanel,
+.quickActionsPanel,
+.summaryPanel,
+.placeholderPage {
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 1rem;
+}
+
+.nextStepText,
+.smallInfo,
+.errorBody,
+.placeholderText {
+  margin: 0.75rem 0 0;
+  color: var(--muted);
+  font: 500 0.93rem/1.55 "Manrope", "Segoe UI", sans-serif;
+}
+
+.quickActionList {
+  margin-top: 0.75rem;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.ghostAction,
+.primaryAction {
+  border-radius: 12px;
+  cursor: pointer;
+  font: 700 0.88rem/1.1 "Manrope", "Segoe UI", sans-serif;
+}
+
+.ghostAction {
+  border: 1px solid var(--line);
+  background: #f8fbff;
+  padding: 0.64rem 0.76rem;
+  color: #1a3363;
+  text-align: left;
+}
+
+.primaryAction {
+  width: max-content;
+  border: 0;
+  background: #fff;
+  color: #1848c4;
+  padding: 0.64rem 0.85rem;
+}
+
+.summaryRow {
+  margin-top: 0.78rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  color: #29426f;
+  font: 600 0.92rem/1.3 "Manrope", "Segoe UI", sans-serif;
+}
+
+.summaryRow strong {
+  font: 700 1.38rem/1 "Fraunces", "Georgia", serif;
+}
+
+.errorWrap {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.errorTitle,
+.largeInfo,
+.placeholderTitle {
+  margin: 0.65rem 0 0;
+  font: 700 1.3rem/1.15 "Fraunces", "Georgia", serif;
+}
+
+.placeholderPage {
+  max-width: 560px;
+}
+
+@media (max-width: 1080px) {
+  .pageShell {
+    grid-template-columns: 1fr;
   }
 
-  .chromeActions {
-    justify-content: space-between;
+  .sidebar {
+    padding: 1rem;
   }
 
-  .bottomGrid {
+  .sidebarNav {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  }
+
+  .logoutButton {
+    margin-top: 0.2rem;
+  }
+
+  .dashboardGrid {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 640px) {
   .pageShell {
-    padding: 0.85rem;
+    padding: 0.8rem;
   }
 
-  .chromeActions {
+  .mainTopBar,
+  .heroHeader {
     flex-direction: column;
-    align-items: stretch;
+    align-items: flex-start;
   }
 
-  .pillNav {
-    justify-content: center;
+  .outletSurface {
+    padding: 1rem;
   }
 
-  .logoutButton,
-  .secondaryButton,
-  .primaryButton {
+  .metaRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .primaryAction {
     width: 100%;
   }
 }

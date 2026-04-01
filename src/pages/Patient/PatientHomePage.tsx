@@ -1,22 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  getAppointments,
-  toErrorMessage,
-  type Appointment,
-} from "../../api/appointments";
+import { useNavigate } from "react-router-dom";
+import { getAppointments, toErrorMessage, type Appointment } from "../../api/appointments";
 import { getStoredUser } from "../../utils/auth";
 import { parseAppointmentDateTime } from "../Dentist/dateUtils";
 import styles from "./patient.module.css";
 
-type PlaceholderAction = "services" | "booking" | null;
-
-const dateFormatter = new Intl.DateTimeFormat("es-MX", {
+const dateFormatter = new Intl.DateTimeFormat("en-US", {
   weekday: "long",
-  day: "numeric",
   month: "long",
+  day: "numeric",
 });
 
-const timeFormatter = new Intl.DateTimeFormat("es-MX", {
+const timeFormatter = new Intl.DateTimeFormat("en-US", {
   hour: "numeric",
   minute: "2-digit",
 });
@@ -28,12 +23,12 @@ function getAppointmentDate(value?: string) {
 
 function formatAppointmentDate(value?: string) {
   const parsed = getAppointmentDate(value);
-  return parsed ? dateFormatter.format(parsed) : "Fecha pendiente";
+  return parsed ? dateFormatter.format(parsed) : "Date pending";
 }
 
 function formatAppointmentTime(value?: string) {
   const parsed = getAppointmentDate(value);
-  return parsed ? timeFormatter.format(parsed) : "Hora pendiente";
+  return parsed ? timeFormatter.format(parsed) : "Time pending";
 }
 
 function isCanceled(status?: string) {
@@ -43,35 +38,22 @@ function isCanceled(status?: string) {
 
 function getStatusLabel(status?: string) {
   const normalized = (status ?? "scheduled").toLowerCase();
-
-  if (normalized === "pending") return "Pendiente";
-  if (normalized === "confirmed") return "Confirmada";
-  if (normalized === "completed") return "Completada";
-  if (normalized === "canceled" || normalized === "cancelled") return "Cancelada";
-  if (normalized === "no_show") return "No asistió";
-  return "Programada";
-}
-
-function getActionMessage(action: PlaceholderAction) {
-  if (action === "services") {
-    return "Tu módulo de servicios se conectará aquí para que revises tratamientos sin salir del portal.";
-  }
-
-  if (action === "booking") {
-    return "La reserva online se habilitará en este acceso, manteniendo este inicio limpio y directo.";
-  }
-
-  return "Usa una acción rápida para abrir funciones nuevas conforme se habiliten.";
+  if (normalized === "pending") return "Pending";
+  if (normalized === "confirmed") return "Confirmed";
+  if (normalized === "completed") return "Completed";
+  if (normalized === "canceled" || normalized === "cancelled") return "Canceled";
+  if (normalized === "no_show") return "No Show";
+  return "Scheduled";
 }
 
 export default function PatientHomePage() {
+  const navigate = useNavigate();
   const storedUser = useMemo(() => getStoredUser(), []);
-  const firstName = storedUser?.name?.trim()?.split(/\s+/)[0] || "Paciente";
+  const firstName = storedUser?.name?.trim()?.split(/\s+/)[0] || "Patient";
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [placeholderAction, setPlaceholderAction] = useState<PlaceholderAction>(null);
 
   useEffect(() => {
     let active = true;
@@ -93,7 +75,7 @@ export default function PatientHomePage() {
       } catch (requestError: unknown) {
         if (!active) return;
         setAppointments([]);
-        setError(toErrorMessage(requestError, "No pudimos cargar tus citas. Intenta nuevamente."));
+        setError(toErrorMessage(requestError, "We couldn't load your upcoming visits right now."));
       } finally {
         if (active) setLoading(false);
       }
@@ -120,93 +102,91 @@ export default function PatientHomePage() {
     );
   }, [appointments]);
 
-  const pendingConfirmations = useMemo(
+  const pendingCount = useMemo(
     () => appointments.filter((appointment) => (appointment.status ?? "").toLowerCase() === "pending").length,
     [appointments]
   );
 
-  const helperReminder = useMemo(() => {
-    if (loading) return "Estamos actualizando tu agenda personal.";
-    if (error) return "No pudimos verificar tu agenda por ahora.";
-    if (pendingConfirmations > 0) return `Tienes ${pendingConfirmations} cita(s) pendiente(s) de confirmación.`;
-    if (!nextAppointment) return "Aún no tienes una próxima cita programada.";
-    return "Todo en orden: tu próxima cita ya está registrada.";
-  }, [error, loading, nextAppointment, pendingConfirmations]);
+  const completedCount = useMemo(
+    () => appointments.filter((appointment) => (appointment.status ?? "").toLowerCase() === "completed").length,
+    [appointments]
+  );
+
+  const nextStep = useMemo(() => {
+    if (loading) return "Syncing your care timeline.";
+    if (error) return "Review your schedule once data is available.";
+    if (!nextAppointment) return "You don't have a future visit yet. Reserve your next check-up.";
+    if ((nextAppointment.status ?? "").toLowerCase() === "pending") {
+      return "Your next visit is pending. Keep an eye on status updates.";
+    }
+    return "You're set. Save this slot and arrive 10 minutes early.";
+  }, [loading, error, nextAppointment]);
 
   return (
-    <section className={styles.home}>
-      <article className={styles.welcomeBlock}>
-        <p className={styles.welcomeEyebrow}>Inicio</p>
-        <h1 className={styles.welcomeTitle}>Bienvenido, {firstName}</h1>
-        <p className={styles.welcomeLead}>
-          Tu panel ahora está enfocado en lo esencial: próxima cita, acciones clave y un recordatorio útil.
-        </p>
-      </article>
-
-      <article className={styles.spotlightCard}>
-        <div className={styles.spotlightHeader}>
-          <div>
-            <p className={styles.sectionEyebrow}>Próxima cita</p>
-            <h2 className={styles.spotlightTitle}>Tu siguiente visita</h2>
-          </div>
-          {!loading && nextAppointment ? (
-            <span className={styles.statusBadge}>{getStatusLabel(nextAppointment.status)}</span>
-          ) : null}
+    <section className={styles.dashboardHome}>
+      <header className={styles.heroHeader}>
+        <div>
+          <p className={styles.heroEyebrow}>Patient dashboard</p>
+          <h2 className={styles.heroTitle}>Good to see you, {firstName}</h2>
         </div>
+        <p className={styles.heroHint}>A calm view of what matters right now.</p>
+      </header>
 
-        {loading ? (
-          <p className={styles.spotlightLoading}>Cargando agenda...</p>
-        ) : error ? (
-          <div className={styles.feedbackPanel}>
-            <p className={styles.feedbackTitle}>No se pudo cargar la cita.</p>
-            <p className={styles.feedbackBody}>{error}</p>
-            <button className={styles.primaryButton} type="button" onClick={() => window.location.reload()}>
-              Reintentar
-            </button>
-          </div>
-        ) : nextAppointment ? (
-          <div className={styles.spotlightBody}>
-            <p className={styles.spotlightDate}>{formatAppointmentDate(nextAppointment.start_at)}</p>
-            <p className={styles.spotlightTime}>{formatAppointmentTime(nextAppointment.start_at)}</p>
-            <p className={styles.spotlightService}>
-              {nextAppointment.service?.name || nextAppointment.service_name || "Servicio pendiente"}
-            </p>
-            <p className={styles.spotlightMeta}>
-              {nextAppointment.dentist?.name || nextAppointment.dentist_name || "Dentista por confirmar"}
-            </p>
-          </div>
-        ) : (
-          <p className={styles.emptyText}>No hay una cita próxima registrada en este momento.</p>
-        )}
-      </article>
+      <section className={styles.dashboardGrid}>
+        <article className={styles.nextAppointmentPanel}>
+          <p className={styles.panelLabel}>Next appointment</p>
 
-      <section className={styles.bottomGrid}>
-        <article className={styles.actionsCard}>
-          <div className={styles.actionsHeader}>
-            <p className={styles.sectionEyebrow}>Acciones rápidas</p>
-            <h3 className={styles.actionsTitle}>Lo que más usarás</h3>
-          </div>
-
-          <div className={styles.actionsRow}>
-            <button className={styles.secondaryButton} type="button" onClick={() => setPlaceholderAction(null)}>
-              Ver mi agenda
-            </button>
-            <button className={styles.secondaryButton} type="button" onClick={() => setPlaceholderAction("services")}>
-              Explorar servicios
-            </button>
-            <button className={styles.secondaryButton} type="button" onClick={() => setPlaceholderAction("booking")}>
-              Reservar cita
-            </button>
-          </div>
-
-          <p className={styles.inlineHelper}>{getActionMessage(placeholderAction)}</p>
+          {loading ? (
+            <p className={styles.largeInfo}>Loading your schedule...</p>
+          ) : error ? (
+            <div className={styles.errorWrap}>
+              <p className={styles.errorTitle}>Unable to show your next visit.</p>
+              <p className={styles.errorBody}>{error}</p>
+              <button className={styles.primaryAction} type="button" onClick={() => window.location.reload()}>
+                Try again
+              </button>
+            </div>
+          ) : nextAppointment ? (
+            <>
+              <p className={styles.appointmentDate}>{formatAppointmentDate(nextAppointment.start_at)}</p>
+              <p className={styles.appointmentTime}>{formatAppointmentTime(nextAppointment.start_at)}</p>
+              <p className={styles.appointmentService}>
+                {nextAppointment.service?.name || nextAppointment.service_name || "Service to be confirmed"}
+              </p>
+              <div className={styles.metaRow}>
+                <span>{nextAppointment.dentist?.name || nextAppointment.dentist_name || "Dentist assigned soon"}</span>
+                <span className={styles.statusChip}>{getStatusLabel(nextAppointment.status)}</span>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className={styles.largeInfo}>No future appointment booked.</p>
+              <p className={styles.smallInfo}>Book your next visit to keep your care plan on track.</p>
+            </>
+          )}
         </article>
 
-        <article className={styles.reminderCard}>
-          <p className={styles.sectionEyebrow}>Qué sigue</p>
-          <h3 className={styles.reminderTitle}>Recordatorio útil</h3>
-          <p className={styles.reminderBody}>{helperReminder}</p>
-        </article>
+        <aside className={styles.actionRail}>
+          <article className={styles.nextStepPanel}>
+            <p className={styles.panelLabel}>What to do next</p>
+            <p className={styles.nextStepText}>{nextStep}</p>
+          </article>
+
+          <article className={styles.quickActionsPanel}>
+            <p className={styles.panelLabel}>Quick actions</p>
+            <div className={styles.quickActionList}>
+              <button className={styles.ghostAction} type="button" onClick={() => navigate("/patient/book")}>Book appointment</button>
+              <button className={styles.ghostAction} type="button" onClick={() => navigate("/patient/appointments")}>View all appointments</button>
+              <button className={styles.ghostAction} type="button" onClick={() => navigate("/patient/services")}>Browse services</button>
+            </div>
+          </article>
+
+          <article className={styles.summaryPanel}>
+            <p className={styles.panelLabel}>Small summary</p>
+            <div className={styles.summaryRow}><span>Pending confirmations</span><strong>{pendingCount}</strong></div>
+            <div className={styles.summaryRow}><span>Completed visits</span><strong>{completedCount}</strong></div>
+          </article>
+        </aside>
       </section>
     </section>
   );
