@@ -5,13 +5,13 @@ import { getStoredUser } from "../../utils/auth";
 import { parseAppointmentDateTime } from "../Dentist/dateUtils";
 import styles from "./patient.module.css";
 
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
+const dateFormatter = new Intl.DateTimeFormat("es-MX", {
   weekday: "long",
   month: "long",
   day: "numeric",
 });
 
-const timeFormatter = new Intl.DateTimeFormat("en-US", {
+const timeFormatter = new Intl.DateTimeFormat("es-MX", {
   hour: "numeric",
   minute: "2-digit",
 });
@@ -23,12 +23,12 @@ function getAppointmentDate(value?: string) {
 
 function formatAppointmentDate(value?: string) {
   const parsed = getAppointmentDate(value);
-  return parsed ? dateFormatter.format(parsed) : "Date pending";
+  return parsed ? dateFormatter.format(parsed) : "Fecha pendiente";
 }
 
 function formatAppointmentTime(value?: string) {
   const parsed = getAppointmentDate(value);
-  return parsed ? timeFormatter.format(parsed) : "Time pending";
+  return parsed ? timeFormatter.format(parsed) : "Hora pendiente";
 }
 
 function isCanceled(status?: string) {
@@ -38,12 +38,12 @@ function isCanceled(status?: string) {
 
 function getStatusLabel(status?: string) {
   const normalized = (status ?? "scheduled").toLowerCase();
-  if (normalized === "pending") return "Pending";
-  if (normalized === "confirmed") return "Confirmed";
-  if (normalized === "completed") return "Completed";
-  if (normalized === "canceled" || normalized === "cancelled") return "Canceled";
-  if (normalized === "no_show") return "No Show";
-  return "Scheduled";
+  if (normalized === "pending") return "Pendiente";
+  if (normalized === "confirmed") return "Confirmada";
+  if (normalized === "completed") return "Completada";
+  if (normalized === "canceled" || normalized === "cancelled") return "Cancelada";
+  if (normalized === "no_show") return "Inasistencia";
+  return "Programada";
 }
 
 function DashboardSectionHeader({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
@@ -59,7 +59,7 @@ function DashboardSectionHeader({ eyebrow, title, description }: { eyebrow: stri
 export default function PatientHomePage() {
   const navigate = useNavigate();
   const storedUser = useMemo(() => getStoredUser(), []);
-  const firstName = storedUser?.name?.trim()?.split(/\s+/)[0] || "Patient";
+  const firstName = storedUser?.name?.trim()?.split(/\s+/)[0] || "Paciente";
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -85,7 +85,7 @@ export default function PatientHomePage() {
       } catch (requestError: unknown) {
         if (!active) return;
         setAppointments([]);
-        setError(toErrorMessage(requestError, "We couldn't load your upcoming visits right now."));
+        setError(toErrorMessage(requestError, "No pudimos cargar tus próximas citas por el momento."));
       } finally {
         if (active) setLoading(false);
       }
@@ -133,29 +133,29 @@ export default function PatientHomePage() {
     <section className={styles.dashboardRoot}>
       <header className={styles.welcomeHero}>
         <div>
-          <p className={styles.welcomeEyebrow}>Patient Home</p>
-          <h2 className={styles.welcomeTitle}>Welcome back, {firstName}.</h2>
+          <p className={styles.welcomeEyebrow}>Panel de paciente</p>
+          <h2 className={styles.welcomeTitle}>Bienvenido de nuevo, {firstName}.</h2>
           <p className={styles.welcomeDescription}>
-            This is your care overview. Check your next visit and choose what you want to do next.
+            Este es tu resumen de cuidado. Revisa tu próxima cita y elige qué deseas hacer a continuación.
           </p>
         </div>
       </header>
 
       <article className={styles.featuredCard}>
         <DashboardSectionHeader
-          eyebrow="Featured"
-          title="Your next appointment"
-          description="Everything important for your next dental visit in one calm place."
+          eyebrow="Destacado"
+          title="Tu próxima cita"
+          description="Todo lo importante para tu próxima visita dental en un solo lugar."
         />
 
         {loading ? (
-          <p className={styles.featuredState}>Loading your appointment timeline...</p>
+          <p className={styles.featuredState}>Cargando tu agenda de citas...</p>
         ) : error ? (
           <div className={styles.errorCard}>
-            <p className={styles.errorTitle}>We couldn't load your appointment data right now.</p>
+            <p className={styles.errorTitle}>No pudimos cargar la información de tus citas.</p>
             <p className={styles.errorBody}>{error}</p>
             <button className={styles.primaryAction} type="button" onClick={() => window.location.reload()}>
-              Refresh dashboard
+              Actualizar panel
             </button>
           </div>
         ) : nextAppointment ? (
@@ -163,21 +163,19 @@ export default function PatientHomePage() {
             <p className={styles.appointmentDate}>{formatAppointmentDate(nextAppointment.start_at)}</p>
             <p className={styles.appointmentTime}>{formatAppointmentTime(nextAppointment.start_at)}</p>
             <p className={styles.appointmentService}>
-              {nextAppointment.service?.name || nextAppointment.service_name || "Service to be confirmed"}
+              {nextAppointment.service?.name || nextAppointment.service_name || "Servicio por confirmar"}
             </p>
             <div className={styles.appointmentMeta}>
-              <span>{nextAppointment.dentist?.name || nextAppointment.dentist_name || "Dentist assigned soon"}</span>
+              <span>{nextAppointment.dentist?.name || nextAppointment.dentist_name || "Odontólogo por asignar"}</span>
               <span className={styles.statusPill}>{getStatusLabel(nextAppointment.status)}</span>
             </div>
           </div>
         ) : (
           <div className={styles.emptyStateCard}>
-            <h4 className={styles.emptyStateTitle}>No upcoming appointment yet.</h4>
-            <p className={styles.emptyStateText}>
-              Schedule your next check-up to stay on top of your dental health.
-            </p>
+            <h4 className={styles.emptyStateTitle}>Aún no tienes una cita próxima.</h4>
+            <p className={styles.emptyStateText}>Agenda tu siguiente revisión para cuidar tu salud bucal a tiempo.</p>
             <button className={styles.primaryAction} type="button" onClick={() => navigate("/patient/book")}>
-              Book appointment
+              Agendar cita
             </button>
           </div>
         )}
@@ -186,46 +184,46 @@ export default function PatientHomePage() {
       <section className={styles.secondaryGrid}>
         <article className={styles.surfaceCard}>
           <DashboardSectionHeader
-            eyebrow="Quick actions"
-            title="Choose your next step"
-            description="Only the essentials to keep your care journey simple."
+            eyebrow="Acciones rápidas"
+            title="Elige tu siguiente paso"
+            description="Solo lo esencial para que tu atención dental sea simple y clara."
           />
           <div className={styles.quickActionGrid}>
-            <button className={styles.quickActionButton} type="button" onClick={() => navigate("/patient/book")}>Book appointment</button>
-            <button className={styles.quickActionButton} type="button" onClick={() => navigate("/patient/appointments")}>View appointments</button>
-            <button className={styles.quickActionButton} type="button" onClick={() => navigate("/patient/services")}>View services</button>
-            <button className={styles.quickActionButton} type="button" onClick={() => navigate("/patient/profile")}>Update profile</button>
+            <button className={styles.quickActionButton} type="button" onClick={() => navigate("/patient/book")}>Agendar cita</button>
+            <button className={styles.quickActionButton} type="button" onClick={() => navigate("/patient/appointments")}>Ver citas</button>
+            <button className={styles.quickActionButton} type="button" onClick={() => navigate("/patient/services")}>Ver servicios</button>
+            <button className={styles.quickActionButton} type="button" onClick={() => navigate("/patient/profile")}>Actualizar perfil</button>
           </div>
         </article>
 
         <article className={styles.surfaceCard}>
           <DashboardSectionHeader
-            eyebrow="Care message"
-            title="Daily oral care reminder"
-            description="Small habits make a big difference for long-term dental health."
+            eyebrow="Consejo de cuidado"
+            title="Recordatorio diario de salud bucal"
+            description="Los hábitos pequeños generan una gran diferencia en tu sonrisa."
           />
           <p className={styles.careTipText}>
-            Brush for two full minutes, floss once daily, and drink water after meals to help protect your enamel.
+            Cepilla tus dientes durante dos minutos, usa hilo dental una vez al día y bebe agua después de cada comida.
           </p>
         </article>
 
         <article className={styles.surfaceCard}>
           <DashboardSectionHeader
-            eyebrow="Recent history"
-            title="Latest completed visits"
-            description="A light preview of your recent treatment activity."
+            eyebrow="Historial reciente"
+            title="Tus últimas visitas completadas"
+            description="Una vista rápida de la actividad reciente de tus tratamientos."
           />
 
           {loading ? (
-            <p className={styles.compactState}>Loading recent activity...</p>
+            <p className={styles.compactState}>Cargando actividad reciente...</p>
           ) : recentVisits.length === 0 ? (
-            <p className={styles.compactState}>No completed visits yet. Your visit history will appear here.</p>
+            <p className={styles.compactState}>Aún no tienes visitas completadas. Tu historial aparecerá aquí.</p>
           ) : (
             <ul className={styles.historyList}>
               {recentVisits.map((visit) => (
                 <li className={styles.historyItem} key={visit.id}>
                   <p className={styles.historyDate}>{formatAppointmentDate(visit.start_at)}</p>
-                  <p className={styles.historyService}>{visit.service?.name || visit.service_name || "Dental appointment"}</p>
+                  <p className={styles.historyService}>{visit.service?.name || visit.service_name || "Cita dental"}</p>
                 </li>
               ))}
             </ul>

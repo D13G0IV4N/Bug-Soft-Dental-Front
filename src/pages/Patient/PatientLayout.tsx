@@ -3,19 +3,26 @@ import { useMemo } from "react";
 import { getStoredUser, resolveClinicName } from "../../utils/auth";
 import styles from "./patient.module.css";
 
-const patientLinks = [
-  { to: "/patient", label: "Dashboard", end: true },
-  { to: "/patient/appointments", label: "Appointments" },
-  { to: "/patient/services", label: "Services" },
-  { to: "/patient/book", label: "Book Visit" },
-  { to: "/patient/profile", label: "Profile" },
+type PatientLink = {
+  to: string;
+  label: string;
+  shortLabel: string;
+  end?: boolean;
+};
+
+const patientLinks: PatientLink[] = [
+  { to: "/patient", label: "Inicio", shortLabel: "IN", end: true },
+  { to: "/patient/appointments", label: "Mis citas", shortLabel: "MC" },
+  { to: "/patient/services", label: "Servicios", shortLabel: "SV" },
+  { to: "/patient/book", label: "Agendar cita", shortLabel: "AG" },
+  { to: "/patient/profile", label: "Mi perfil", shortLabel: "MP" },
 ];
 
 export default function PatientLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const storedUser = useMemo(() => getStoredUser(), []);
-  const patientName = storedUser?.name?.trim() || "Patient";
+  const patientName = storedUser?.name?.trim() || "Paciente";
   const clinicName = resolveClinicName(storedUser);
 
   function handleLogout() {
@@ -27,19 +34,19 @@ export default function PatientLayout() {
   const activeLabel =
     patientLinks.find((link) =>
       link.end ? location.pathname === link.to : location.pathname.startsWith(link.to)
-    )?.label ?? "Dashboard";
+    )?.label ?? "Inicio";
 
   return (
     <div className={styles.pageShell}>
       <a className={styles.skipLink} href="#patient-main">
-        Skip to content
+        Ir al contenido
       </a>
 
-      <aside className={styles.sidebar} aria-label="Patient navigation">
+      <aside className={styles.sidebar} aria-label="Navegación de paciente">
         <div className={styles.brandBlock}>
           <p className={styles.brandEyebrow}>Bug&Soft Dental</p>
-          <h1 className={styles.brandTitle}>Patient Portal</h1>
-          <p className={styles.brandMeta}>{clinicName || "Your trusted dental care space"}</p>
+          <h1 className={styles.brandTitle}>Portal de Pacientes</h1>
+          <p className={styles.brandMeta}>{clinicName || "Tu espacio de cuidado dental"}</p>
         </div>
 
         <nav className={styles.sidebarNav}>
@@ -50,20 +57,21 @@ export default function PatientLayout() {
               end={link.end}
               className={({ isActive }) => `${styles.navItem} ${isActive ? styles.navItemActive : ""}`.trim()}
             >
-              {link.label}
+              <span className={styles.navIcon}>{link.shortLabel}</span>
+              <span>{link.label}</span>
             </NavLink>
           ))}
         </nav>
 
         <button className={styles.logoutButton} type="button" onClick={handleLogout}>
-          Log out
+          Cerrar sesión
         </button>
       </aside>
 
       <main className={styles.main} id="patient-main">
         <header className={styles.mainTopBar}>
           <div>
-            <p className={styles.topBarLabel}>Hello</p>
+            <p className={styles.topBarLabel}>Hola</p>
             <p className={styles.topBarName}>{patientName}</p>
           </div>
           <p className={styles.topBarSection}>{activeLabel}</p>

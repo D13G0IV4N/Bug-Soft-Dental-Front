@@ -3,10 +3,10 @@ import styles from "./patient.module.css";
 export default function PatientPlaceholderPage() {
   return (
     <section className={styles.placeholderPage}>
-      <p className={styles.placeholderEyebrow}>Coming soon</p>
-      <h2 className={styles.placeholderTitle}>This section is being prepared</h2>
+      <p className={styles.placeholderEyebrow}>Próximamente</p>
+      <h2 className={styles.placeholderTitle}>Esta sección está en preparación</h2>
       <p className={styles.placeholderText}>
-        The navigation is now ready for future patient pages. This screen is intentionally lightweight for now.
+        La navegación ya está lista para las futuras páginas del paciente. Esta pantalla se mantiene ligera por ahora.
       </p>
     </section>
   );

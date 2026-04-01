@@ -1,24 +1,26 @@
 .pageShell {
-  --bg: #f4f8ff;
-  --bg-soft: #eef4ff;
+  --bg: #f2f7ff;
+  --bg-soft: #e9f1ff;
   --surface: #ffffff;
-  --surface-soft: #f8fbff;
-  --ink: #12284d;
-  --muted: #607499;
-  --line: #d7e4fb;
+  --surface-soft: #f4f8ff;
+  --ink: #102747;
+  --muted: #5f7395;
+  --line: #cfe0fb;
+  --line-strong: #b8cff6;
   --primary: #1f5eff;
-  --primary-deep: #123ea8;
+  --primary-deep: #1747bf;
 
   min-height: 100%;
   padding: 1.5rem;
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: 290px minmax(0, 1fr);
   gap: 1.1rem;
   background:
-    radial-gradient(circle at 0% 0%, rgba(31, 94, 255, 0.15), transparent 34%),
-    radial-gradient(circle at 100% 10%, rgba(16, 69, 190, 0.16), transparent 38%),
+    radial-gradient(circle at 0% 0%, rgba(31, 94, 255, 0.14), transparent 35%),
+    radial-gradient(circle at 100% 8%, rgba(23, 71, 191, 0.14), transparent 40%),
     linear-gradient(180deg, var(--bg) 0%, var(--bg-soft) 100%);
   color: var(--ink);
+  font-family: "Inter", "Avenir Next", "Segoe UI", sans-serif;
 }
 
 .skipLink {
@@ -30,7 +32,7 @@
   border-radius: 999px;
   background: #fff;
   color: var(--ink);
-  font: 700 0.86rem/1 "Manrope", "Segoe UI", sans-serif;
+  font: 700 0.86rem/1 "Inter", "Segoe UI", sans-serif;
   text-decoration: none;
 }
 
@@ -40,19 +42,22 @@
 }
 
 .sidebar {
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: 30px;
-  background: rgba(255, 255, 255, 0.8);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(245, 250, 255, 0.94) 100%);
   backdrop-filter: blur(10px);
-  padding: 1.25rem;
+  padding: 1.1rem;
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
-  box-shadow: 0 20px 50px rgba(17, 60, 158, 0.14);
+  gap: 1rem;
+  box-shadow: 0 20px 45px rgba(17, 58, 152, 0.14);
 }
 
 .brandBlock {
-  padding: 0.7rem;
+  padding: 0.9rem;
+  border-radius: 20px;
+  border: 1px solid #d5e4ff;
+  background: linear-gradient(145deg, #f9fcff 0%, #edf4ff 100%);
 }
 
 .brandEyebrow,
@@ -63,56 +68,87 @@
   margin: 0;
   color: var(--muted);
   text-transform: uppercase;
-  letter-spacing: 0.14em;
-  font: 700 0.72rem/1 "Manrope", "Segoe UI", sans-serif;
+  letter-spacing: 0.13em;
+  font: 700 0.7rem/1 "Inter", "Segoe UI", sans-serif;
 }
 
 .brandTitle {
   margin: 0.5rem 0 0;
-  font: 700 1.78rem/1.05 "Fraunces", "Georgia", serif;
+  font: 700 1.5rem/1.15 "Plus Jakarta Sans", "Inter", "Segoe UI", sans-serif;
 }
 
 .brandMeta {
   margin: 0.45rem 0 0;
   color: var(--muted);
-  font: 500 0.92rem/1.5 "Manrope", "Segoe UI", sans-serif;
+  font: 500 0.9rem/1.5 "Inter", "Segoe UI", sans-serif;
 }
 
 .sidebarNav {
   display: grid;
-  gap: 0.5rem;
+  gap: 0.45rem;
 }
 
 .navItem {
   border-radius: 14px;
-  padding: 0.82rem 0.9rem;
+  padding: 0.7rem 0.8rem;
   text-decoration: none;
-  color: #243f70;
+  color: #27467d;
   border: 1px solid transparent;
-  font: 700 0.88rem/1.1 "Manrope", "Segoe UI", sans-serif;
-  transition: 170ms ease;
+  font: 650 0.9rem/1.15 "Inter", "Segoe UI", sans-serif;
+  transition: 180ms ease;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.navIcon {
+  min-width: 2rem;
+  height: 2rem;
+  border-radius: 10px;
+  border: 1px solid #d5e4ff;
+  background: #f2f7ff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #2f5391;
+  font: 700 0.67rem/1 "Inter", "Segoe UI", sans-serif;
+  letter-spacing: 0.04em;
 }
 
 .navItem:hover {
   background: #fff;
-  border-color: var(--line);
+  border-color: #d1e0fb;
+  box-shadow: 0 8px 18px rgba(16, 63, 162, 0.1);
 }
 
 .navItemActive {
   color: #fff;
+  border-color: transparent;
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-deep) 100%);
-  box-shadow: 0 12px 24px rgba(19, 72, 192, 0.28);
+  box-shadow: 0 12px 24px rgba(19, 72, 192, 0.27);
+}
+
+.navItemActive .navIcon {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
 }
 
 .logoutButton {
   margin-top: auto;
   border-radius: 14px;
-  border: 1px solid var(--line);
+  border: 1px solid #d6e4ff;
   background: #fff;
-  color: var(--ink);
-  padding: 0.72rem 0.9rem;
-  font: 700 0.88rem/1.1 "Manrope", "Segoe UI", sans-serif;
+  color: #1f4076;
+  padding: 0.74rem 0.92rem;
+  font: 700 0.88rem/1.1 "Inter", "Segoe UI", sans-serif;
   cursor: pointer;
+  transition: 160ms ease;
+}
+
+.logoutButton:hover {
+  border-color: #bfd4fb;
+  box-shadow: 0 8px 16px rgba(16, 63, 162, 0.1);
 }
 
 .main {
@@ -123,38 +159,39 @@
 }
 
 .mainTopBar {
-  border: 1px solid var(--line);
-  border-radius: 26px;
-  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid var(--line-strong);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.84);
   padding: 1rem 1.2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
+  box-shadow: 0 10px 22px rgba(18, 70, 177, 0.08);
 }
 
 .topBarName {
-  margin: 0.36rem 0 0;
-  font: 700 1.45rem/1 "Fraunces", "Georgia", serif;
+  margin: 0.34rem 0 0;
+  font: 700 1.45rem/1.1 "Plus Jakarta Sans", "Inter", "Segoe UI", sans-serif;
 }
 
 .topBarSection {
   margin: 0;
   border-radius: 999px;
-  border: 1px solid var(--line);
-  background: #fff;
-  color: #2d4679;
+  border: 1px solid #d4e2fb;
+  background: #f4f8ff;
+  color: #2b4d86;
   padding: 0.46rem 0.84rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  font: 700 0.8rem/1 "Manrope", "Segoe UI", sans-serif;
+  font: 700 0.8rem/1 "Inter", "Segoe UI", sans-serif;
 }
 
 .outletSurface {
-  border-radius: 30px;
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.84);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  border-radius: 28px;
+  border: 1px solid var(--line-strong);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 10px 24px rgba(18, 70, 177, 0.08);
   padding: 1.35rem;
 }
 
@@ -164,35 +201,42 @@
 }
 
 .welcomeHero {
-  border-radius: 26px;
+  border-radius: 24px;
   padding: 1.45rem;
-  background: linear-gradient(145deg, #ffffff 0%, #f6faff 55%, #edf4ff 100%);
-  border: 1px solid var(--line);
+  background: linear-gradient(145deg, #ffffff 0%, #f5f9ff 54%, #ebf3ff 100%);
+  border: 1px solid #ccdcfb;
+  box-shadow: 0 12px 28px rgba(18, 70, 177, 0.08);
 }
 
 .welcomeTitle {
   margin: 0.45rem 0 0;
-  font: 700 clamp(2rem, 3.1vw, 2.7rem)/1.03 "Fraunces", "Georgia", serif;
+  font: 700 clamp(1.85rem, 2.8vw, 2.45rem)/1.08 "Plus Jakarta Sans", "Inter", "Segoe UI", sans-serif;
 }
 
 .welcomeDescription {
   margin: 0.8rem 0 0;
   color: var(--muted);
   max-width: 62ch;
-  font: 500 0.96rem/1.6 "Manrope", "Segoe UI", sans-serif;
+  font: 500 0.95rem/1.6 "Inter", "Segoe UI", sans-serif;
 }
 
 .featuredCard,
 .surfaceCard,
 .placeholderPage {
-  border-radius: 26px;
-  border: 1px solid var(--line);
+  border-radius: 24px;
+  border: 1px solid #ccdcfb;
+  border-top: 4px solid #a8c3f8;
   background: var(--surface);
-  padding: 1.4rem;
+  padding: 1.35rem;
+  box-shadow: 0 12px 26px rgba(14, 63, 162, 0.07);
 }
 
 .featuredCard {
-  background: linear-gradient(150deg, #f7fbff 0%, #eef5ff 45%, #fafdff 100%);
+  background: linear-gradient(150deg, #f7fbff 0%, #eff6ff 44%, #fbfdff 100%);
+}
+
+.surfaceCard {
+  background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
 }
 
 .sectionHeader {
@@ -205,7 +249,7 @@
 .errorTitle,
 .emptyStateTitle {
   margin: 0;
-  font: 700 1.35rem/1.2 "Fraunces", "Georgia", serif;
+  font: 700 1.25rem/1.24 "Plus Jakarta Sans", "Inter", "Segoe UI", sans-serif;
 }
 
 .sectionDescription,
@@ -217,35 +261,36 @@
 .careTipText {
   margin: 0;
   color: var(--muted);
-  font: 500 0.93rem/1.6 "Manrope", "Segoe UI", sans-serif;
+  font: 500 0.93rem/1.58 "Inter", "Segoe UI", sans-serif;
 }
 
 .appointmentSpotlight,
 .emptyStateCard,
 .errorCard {
   margin-top: 1rem;
-  border-radius: 22px;
-  padding: 1.2rem;
-  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 1.15rem;
+  border: 1px solid #cfe1ff;
   background: #fff;
+  box-shadow: 0 8px 18px rgba(12, 59, 157, 0.08);
 }
 
 .appointmentDate {
   margin: 0;
   text-transform: capitalize;
-  color: #3a5487;
-  font: 700 1rem/1.3 "Manrope", "Segoe UI", sans-serif;
+  color: #3d5788;
+  font: 700 0.98rem/1.3 "Inter", "Segoe UI", sans-serif;
 }
 
 .appointmentTime {
   margin: 0.3rem 0 0;
-  color: #143d9c;
-  font: 700 clamp(2rem, 5vw, 3rem)/0.96 "Fraunces", "Georgia", serif;
+  color: #163f99;
+  font: 700 clamp(1.85rem, 5vw, 2.6rem)/0.98 "Plus Jakarta Sans", "Inter", "Segoe UI", sans-serif;
 }
 
 .appointmentService {
   margin: 0.86rem 0 0;
-  font: 700 1.02rem/1.4 "Manrope", "Segoe UI", sans-serif;
+  font: 650 1rem/1.4 "Inter", "Segoe UI", sans-serif;
 }
 
 .appointmentMeta {
@@ -254,7 +299,7 @@
   justify-content: space-between;
   gap: 0.8rem;
   color: #324b7f;
-  font: 600 0.9rem/1.4 "Manrope", "Segoe UI", sans-serif;
+  font: 600 0.9rem/1.4 "Inter", "Segoe UI", sans-serif;
 }
 
 .statusPill {
@@ -275,7 +320,7 @@
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-deep) 100%);
   color: #fff;
   padding: 0.7rem 0.9rem;
-  font: 700 0.88rem/1 "Manrope", "Segoe UI", sans-serif;
+  font: 700 0.88rem/1 "Inter", "Segoe UI", sans-serif;
   cursor: pointer;
 }
 
@@ -293,18 +338,20 @@
 }
 
 .quickActionButton {
-  border: 1px solid var(--line);
+  border: 1px solid #cadeff;
   border-radius: 13px;
-  background: var(--surface-soft);
+  background: #f4f8ff;
   color: #1f3d76;
   padding: 0.78rem 0.8rem;
   text-align: left;
-  font: 700 0.86rem/1.25 "Manrope", "Segoe UI", sans-serif;
+  font: 650 0.86rem/1.28 "Inter", "Segoe UI", sans-serif;
   cursor: pointer;
+  transition: 160ms ease;
 }
 
 .quickActionButton:hover {
   background: #fff;
+  border-color: #bcd2fc;
 }
 
 .careTipText {
@@ -321,21 +368,21 @@
 
 .historyItem {
   border-radius: 14px;
-  border: 1px solid var(--line);
-  background: #f9fbff;
+  border: 1px solid #d4e3ff;
+  background: #f8fbff;
   padding: 0.72rem 0.82rem;
 }
 
 .historyDate {
   margin: 0;
   color: #425c8e;
-  font: 700 0.82rem/1.2 "Manrope", "Segoe UI", sans-serif;
+  font: 700 0.82rem/1.2 "Inter", "Segoe UI", sans-serif;
 }
 
 .historyService {
   margin: 0.35rem 0 0;
   color: #1f355f;
-  font: 600 0.9rem/1.35 "Manrope", "Segoe UI", sans-serif;
+  font: 600 0.9rem/1.35 "Inter", "Segoe UI", sans-serif;
 }
 
 .placeholderPage {
@@ -348,7 +395,7 @@
   }
 
   .sidebarNav {
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   }
 
   .logoutButton {
