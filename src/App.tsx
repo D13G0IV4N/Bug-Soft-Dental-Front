@@ -20,6 +20,7 @@ import ReceptionistLayout from "./pages/Receptionist/ReceptionistLayout";
 import ReceptionistAppointmentsPage from "./pages/Receptionist/ReceptionistAppointmentsPage";
 import PatientLayout from "./pages/Patient/PatientLayout";
 import PatientHomePage from "./pages/Patient/PatientHomePage";
+import PatientPlaceholderPage from "./pages/Patient/PatientPlaceholderPage";
 
 function HomeRedirect() {
   if (!isAuthenticated()) return <Navigate to="/login" replace />;
@@ -92,6 +93,10 @@ export default function App() {
         <Route element={<RoleGuard allowedRoles={["client"]} />}>
           <Route path="/patient" element={<PatientLayout />}>
             <Route index element={<PatientHomePage />} />
+            <Route path="appointments" element={<PatientPlaceholderPage />} />
+            <Route path="services" element={<PatientPlaceholderPage />} />
+            <Route path="book" element={<PatientPlaceholderPage />} />
+            <Route path="profile" element={<PatientPlaceholderPage />} />
           </Route>
         </Route>
       </Route>
