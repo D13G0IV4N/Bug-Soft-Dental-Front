@@ -1,4 +1,4 @@
-export type AppRole = "super_admin" | "admin" | "receptionist" | "dentist" | "client" | string;
+export type AppRole = "super_admin" | "admin" | "receptionist" | "dentist" | "pacient" | string;
 
 export interface StoredUser {
   id?: number;
@@ -135,7 +135,7 @@ export function getStoredUser(): StoredUser | null {
 }
 
 export function getStoredRole(): AppRole | null {
-  return getStoredUser()?.role ?? null;
+  return normalizeRole(getStoredUser()?.role ?? null);
 }
 
 export function isAuthenticated(): boolean {
@@ -143,10 +143,19 @@ export function isAuthenticated(): boolean {
 }
 
 export function getPostLoginRoute(role: AppRole | null): string {
-  if (role === "super_admin") return "/clinics";
-  if (role === "admin") return "/admin";
-  if (role === "receptionist") return "/receptionist";
-  if (role === "dentist") return "/dentist";
-  if (role === "client") return "/patient";
+  const normalizedRole = normalizeRole(role);
+  if (normalizedRole === "super_admin") return "/clinics";
+  if (normalizedRole === "admin") return "/admin";
+  if (normalizedRole === "receptionist") return "/receptionist";
+  if (normalizedRole === "dentist") return "/dentist";
+  if (normalizedRole === "pacient") return "/patient";
   return "/login";
+}
+
+export function normalizeRole(role: unknown): AppRole | null {
+  if (typeof role !== "string") return null;
+  const normalized = role.trim().toLowerCase();
+  if (!normalized) return null;
+  if (normalized === "client") return "pacient";
+  return normalized;
 }

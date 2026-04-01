@@ -2,7 +2,7 @@ import { useState } from "react";
 import styles from "./login.module.css";
 import { login } from "../../api/auth";
 import { useNavigate } from "react-router-dom";
-import { getPostLoginRoute } from "../../utils/auth";
+import { getPostLoginRoute, normalizeRole } from "../../utils/auth";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -27,9 +27,18 @@ export default function LoginPage() {
       localStorage.setItem("authToken", token);
 
       const user = res?.data?.user ?? res?.user;
-      if (user) localStorage.setItem("user", JSON.stringify(user));
+      const normalizedRole = normalizeRole(user?.role ?? null);
+      if (user) {
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            ...user,
+            role: normalizedRole ?? user?.role,
+          })
+        );
+      }
 
-      navigate(getPostLoginRoute(user?.role ?? null), { replace: true });
+      navigate(getPostLoginRoute(normalizedRole), { replace: true });
     } catch (err: any) {
       console.log("=== LOGIN ERROR (RAW) ===", err);
 
