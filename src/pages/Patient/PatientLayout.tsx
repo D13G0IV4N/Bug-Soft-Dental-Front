@@ -5,9 +5,9 @@ import styles from "./patient.module.css";
 
 const patientLinks = [
   { to: "/patient", label: "Dashboard", end: true },
-  { to: "/patient/appointments", label: "My Appointments" },
+  { to: "/patient/appointments", label: "Appointments" },
   { to: "/patient/services", label: "Services" },
-  { to: "/patient/book", label: "Book Appointment" },
+  { to: "/patient/book", label: "Book Visit" },
   { to: "/patient/profile", label: "Profile" },
 ];
 
@@ -15,7 +15,7 @@ export default function PatientLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const storedUser = useMemo(() => getStoredUser(), []);
-  const patientName = storedUser?.name?.trim() || "Paciente";
+  const patientName = storedUser?.name?.trim() || "Patient";
   const clinicName = resolveClinicName(storedUser);
 
   function handleLogout() {
@@ -37,9 +37,9 @@ export default function PatientLayout() {
 
       <aside className={styles.sidebar} aria-label="Patient navigation">
         <div className={styles.brandBlock}>
-          <p className={styles.brandEyebrow}>Patient Module</p>
-          <h1 className={styles.brandTitle}>SmileFlow</h1>
-          <p className={styles.brandMeta}>{clinicName || "Your care space"}</p>
+          <p className={styles.brandEyebrow}>Bug&Soft Dental</p>
+          <h1 className={styles.brandTitle}>Patient Portal</h1>
+          <p className={styles.brandMeta}>{clinicName || "Your trusted dental care space"}</p>
         </div>
 
         <nav className={styles.sidebarNav}>
@@ -63,7 +63,7 @@ export default function PatientLayout() {
       <main className={styles.main} id="patient-main">
         <header className={styles.mainTopBar}>
           <div>
-            <p className={styles.topBarLabel}>Welcome back</p>
+            <p className={styles.topBarLabel}>Hello</p>
             <p className={styles.topBarName}>{patientName}</p>
           </div>
           <p className={styles.topBarSection}>{activeLabel}</p>
