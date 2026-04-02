@@ -236,14 +236,18 @@ export default function PatientProfilePage() {
         </article>
       ) : (
         <div className={styles.profileLayout}>
-          <aside className={styles.profileSummaryCard}>
-            <p className={styles.sectionEyebrow}>Resumen</p>
-            <h3 className={styles.sectionTitle}>{profileData.nombre || "Paciente"}</h3>
+          <article className={styles.profileIdentityCard}>
+            <div className={styles.profileIdentityTop}>
+              <span className={styles.profileAvatar} aria-hidden="true">
+                {profileData.nombre?.trim()?.charAt(0).toUpperCase() || "P"}
+              </span>
+              <div className={styles.profileIdentityMain}>
+                <p className={styles.sectionEyebrow}>Cuenta del paciente</p>
+                <h3 className={styles.sectionTitle}>{profileData.nombre || "Paciente"}</h3>
+                <p className={styles.sectionDescription}>{profileData.correo || "Correo no registrado"}</p>
+              </div>
+            </div>
             <ul className={styles.profileSummaryList}>
-              <li>
-                <span>Correo</span>
-                <strong>{profileData.correo || "No registrado"}</strong>
-              </li>
               <li>
                 <span>Teléfono</span>
                 <strong>{profileData.telefono || "No registrado"}</strong>
@@ -257,9 +261,9 @@ export default function PatientProfilePage() {
                 <strong>{profileData.rol}</strong>
               </li>
             </ul>
-          </aside>
+          </article>
 
-          <div className={styles.profileFormsColumn}>
+          <div className={styles.profileContentGrid}>
             <article className={styles.surfaceCard}>
               <header className={styles.sectionHeader}>
                 <p className={styles.sectionEyebrow}>Datos personales</p>
@@ -271,29 +275,31 @@ export default function PatientProfilePage() {
               {profileFeedback && <p className={styles.formSuccess}>{profileFeedback}</p>}
 
               <form className={styles.profileForm} onSubmit={handleSaveProfile}>
-                <label className={styles.profileField} htmlFor="profile-name">
-                  Nombre completo
-                  <input
-                    id="profile-name"
-                    value={profileForm.nombre}
-                    onChange={(event) => setProfileForm((prev) => ({ ...prev, nombre: event.target.value }))}
-                    placeholder="Tu nombre completo"
-                    autoComplete="name"
-                  />
-                </label>
+                <div className={styles.profileFieldsGrid}>
+                  <label className={styles.profileField} htmlFor="profile-name">
+                    Nombre completo
+                    <input
+                      id="profile-name"
+                      value={profileForm.nombre}
+                      onChange={(event) => setProfileForm((prev) => ({ ...prev, nombre: event.target.value }))}
+                      placeholder="Tu nombre completo"
+                      autoComplete="name"
+                    />
+                  </label>
 
-                <label className={styles.profileField} htmlFor="profile-phone">
-                  Teléfono
-                  <input
-                    id="profile-phone"
-                    value={profileForm.telefono}
-                    onChange={(event) =>
-                      setProfileForm((prev) => ({ ...prev, telefono: normalizePhone(event.target.value) }))
-                    }
-                    placeholder="Ej. +52 55 1234 5678"
-                    autoComplete="tel"
-                  />
-                </label>
+                  <label className={styles.profileField} htmlFor="profile-phone">
+                    Teléfono
+                    <input
+                      id="profile-phone"
+                      value={profileForm.telefono}
+                      onChange={(event) =>
+                        setProfileForm((prev) => ({ ...prev, telefono: normalizePhone(event.target.value) }))
+                      }
+                      placeholder="Ej. +52 55 1234 5678"
+                      autoComplete="tel"
+                    />
+                  </label>
+                </div>
 
                 <label className={styles.profileField} htmlFor="profile-email">
                   Correo electrónico

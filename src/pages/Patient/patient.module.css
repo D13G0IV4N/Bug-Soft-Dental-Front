@@ -408,33 +408,59 @@
 
 .profileRoot {
   display: grid;
-  gap: 1rem;
+  gap: 1.1rem;
 }
 
 .profileLayout {
   display: grid;
-  grid-template-columns: minmax(220px, 320px) minmax(0, 1fr);
-  gap: 0.95rem;
-  align-items: start;
+  gap: 1rem;
 }
 
-.profileSummaryCard {
+.profileIdentityCard {
   border-radius: 24px;
   border: 1px solid #ccdcfb;
-  background: linear-gradient(165deg, #f6faff 0%, #edf4ff 100%);
-  box-shadow: 0 12px 26px rgba(14, 63, 162, 0.07);
-  padding: 1.25rem;
+  background: linear-gradient(150deg, #f8fbff 0%, #eef5ff 55%, #f7fbff 100%);
+  box-shadow: 0 14px 28px rgba(14, 63, 162, 0.08);
+  padding: 1.3rem;
+  display: grid;
+  gap: 1.05rem;
+}
+
+.profileIdentityTop {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.profileAvatar {
+  width: 3.3rem;
+  height: 3.3rem;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font: 700 1.3rem/1 "Plus Jakarta Sans", "Inter", "Segoe UI", sans-serif;
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-deep) 100%);
+  box-shadow: 0 10px 20px rgba(19, 72, 192, 0.25);
+}
+
+.profileIdentityMain {
+  display: grid;
+  gap: 0.28rem;
 }
 
 .profileSummaryList {
-  margin: 1rem 0 0;
+  margin: 0;
   padding: 0;
   list-style: none;
-  display: grid;
-  gap: 0.72rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.68rem;
 }
 
 .profileSummaryList li {
+  flex: 1 1 165px;
   border-radius: 14px;
   border: 1px solid #d8e6ff;
   background: rgba(255, 255, 255, 0.82);
@@ -455,9 +481,17 @@
   font: 700 0.92rem/1.35 "Inter", "Segoe UI", sans-serif;
 }
 
-.profileFormsColumn {
+.profileContentGrid {
   display: grid;
-  gap: 0.95rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+.profileFieldsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.82rem;
 }
 
 .profileForm {
@@ -550,7 +584,8 @@
 }
 
 @media (max-width: 1140px) {
-  .profileLayout {
+  .profileContentGrid,
+  .profileFieldsGrid {
     grid-template-columns: 1fr;
   }
 }
