@@ -20,7 +20,7 @@ import ReceptionistLayout from "./pages/Receptionist/ReceptionistLayout";
 import ReceptionistAppointmentsPage from "./pages/Receptionist/ReceptionistAppointmentsPage";
 import PatientLayout from "./pages/Patient/PatientLayout";
 import PatientHomePage from "./pages/Patient/PatientHomePage";
-import PatientPlaceholderPage from "./pages/Patient/PatientPlaceholderPage";
+import PatientAppointmentsPage from "./pages/Patient/PatientAppointmentsPage";
 import PatientProfilePage from "./pages/Patient/PatientProfilePage";
 import PatientClinicDetailsPage from "./pages/Patient/PatientClinicDetailsPage";
 import PatientBookAppointmentPage from "./pages/Patient/PatientBookAppointmentPage";
@@ -98,7 +98,7 @@ export default function App() {
         <Route element={<RoleGuard allowedRoles={["pacient"]} />}>
           <Route path="/patient" element={<PatientLayout />}>
             <Route index element={<PatientHomePage />} />
-            <Route path="appointments" element={<PatientPlaceholderPage />} />
+            <Route path="appointments" element={<PatientAppointmentsPage />} />
             <Route path="services" element={<PatientClinicDetailsPage />} />
             <Route path="book" element={<PatientBookAppointmentPage />} />
             <Route path="profile" element={<PatientProfilePage />} />
