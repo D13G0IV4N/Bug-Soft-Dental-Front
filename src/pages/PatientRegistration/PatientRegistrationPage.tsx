@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { extractPublicClinics, getPublicClinics, type PublicClinic } from "../../api/clinics";
 import styles from "./patientRegistration.module.css";
@@ -33,6 +33,8 @@ export default function PatientRegistrationPage() {
   const [clinics, setClinics] = useState<PublicClinic[]>([]);
   const [isClinicLoading, setIsClinicLoading] = useState(true);
   const [clinicError, setClinicError] = useState("");
+  const [isClinicDropdownOpen, setIsClinicDropdownOpen] = useState(false);
+  const clinicSelectorRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     async function loadClinics() {
@@ -118,6 +120,45 @@ export default function PatientRegistrationPage() {
   };
 
   const hasClinicEmptyState = !isClinicLoading && !clinicError && clinics.length === 0;
+  const isClinicSelectorDisabled =
+    isClinicLoading || Boolean(clinicError) || hasClinicEmptyState;
+
+  const selectedClinic = useMemo(
+    () => clinics.find((clinic) => String(clinic.id) === form.clinic_id) ?? null,
+    [clinics, form.clinic_id]
+  );
+
+  const clinicTriggerLabel = isClinicLoading
+    ? "Cargando clínicas disponibles..."
+    : clinicError
+      ? "No se pudieron cargar las clínicas"
+      : hasClinicEmptyState
+        ? "No hay clínicas disponibles por ahora"
+        : selectedClinic
+          ? selectedClinic.name
+          : "Selecciona tu clínica de preferencia";
+
+  useEffect(() => {
+    if (!isClinicDropdownOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!clinicSelectorRef.current?.contains(event.target as Node)) {
+        setIsClinicDropdownOpen(false);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsClinicDropdownOpen(false);
+    };
+
+    window.addEventListener("mousedown", handleClickOutside);
+    window.addEventListener("keydown", handleEscape);
+
+    return () => {
+      window.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [isClinicDropdownOpen]);
 
   return (
     <main className={styles.page}>
@@ -239,36 +280,65 @@ export default function PatientRegistrationPage() {
             </div>
 
             <div className={styles.row}>
-              <label className={styles.label} htmlFor="clinic_id">
+              <label className={styles.label} htmlFor="clinic_selector">
                 Clínica
               </label>
-              <select
-                id="clinic_id"
-                className={`${styles.input} ${styles.selectInput} ${errors.clinic_id ? styles.inputError : ""}`}
-                value={form.clinic_id}
-                onChange={(e) => handleChange("clinic_id", e.target.value)}
-                disabled={isClinicLoading || Boolean(clinicError) || hasClinicEmptyState}
-                aria-invalid={Boolean(errors.clinic_id)}
+              <input type="hidden" name="clinic_id" value={form.clinic_id} />
+              <div
+                className={styles.clinicSelect}
+                ref={clinicSelectorRef}
               >
-                <option value="">
-                  {isClinicLoading
-                    ? "Cargando clínicas disponibles..."
-                    : clinicError
-                      ? "No se pudieron cargar las clínicas"
-                      : hasClinicEmptyState
-                        ? "No hay clínicas disponibles por ahora"
-                        : "Selecciona tu clínica de preferencia"}
-                </option>
-                {!isClinicLoading &&
-                  !clinicError &&
-                  clinics.map((clinic) => (
-                    <option key={clinic.id} value={clinic.id}>
-                      {clinic.location_label
-                        ? `${clinic.name} — ${clinic.location_label}`
-                        : clinic.name}
-                    </option>
-                  ))}
-              </select>
+                <button
+                  type="button"
+                  id="clinic_selector"
+                  className={`${styles.clinicTrigger} ${errors.clinic_id ? styles.inputError : ""}`}
+                  onClick={() => setIsClinicDropdownOpen((prev) => !prev)}
+                  disabled={isClinicSelectorDisabled}
+                  aria-invalid={Boolean(errors.clinic_id)}
+                  aria-haspopup="listbox"
+                  aria-expanded={isClinicDropdownOpen}
+                >
+                  <span className={styles.clinicTriggerText}>{clinicTriggerLabel}</span>
+                  <span className={styles.clinicTriggerIcon} aria-hidden="true">
+                    ▾
+                  </span>
+                </button>
+
+                {isClinicDropdownOpen && !isClinicSelectorDisabled && (
+                  <div className={styles.clinicDropdown} role="presentation">
+                    <ul className={styles.clinicListbox} role="listbox" aria-label="Listado de clínicas">
+                      {clinics.map((clinic) => {
+                        const clinicId = String(clinic.id);
+                        const isSelected = form.clinic_id === clinicId;
+                        return (
+                          <li key={clinic.id} role="option" aria-selected={isSelected}>
+                            <button
+                              type="button"
+                              className={`${styles.clinicOptionCard} ${isSelected ? styles.clinicOptionCardSelected : ""}`}
+                              onClick={() => {
+                                handleChange("clinic_id", clinicId);
+                                setIsClinicDropdownOpen(false);
+                              }}
+                            >
+                              <span className={styles.clinicOptionMain}>{clinic.name}</span>
+                              {clinic.location_label && (
+                                <span className={styles.clinicOptionSecondary}>
+                                  {clinic.location_label}
+                                </span>
+                              )}
+                              {isSelected && (
+                                <span className={styles.clinicOptionCheck} aria-hidden="true">
+                                  ✓
+                                </span>
+                              )}
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                )}
+              </div>
               {errors.clinic_id && <span className={styles.errorText}>{errors.clinic_id}</span>}
               {clinicError && <span className={styles.helperText}>{clinicError}</span>}
               {hasClinicEmptyState && (

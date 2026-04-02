@@ -197,19 +197,6 @@
   color: #88a0b8;
 }
 
-.selectInput {
-  appearance: none;
-  background-image:
-    linear-gradient(45deg, transparent 50%, #4f7ba9 50%),
-    linear-gradient(135deg, #4f7ba9 50%, transparent 50%);
-  background-position:
-    calc(100% - 20px) calc(1em + 4px),
-    calc(100% - 14px) calc(1em + 4px);
-  background-size: 6px 6px, 6px 6px;
-  background-repeat: no-repeat;
-  padding-right: 42px;
-}
-
 .input:focus {
   border-color: #4a9ef0;
   box-shadow: 0 0 0 4px rgba(74, 158, 240, 0.16);
@@ -235,6 +222,140 @@
   font-size: 12px;
   line-height: 1.45;
 }
+
+.clinicSelect {
+  position: relative;
+}
+
+.clinicTrigger {
+  width: 100%;
+  min-height: 54px;
+  border: 1px solid var(--stroke);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #ffffff 0%, #fafdff 100%);
+  color: #10304f;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 15px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    background-color 0.16s ease;
+}
+
+.clinicTrigger:hover:not(:disabled) {
+  border-color: #adc8e6;
+  background: #ffffff;
+}
+
+.clinicTrigger:focus-visible {
+  outline: none;
+  border-color: #4a9ef0;
+  box-shadow: 0 0 0 4px rgba(74, 158, 240, 0.16);
+}
+
+.clinicTrigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.clinicTriggerText {
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.clinicTriggerIcon {
+  color: #557a9f;
+  font-size: 16px;
+  margin-left: 10px;
+}
+
+.clinicDropdown {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 8px);
+  width: 100%;
+  border: 1px solid #cfe0f2;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 22px 44px rgba(17, 46, 78, 0.16);
+  padding: 8px;
+}
+
+.clinicListbox {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 248px;
+  overflow: auto;
+  display: grid;
+  gap: 8px;
+}
+
+.clinicOptionCard {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid #d9e7f5;
+  background: #ffffff;
+  display: grid;
+  gap: 4px;
+  text-align: left;
+  padding: 11px 38px 11px 12px;
+  position: relative;
+  cursor: pointer;
+  transition:
+    border-color 0.14s ease,
+    background-color 0.14s ease,
+    transform 0.08s ease;
+}
+
+.clinicOptionCard:hover {
+  border-color: #9fc4ea;
+  background: #f4f9ff;
+}
+
+.clinicOptionCard:focus-visible {
+  outline: none;
+  border-color: #4a9ef0;
+  box-shadow: 0 0 0 3px rgba(74, 158, 240, 0.18);
+}
+
+.clinicOptionCardSelected {
+  border-color: #4193eb;
+  background: #edf6ff;
+}
+
+.clinicOptionMain {
+  font-size: 14px;
+  font-weight: 700;
+  color: #153553;
+  line-height: 1.4;
+}
+
+.clinicOptionSecondary {
+  font-size: 12.5px;
+  color: #5b7693;
+}
+
+.clinicOptionCheck {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #2f86e6;
+  color: #ffffff;
+  font-size: 13px;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+}
+
 .termsRow {
   display: flex;
   align-items: flex-start;
