@@ -61,7 +61,6 @@
 }
 
 .brandEyebrow,
-.topBarLabel,
 .sectionEyebrow,
 .placeholderEyebrow,
 .welcomeEyebrow {
@@ -102,17 +101,24 @@
 }
 
 .navIcon {
-  min-width: 2rem;
-  height: 2rem;
-  border-radius: 10px;
+  min-width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 11px;
   border: 1px solid #d5e4ff;
   background: #f2f7ff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   color: #2f5391;
-  font: 700 0.67rem/1 "Inter", "Segoe UI", sans-serif;
-  letter-spacing: 0.04em;
+}
+
+.navIcon svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .navItem:hover {
@@ -153,41 +159,11 @@
 
 .main {
   min-width: 0;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: 0.95rem;
-}
-
-.mainTopBar {
-  border: 1px solid var(--line-strong);
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.84);
-  padding: 1rem 1.2rem;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  box-shadow: 0 10px 22px rgba(18, 70, 177, 0.08);
-}
-
-.topBarName {
-  margin: 0.34rem 0 0;
-  font: 700 1.45rem/1.1 "Plus Jakarta Sans", "Inter", "Segoe UI", sans-serif;
-}
-
-.topBarSection {
-  margin: 0;
-  border-radius: 999px;
-  border: 1px solid #d4e2fb;
-  background: #f4f8ff;
-  color: #2b4d86;
-  padding: 0.46rem 0.84rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font: 700 0.8rem/1 "Inter", "Segoe UI", sans-serif;
 }
 
 .outletSurface {
+  width: 100%;
   border-radius: 28px;
   border: 1px solid var(--line-strong);
   background: rgba(255, 255, 255, 0.9);
@@ -410,11 +386,6 @@
 @media (max-width: 680px) {
   .pageShell {
     padding: 0.8rem;
-  }
-
-  .mainTopBar {
-    flex-direction: column;
-    align-items: flex-start;
   }
 
   .outletSurface {
