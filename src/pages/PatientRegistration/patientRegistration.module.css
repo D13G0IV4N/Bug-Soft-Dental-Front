@@ -274,25 +274,27 @@
 }
 
 .clinicDropdown {
-  position: absolute;
-  z-index: 30;
-  top: calc(100% + 8px);
-  width: 100%;
+  position: fixed;
+  z-index: 1100;
   border: 1px solid #cfe0f2;
   border-radius: 14px;
   background: #ffffff;
   box-shadow: 0 22px 44px rgba(17, 46, 78, 0.16);
   padding: 8px;
+  overflow: hidden;
 }
 
 .clinicListbox {
   list-style: none;
   margin: 0;
   padding: 0;
-  max-height: 248px;
-  overflow: auto;
+  height: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
   display: grid;
   gap: 8px;
+  scrollbar-gutter: stable;
 }
 
 .clinicOptionCard {
