@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Link } from "react-router-dom";
+import { isAxiosError } from "axios";
+import { Link, useNavigate } from "react-router-dom";
+import { registerPatient } from "../../api/auth";
 import { extractPublicClinics, getPublicClinics, type PublicClinic } from "../../api/clinics";
 import styles from "./patientRegistration.module.css";
 
@@ -27,10 +29,11 @@ const INITIAL_FORM: RegistrationForm = {
 };
 
 export default function PatientRegistrationPage() {
+  const navigate = useNavigate();
   const [form, setForm] = useState<RegistrationForm>(INITIAL_FORM);
   const [errors, setErrors] = useState<RegistrationErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState("");
+  const [submitError, setSubmitError] = useState("");
   const [clinics, setClinics] = useState<PublicClinic[]>([]);
   const [isClinicLoading, setIsClinicLoading] = useState(true);
   const [clinicError, setClinicError] = useState("");
@@ -73,7 +76,7 @@ export default function PatientRegistrationPage() {
   ) => {
     setForm((prev) => ({ ...prev, [key]: value }));
     setErrors((prev) => ({ ...prev, [key]: undefined }));
-    setSubmitMessage("");
+    setSubmitError("");
   };
 
   const validate = () => {
@@ -87,9 +90,7 @@ export default function PatientRegistrationPage() {
       nextErrors.email = "Ingresa un correo válido.";
     }
 
-    if (!form.phone.trim()) {
-      nextErrors.phone = "Ingresa tu teléfono.";
-    } else if (!/^[+\d\s()-]{7,}$/.test(form.phone.trim())) {
+    if (form.phone.trim() && !/^[+\d\s()-]{7,}$/.test(form.phone.trim())) {
       nextErrors.phone = "Ingresa un teléfono válido.";
     }
 
@@ -119,13 +120,95 @@ export default function PatientRegistrationPage() {
     if (!validate()) return;
 
     setIsSubmitting(true);
+    setSubmitError("");
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 750));
-      // TODO: conectar con endpoint real de auto-registro de pacientes.
-      setSubmitMessage(
-        "Cuenta preparada. Cuando el endpoint esté listo, este formulario enviará tu registro automáticamente."
-      );
+      const payload = {
+        clinic_id: form.clinic_id,
+        name: form.fullName.trim(),
+        email: form.email.trim(),
+        password: form.password,
+        password_confirmation: form.confirmPassword,
+        ...(form.phone.trim() ? { phone: form.phone.trim() } : {}),
+      };
+
+      await registerPatient(payload);
+
+      navigate("/login", {
+        replace: true,
+        state: {
+          registrationSuccess:
+            "Tu cuenta fue creada con éxito. Ahora inicia sesión para continuar.",
+        },
+      });
+    } catch (error) {
+      if (!isAxiosError(error)) {
+        setSubmitError("No pudimos completar tu registro. Intenta nuevamente.");
+        return;
+      }
+
+      const responseErrors = error.response?.data?.errors;
+      const nextErrors: RegistrationErrors = {};
+
+      const firstText = (value: unknown): string => {
+        if (Array.isArray(value)) {
+          const first = value[0];
+          return typeof first === "string" ? first : "";
+        }
+        return typeof value === "string" ? value : "";
+      };
+
+      const normalizeError = (value: unknown, fallback: string) => {
+        const raw = firstText(value).toLowerCase();
+        if (!raw) return fallback;
+
+        if (raw.includes("required")) return fallback;
+        if (raw.includes("invalid")) return "La clínica seleccionada no es válida.";
+        if (raw.includes("inactive")) return "La clínica seleccionada está inactiva.";
+        if (raw.includes("already") || raw.includes("taken") || raw.includes("exists")) {
+          return "Este correo electrónico ya está registrado.";
+        }
+        if (raw.includes("confirmation") || raw.includes("match")) {
+          return "La confirmación de contraseña no coincide.";
+        }
+
+        return firstText(value) || fallback;
+      };
+
+      if (responseErrors?.clinic_id) {
+        nextErrors.clinic_id = normalizeError(
+          responseErrors.clinic_id,
+          "Selecciona una clínica válida."
+        );
+      }
+      if (responseErrors?.email) {
+        nextErrors.email = normalizeError(
+          responseErrors.email,
+          "Verifica tu correo electrónico e inténtalo de nuevo."
+        );
+      }
+      if (responseErrors?.password_confirmation) {
+        nextErrors.confirmPassword = normalizeError(
+          responseErrors.password_confirmation,
+          "La confirmación de contraseña no coincide."
+        );
+      }
+      if (responseErrors?.password && !nextErrors.confirmPassword) {
+        nextErrors.password = firstText(responseErrors.password) || "Revisa la contraseña ingresada.";
+      }
+      if (responseErrors?.phone) {
+        nextErrors.phone = firstText(responseErrors.phone) || "Ingresa un teléfono válido.";
+      }
+      if (responseErrors?.name) {
+        nextErrors.fullName = firstText(responseErrors.name) || "Ingresa tu nombre completo.";
+      }
+
+      if (Object.keys(nextErrors).length > 0) {
+        setErrors((prev) => ({ ...prev, ...nextErrors }));
+      }
+
+      const backendMessage = firstText(error.response?.data?.message);
+      setSubmitError(backendMessage || "No pudimos completar tu registro. Revisa los datos e inténtalo de nuevo.");
     } finally {
       setIsSubmitting(false);
     }
@@ -495,7 +578,7 @@ export default function PatientRegistrationPage() {
             </label>
             {errors.acceptsTerms && <span className={styles.errorText}>{errors.acceptsTerms}</span>}
 
-            {submitMessage && <div className={styles.successMessage}>{submitMessage}</div>}
+            {submitError && <div className={styles.errorMessage}>{submitError}</div>}
 
             <button className={styles.btn} type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Creando cuenta..." : "Crear cuenta"}
