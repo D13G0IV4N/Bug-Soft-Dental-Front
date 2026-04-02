@@ -1,7 +1,7 @@
 import { useState } from "react";
 import styles from "./login.module.css";
 import { login } from "../../api/auth";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getPostLoginRoute, normalizeRole } from "../../utils/auth";
 
 export default function LoginPage() {
@@ -145,6 +145,10 @@ export default function LoginPage() {
             <button className={styles.btn} type="submit">
               Acceder al sistema
             </button>
+
+            <p className={styles.registerPrompt}>
+              ¿No tienes cuenta? <Link to="/registro">Regístrate</Link>
+            </p>
 
             <p className={styles.footer}>Entorno de salud con acceso auditado.</p>
           </form>

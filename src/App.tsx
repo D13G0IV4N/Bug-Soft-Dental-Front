@@ -21,6 +21,7 @@ import ReceptionistAppointmentsPage from "./pages/Receptionist/ReceptionistAppoi
 import PatientLayout from "./pages/Patient/PatientLayout";
 import PatientHomePage from "./pages/Patient/PatientHomePage";
 import PatientPlaceholderPage from "./pages/Patient/PatientPlaceholderPage";
+import PatientRegistrationPage from "./pages/PatientRegistration/PatientRegistrationPage";
 
 function HomeRedirect() {
   if (!isAuthenticated()) return <Navigate to="/login" replace />;
@@ -46,6 +47,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<HomeRedirect />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/registro" element={<PatientRegistrationPage />} />
 
       <Route element={<ProtectedLayout />}>
         <Route element={<RoleGuard allowedRoles={["super_admin"]} />}>
