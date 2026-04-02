@@ -26,7 +26,7 @@ export async function login(payload: { email: string; password: string }) {
 }
 
 export async function registerPatient(payload: RegisterPatientRequest) {
-  const { data } = await api.post("/api/auth/register-patient", payload);
+  const { data } = await api.post("/auth/register-patient", payload);
   return data;
 }
 

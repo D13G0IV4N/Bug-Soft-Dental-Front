@@ -147,6 +147,20 @@ export default function PatientRegistrationPage() {
         return;
       }
 
+      const failedUrl = (() => {
+        const requestUrl = error.config?.url ?? "";
+        if (!requestUrl) return "";
+        try {
+          return new URL(requestUrl, error.config?.baseURL).toString();
+        } catch {
+          return `${error.config?.baseURL ?? ""}${requestUrl}`;
+        }
+      })();
+
+      if (error.response?.status === 404) {
+        console.error("Error 404 al registrar paciente. URL solicitada:", failedUrl || "(desconocida)");
+      }
+
       const responseErrors = error.response?.data?.errors;
       const nextErrors: RegistrationErrors = {};
 
@@ -208,7 +222,15 @@ export default function PatientRegistrationPage() {
       }
 
       const backendMessage = firstText(error.response?.data?.message);
-      setSubmitError(backendMessage || "No pudimos completar tu registro. Revisa los datos e inténtalo de nuevo.");
+      if (error.response?.status === 404) {
+        setSubmitError(
+          "No pudimos completar tu registro porque no encontramos el servicio de registro. Intenta nuevamente en unos minutos."
+        );
+      } else {
+        setSubmitError(
+          backendMessage || "No pudimos completar tu registro. Revisa los datos e inténtalo de nuevo."
+        );
+      }
     } finally {
       setIsSubmitting(false);
     }
