@@ -517,13 +517,33 @@
   transition: 160ms ease;
 }
 
+.profileField textarea {
+  border-radius: 12px;
+  border: 1px solid #c8dbff;
+  background: #f7faff;
+  color: #11346c;
+  padding: 0.68rem 0.75rem;
+  font: 550 0.9rem/1.45 "Inter", "Segoe UI", sans-serif;
+  transition: 160ms ease;
+  resize: vertical;
+  min-height: 92px;
+}
+
 .profileField input:focus-visible {
   outline: 2px solid rgba(31, 94, 255, 0.28);
   border-color: #9fc0ff;
   background: #fff;
 }
 
-.profileField input[readonly] {
+.profileField textarea:focus-visible {
+  outline: 2px solid rgba(31, 94, 255, 0.28);
+  border-color: #9fc0ff;
+  background: #fff;
+}
+
+.profileField input[readonly],
+.profileField input:disabled,
+.profileField textarea:disabled {
   color: #5673a0;
   background: #f2f6ff;
 }

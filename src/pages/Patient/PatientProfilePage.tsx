@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { AxiosError } from "axios";
 import {
   changePatientPassword,
   getPatientProfile,
@@ -14,6 +13,9 @@ type ProfileFormValues = {
   nombre: string;
   telefono: string;
   correo: string;
+  direccion: string;
+  alergias: string;
+  notas: string;
 };
 
 type PasswordFormValues = {
@@ -26,6 +28,9 @@ const EMPTY_PROFILE: ProfileFormValues = {
   nombre: "",
   telefono: "",
   correo: "",
+  direccion: "",
+  alergias: "",
+  notas: "",
 };
 
 const EMPTY_PASSWORD: PasswordFormValues = {
@@ -41,6 +46,9 @@ function getInitialProfileFromStorage(): PatientProfileData {
     nombre: stored?.name?.trim() || "",
     telefono: "",
     correo: stored?.email?.trim() || "",
+    direccion: "",
+    alergias: "",
+    notas: "",
     clinica: stored?.clinic_name?.trim() || "Clínica dental",
     rol: "Paciente",
   };
@@ -64,8 +72,6 @@ export default function PatientProfilePage() {
   const [passwordError, setPasswordError] = useState("");
   const [passwordFeedback, setPasswordFeedback] = useState("");
 
-  const [emailEditable, setEmailEditable] = useState(true);
-
   useEffect(() => {
     let active = true;
 
@@ -80,6 +86,9 @@ export default function PatientProfilePage() {
           nombre: result.nombre,
           telefono: result.telefono,
           correo: result.correo,
+          direccion: result.direccion,
+          alergias: result.alergias,
+          notas: result.notas,
         });
         setProfileError("");
       } catch (error) {
@@ -101,7 +110,9 @@ export default function PatientProfilePage() {
     () =>
       profileForm.nombre.trim() !== profileData.nombre ||
       profileForm.telefono.trim() !== profileData.telefono ||
-      profileForm.correo.trim() !== profileData.correo,
+      profileForm.direccion.trim() !== profileData.direccion ||
+      profileForm.alergias.trim() !== profileData.alergias ||
+      profileForm.notas.trim() !== profileData.notas,
     [profileForm, profileData]
   );
 
@@ -113,11 +124,6 @@ export default function PatientProfilePage() {
 
     const digits = profileForm.telefono.replace(/\D/g, "");
     if (digits.length < 8) return "Ingresa un teléfono válido de al menos 8 dígitos.";
-
-    if (emailEditable && profileForm.correo.trim()) {
-      const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profileForm.correo.trim());
-      if (!isEmailValid) return "Ingresa un correo electrónico válido.";
-    }
 
     return "";
   }
@@ -139,7 +145,9 @@ export default function PatientProfilePage() {
       const updated = await updatePatientProfile({
         nombre: profileForm.nombre,
         telefono: profileForm.telefono,
-        correo: emailEditable ? profileForm.correo : undefined,
+        direccion: profileForm.direccion,
+        alergias: profileForm.alergias,
+        notas: profileForm.notas,
       });
 
       setProfileData(updated);
@@ -147,6 +155,9 @@ export default function PatientProfilePage() {
         nombre: updated.nombre,
         telefono: updated.telefono,
         correo: updated.correo,
+        direccion: updated.direccion,
+        alergias: updated.alergias,
+        notas: updated.notas,
       });
       setProfileFeedback("Tus datos se actualizaron correctamente.");
 
@@ -154,19 +165,14 @@ export default function PatientProfilePage() {
       if (currentStoredUser) {
         localStorage.setItem(
           "user",
-          JSON.stringify({
-            ...currentStoredUser,
-            name: updated.nombre,
-            email: updated.correo,
-          })
-        );
+            JSON.stringify({
+              ...currentStoredUser,
+              name: updated.nombre,
+              email: updated.correo || currentStoredUser.email,
+            })
+          );
       }
     } catch (error) {
-      const maybeAxios = error as AxiosError;
-      if (maybeAxios.response?.status === 403 || maybeAxios.response?.status === 422) {
-        setEmailEditable(false);
-      }
-
       setProfileError(toErrorMessage(error, "No se pudieron guardar tus cambios. Inténtalo nuevamente."));
     } finally {
       setSavingProfile(false);
@@ -178,6 +184,9 @@ export default function PatientProfilePage() {
       nombre: profileData.nombre,
       telefono: profileData.telefono,
       correo: profileData.correo,
+      direccion: profileData.direccion,
+      alergias: profileData.alergias,
+      notas: profileData.notas,
     });
     setProfileFeedback("");
     setProfileError("");
@@ -306,19 +315,50 @@ export default function PatientProfilePage() {
                   <input
                     id="profile-email"
                     value={profileForm.correo}
-                    onChange={(event) => setProfileForm((prev) => ({ ...prev, correo: event.target.value }))}
                     placeholder="tu.correo@ejemplo.com"
                     autoComplete="email"
-                    readOnly={!emailEditable}
-                    aria-readonly={!emailEditable}
+                    disabled
+                    aria-readonly="true"
                   />
                 </label>
 
-                {!emailEditable && (
-                  <p className={styles.fieldHint}>
-                    Tu correo no es editable en este flujo actual. Si necesitas cambiarlo, contacta a la clínica.
-                  </p>
-                )}
+                <p className={styles.fieldHint}>
+                  El correo no se puede editar desde esta sección. Si necesitas cambiarlo, contacta a la clínica.
+                </p>
+
+                <div className={styles.profileFieldsGrid}>
+                  <label className={styles.profileField} htmlFor="profile-address">
+                    Dirección
+                    <input
+                      id="profile-address"
+                      value={profileForm.direccion}
+                      onChange={(event) => setProfileForm((prev) => ({ ...prev, direccion: event.target.value }))}
+                      placeholder="Tu dirección"
+                      autoComplete="street-address"
+                    />
+                  </label>
+
+                  <label className={styles.profileField} htmlFor="profile-allergies">
+                    Alergias
+                    <input
+                      id="profile-allergies"
+                      value={profileForm.alergias}
+                      onChange={(event) => setProfileForm((prev) => ({ ...prev, alergias: event.target.value }))}
+                      placeholder="Ej. Penicilina"
+                    />
+                  </label>
+                </div>
+
+                <label className={styles.profileField} htmlFor="profile-notes">
+                  Notas
+                  <textarea
+                    id="profile-notes"
+                    value={profileForm.notas}
+                    onChange={(event) => setProfileForm((prev) => ({ ...prev, notas: event.target.value }))}
+                    placeholder="Información adicional relevante para tu atención."
+                    rows={4}
+                  />
+                </label>
 
                 <div className={styles.profileActions}>
                   <button className={styles.secondaryAction} type="button" onClick={handleResetChanges}>

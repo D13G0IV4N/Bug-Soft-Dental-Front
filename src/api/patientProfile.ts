@@ -6,6 +6,9 @@ export interface PatientProfileData {
   nombre: string;
   telefono: string;
   correo: string;
+  direccion: string;
+  alergias: string;
+  notas: string;
   clinica: string;
   rol: string;
 }
@@ -13,7 +16,9 @@ export interface PatientProfileData {
 export interface UpdatePatientProfilePayload {
   nombre: string;
   telefono: string;
-  correo?: string;
+  direccion: string;
+  alergias: string;
+  notas: string;
 }
 
 export interface ChangePasswordPayload {
@@ -61,11 +66,16 @@ function resolveClinicName(record: Record<string, unknown>): string {
 }
 
 function normalizePatientProfile(record: Record<string, unknown>): PatientProfileData {
+  const profile = asRecord(record.profile);
+
   return {
     id: typeof record.id === "number" ? record.id : undefined,
     nombre: toText(record.name),
     telefono: toText(record.phone),
     correo: toText(record.email),
+    direccion: toText(profile.address),
+    alergias: toText(profile.allergies),
+    notas: toText(profile.notes),
     clinica: resolveClinicName(record),
     rol: resolveRole(record.role),
   };
@@ -82,22 +92,18 @@ export async function getPatientProfile() {
 }
 
 export async function updatePatientProfile(payload: UpdatePatientProfilePayload) {
-  const body: Record<string, unknown> = {
+  const body = {
     name: payload.nombre.trim(),
     phone: payload.telefono.trim(),
+    profile: {
+      address: payload.direccion.trim(),
+      allergies: payload.alergias.trim(),
+      notes: payload.notas.trim(),
+    },
   };
 
-  if (payload.correo !== undefined) {
-    body.email = payload.correo.trim();
-  }
-
-  try {
-    const { data } = await api.patch("/pacient/profile", body);
-    return normalizePatientProfile(normalizeOne(data));
-  } catch {
-    const { data } = await api.patch("/auth/me", body);
-    return normalizePatientProfile(normalizeOne(data));
-  }
+  const { data } = await api.patch("/auth/me", body);
+  return normalizePatientProfile(normalizeOne(data));
 }
 
 export async function changePatientPassword(payload: ChangePasswordPayload) {
