@@ -191,7 +191,7 @@ export default function PatientHomePage() {
           <div className={styles.quickActionGrid}>
             <button className={styles.quickActionButton} type="button" onClick={() => navigate("/patient/book")}>Agendar cita</button>
             <button className={styles.quickActionButton} type="button" onClick={() => navigate("/patient/appointments")}>Ver citas</button>
-            <button className={styles.quickActionButton} type="button" onClick={() => navigate("/patient/services")}>Ver servicios</button>
+            <button className={styles.quickActionButton} type="button" onClick={() => navigate("/patient/services")}>Ver detalles clínica</button>
             <button className={styles.quickActionButton} type="button" onClick={() => navigate("/patient/profile")}>Actualizar perfil</button>
           </div>
         </article>
