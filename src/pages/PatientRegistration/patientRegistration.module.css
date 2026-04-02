@@ -18,7 +18,7 @@
   color: var(--text);
   background:
     radial-gradient(1000px 550px at 8% 15%, rgba(75, 157, 235, 0.35), transparent 58%),
-    radial-gradient(650px 500px at 88% 20%, rgba(47, 134, 230, 0.2), transparent 62%),
+    radial-gradient(700px 520px at 86% 15%, rgba(47, 134, 230, 0.22), transparent 62%),
     linear-gradient(185deg, #fafdff 0%, var(--bg) 100%);
 }
 
@@ -33,19 +33,19 @@
   width: 100%;
   display: grid;
   place-items: center;
-  padding: 32px;
+  padding: 28px;
 }
 
 .shell {
-  width: min(980px, 100%);
+  width: min(1040px, 100%);
   border-radius: 32px;
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.89);
   border: 1px solid rgba(219, 232, 245, 0.92);
   box-shadow: var(--shell-shadow);
   backdrop-filter: blur(8px);
   overflow: hidden;
   display: grid;
-  grid-template-columns: minmax(250px, 42%) 1fr;
+  grid-template-columns: minmax(280px, 40%) 1fr;
 }
 
 .brandPanel {
@@ -53,10 +53,10 @@
   display: grid;
   align-content: center;
   gap: 14px;
-  padding: clamp(28px, 5vw, 48px);
+  padding: clamp(28px, 4vw, 44px);
   color: #e8f3ff;
   background:
-    linear-gradient(145deg, #0f4c8e 0%, #1e73ca 45%, #3d96f0 100%),
+    linear-gradient(154deg, #0c427d 0%, #1c6dc2 48%, #3794ed 100%),
     linear-gradient(30deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0));
 }
 
@@ -66,22 +66,22 @@
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.22), transparent 38%),
-    radial-gradient(circle at 82% 74%, rgba(255, 255, 255, 0.13), transparent 36%);
+    radial-gradient(circle at 24% 25%, rgba(255, 255, 255, 0.22), transparent 36%),
+    radial-gradient(circle at 82% 72%, rgba(255, 255, 255, 0.14), transparent 34%);
 }
 
 .brandMark,
 .brandEyebrow,
 .brandTitle,
 .brandCopy,
-.brandPill {
+.featureList {
   position: relative;
   z-index: 1;
 }
 
 .brandMark {
-  width: 68px;
-  height: 68px;
+  width: 66px;
+  height: 66px;
   border-radius: 18px;
   display: grid;
   place-items: center;
@@ -93,46 +93,51 @@
 .brandEyebrow {
   margin: 0;
   font-size: 12px;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
-  opacity: 0.8;
+  opacity: 0.84;
 }
 
 .brandTitle {
   margin: 0;
-  font-size: clamp(30px, 4.1vw, 44px);
+  font-size: clamp(30px, 4.2vw, 44px);
   line-height: 1.05;
-  letter-spacing: 0.01em;
 }
 
 .brandCopy {
   margin: 0;
-  max-width: 28ch;
+  max-width: 32ch;
   font-size: 15px;
-  line-height: 1.6;
-  opacity: 0.96;
+  line-height: 1.58;
 }
 
-.brandPill {
-  margin-top: 10px;
-  width: fit-content;
+.featureList {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.featureList li {
   border-radius: 999px;
-  padding: 8px 14px;
-  font-size: 12px;
+  width: fit-content;
+  padding: 7px 13px;
+  font-size: 12.5px;
   font-weight: 600;
-  background: rgba(9, 31, 58, 0.3);
+  background: rgba(12, 42, 75, 0.3);
   border: 1px solid rgba(222, 239, 255, 0.3);
 }
 
 .formPanel {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), #ffffff);
-  padding: clamp(28px, 5vw, 46px);
+  padding: clamp(26px, 4.5vw, 42px);
   display: grid;
   align-content: center;
 }
 
 .formHeader {
-  margin-bottom: 26px;
+  margin-bottom: 22px;
 }
 
 .formTitle {
@@ -143,21 +148,27 @@
 }
 
 .formSubtitle {
-  margin: 10px 0 0;
+  margin: 9px 0 0;
   color: var(--muted);
   font-size: 14px;
-  max-width: 40ch;
-  line-height: 1.6;
+  max-width: 48ch;
+  line-height: 1.58;
 }
 
 .form {
   display: grid;
-  gap: 18px;
+  gap: 14px;
 }
 
 .row {
   display: grid;
-  gap: 9px;
+  gap: 8px;
+}
+
+.doubleRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
 .label {
@@ -168,11 +179,11 @@
 
 .input {
   width: 100%;
-  height: 54px;
+  height: 50px;
   border: 1px solid var(--stroke);
   border-radius: 14px;
   background: linear-gradient(180deg, #ffffff 0%, #fafdff 100%);
-  padding: 0 16px;
+  padding: 0 15px;
   font-size: 15px;
   color: #10304f;
   outline: none;
@@ -186,72 +197,66 @@
   color: #88a0b8;
 }
 
+.selectInput {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #4f7ba9 50%),
+    linear-gradient(135deg, #4f7ba9 50%, transparent 50%);
+  background-position:
+    calc(100% - 20px) calc(1em + 4px),
+    calc(100% - 14px) calc(1em + 4px);
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 42px;
+}
+
 .input:focus {
   border-color: #4a9ef0;
   box-shadow: 0 0 0 4px rgba(74, 158, 240, 0.16);
   background: #ffffff;
 }
 
-.passwordWrap {
-  position: relative;
+.inputError {
+  border-color: #d55f76;
+  box-shadow: 0 0 0 4px rgba(213, 95, 118, 0.12);
 }
 
-.passwordWrap .input {
-  padding-right: 54px;
-}
-
-.passwordToggle {
-  position: absolute;
-  top: 50%;
-  right: 10px;
-  transform: translateY(-50%);
-  width: 36px;
-  height: 36px;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  background: transparent;
-  color: #4d6f91;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.passwordToggle:hover {
-  background: var(--primary-soft);
-  color: #1b5ea6;
-}
-
-.passwordToggle:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(74, 158, 240, 0.22);
-}
-
-.passwordToggle svg {
-  width: 19px;
-  height: 19px;
-  fill: currentColor;
-}
-
-.metaRow {
+.errorText {
   margin-top: -2px;
-}
-
-.link {
-  color: #2a79cf;
-  font-size: 13px;
-  text-decoration: none;
+  color: #bf3355;
+  font-size: 12px;
   font-weight: 600;
 }
 
-.link:hover {
-  text-decoration: underline;
-  color: #1d67b6;
+.termsRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  color: #4b6785;
+  line-height: 1.45;
+}
+
+.termsRow input {
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  accent-color: #2f86e6;
+}
+
+.successMessage {
+  border: 1px solid #9dc4ea;
+  background: #eff7ff;
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: #1f5f98;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .btn {
-  margin-top: 4px;
-  height: 56px;
+  margin-top: 2px;
+  height: 54px;
   border: none;
   border-radius: 14px;
   color: #ffffff;
@@ -264,12 +269,12 @@
   transition: transform 0.1s ease, filter 0.16s ease, box-shadow 0.16s ease;
 }
 
-.btn:hover {
+.btn:hover:not(:disabled) {
   filter: brightness(1.04);
   box-shadow: 0 14px 28px rgba(33, 108, 188, 0.3);
 }
 
-.btn:active {
+.btn:active:not(:disabled) {
   transform: translateY(1px);
 }
 
@@ -280,48 +285,40 @@
     0 14px 28px rgba(33, 108, 188, 0.3);
 }
 
-
-.registerPrompt {
-  margin: -4px 0 0;
-  font-size: 13.5px;
-  color: #597793;
-  text-align: center;
-}
-
-.registerPrompt a {
-  color: #2a79cf;
-  text-decoration: none;
-  font-weight: 700;
-}
-
-.registerPrompt a:hover {
-  text-decoration: underline;
+.btn:disabled {
+  opacity: 0.74;
+  cursor: wait;
 }
 
 .footer {
   margin: 2px 0 0;
   color: #6f86a0;
-  font-size: 12.5px;
+  font-size: 13px;
   text-align: center;
 }
 
-@media (max-width: 940px) {
+.footer a {
+  color: #2a79cf;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.footer a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 980px) {
   .shell {
     grid-template-columns: 1fr;
-    width: min(640px, 100%);
-  }
-
-  .brandPanel {
-    gap: 10px;
-    padding: 28px;
+    width: min(690px, 100%);
   }
 
   .brandCopy {
-    max-width: 44ch;
+    max-width: 46ch;
   }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 640px) {
   .page {
     padding: 14px;
   }
@@ -331,31 +328,15 @@
   }
 
   .brandPanel {
-    padding: 22px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.22);
-  }
-
-  .brandMark {
-    width: 58px;
-    height: 58px;
-    font-size: 26px;
-    border-radius: 16px;
-  }
-
-  .brandTitle {
-    font-size: 28px;
+    padding: 24px;
   }
 
   .formPanel {
     padding: 22px;
   }
 
-  .formTitle {
-    font-size: 26px;
-  }
-
-  .input,
-  .btn {
-    height: 52px;
+  .doubleRow {
+    grid-template-columns: 1fr;
+    gap: 14px;
   }
 }
