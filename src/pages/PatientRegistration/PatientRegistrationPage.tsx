@@ -35,14 +35,17 @@ export default function PatientRegistrationPage() {
   const [isClinicLoading, setIsClinicLoading] = useState(true);
   const [clinicError, setClinicError] = useState("");
   const [isClinicDropdownOpen, setIsClinicDropdownOpen] = useState(false);
+  const [clinicSearchTerm, setClinicSearchTerm] = useState("");
   const clinicSelectorRef = useRef<HTMLDivElement | null>(null);
   const clinicTriggerRef = useRef<HTMLButtonElement | null>(null);
   const clinicDropdownRef = useRef<HTMLDivElement | null>(null);
+  const clinicSearchInputRef = useRef<HTMLInputElement | null>(null);
   const [clinicDropdownPosition, setClinicDropdownPosition] = useState({
     top: 0,
     left: 0,
     width: 0,
     maxHeight: 280,
+    openUpward: false,
   });
 
   useEffect(() => {
@@ -147,31 +150,67 @@ export default function PatientRegistrationPage() {
 
   const selectedClinicSecondary = selectedClinic?.address || selectedClinic?.phone || selectedClinic?.email || "";
 
+  const filteredClinics = useMemo(() => {
+    const query = clinicSearchTerm.trim().toLocaleLowerCase();
+    if (!query) return clinics;
+
+    return clinics.filter((clinic) => {
+      const haystack = [clinic.name, clinic.address, clinic.phone, clinic.email]
+        .filter(Boolean)
+        .join(" ")
+        .toLocaleLowerCase();
+      return haystack.includes(query);
+    });
+  }, [clinicSearchTerm, clinics]);
 
   const updateClinicDropdownPosition = useCallback(() => {
     const trigger = clinicTriggerRef.current;
     if (!trigger) return;
 
     const rect = trigger.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-    const spaceBelow = viewportHeight - rect.bottom - 16;
-    const spaceAbove = rect.top - 16;
-    const openUpward = spaceBelow < 220 && spaceAbove > spaceBelow;
-    const availableHeight = Math.max(220, openUpward ? spaceAbove : spaceBelow);
-    const maxHeight = Math.min(360, availableHeight);
+    const viewportPadding = 12;
+    const dropdownGap = 8;
+    const spaceBelow = viewportHeight - rect.bottom - viewportPadding - dropdownGap;
+    const spaceAbove = rect.top - viewportPadding - dropdownGap;
+    const preferredViewportHeight = Math.floor(viewportHeight * 0.68);
+    const openUpward = spaceBelow < preferredViewportHeight * 0.55 && spaceAbove > spaceBelow;
+    const safeAvailableHeight = Math.max(180, Math.floor(openUpward ? spaceAbove : spaceBelow));
+    const preferredMaxHeight = Math.max(420, preferredViewportHeight);
+    const maxHeight = Math.min(preferredMaxHeight, safeAvailableHeight);
+    const panelWidth = Math.min(Math.max(rect.width, 420), viewportWidth - viewportPadding * 2);
+    const clampedLeft = Math.min(
+      Math.max(viewportPadding, rect.left),
+      viewportWidth - viewportPadding - panelWidth
+    );
+    const top = openUpward
+      ? Math.max(viewportPadding, rect.top - dropdownGap - maxHeight)
+      : Math.min(viewportHeight - viewportPadding - maxHeight, rect.bottom + dropdownGap);
 
     setClinicDropdownPosition({
-      top: openUpward ? Math.max(8, rect.top - maxHeight - 8) : rect.bottom + 8,
-      left: rect.left,
-      width: rect.width,
+      top,
+      left: clampedLeft,
+      width: panelWidth,
       maxHeight,
+      openUpward,
     });
+  }, []);
+
+  const handleClinicListWheel = useCallback((event: React.WheelEvent<HTMLUListElement>) => {
+    const list = event.currentTarget;
+    if (event.deltaY === 0) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    list.scrollTop += event.deltaY;
   }, []);
 
   useEffect(() => {
     if (!isClinicDropdownOpen) return;
 
     updateClinicDropdownPosition();
+    window.requestAnimationFrame(() => clinicSearchInputRef.current?.focus());
 
     const handleClickOutside = (event: MouseEvent) => {
       const targetNode = event.target as Node;
@@ -196,6 +235,10 @@ export default function PatientRegistrationPage() {
       window.removeEventListener("scroll", updateClinicDropdownPosition, true);
     };
   }, [isClinicDropdownOpen, updateClinicDropdownPosition]);
+
+  useEffect(() => {
+    if (!isClinicDropdownOpen) setClinicSearchTerm("");
+  }, [isClinicDropdownOpen]);
 
   return (
     <main className={styles.page}>
@@ -334,6 +377,7 @@ export default function PatientRegistrationPage() {
                     setIsClinicDropdownOpen((prev) => {
                       const nextState = !prev;
                       if (!prev) updateClinicDropdownPosition();
+                      if (prev) setClinicSearchTerm("");
                       return nextState;
                     });
                   }}
@@ -359,7 +403,7 @@ export default function PatientRegistrationPage() {
 
                 {isClinicDropdownOpen && !isClinicSelectorDisabled && createPortal(
                   <div
-                    className={styles.clinicDropdown}
+                    className={`${styles.clinicDropdown} ${clinicDropdownPosition.openUpward ? styles.clinicDropdownUpward : ""}`}
                     role="presentation"
                     ref={clinicDropdownRef}
                     style={{
@@ -369,8 +413,24 @@ export default function PatientRegistrationPage() {
                       maxHeight: clinicDropdownPosition.maxHeight,
                     }}
                   >
-                    <ul className={styles.clinicListbox} role="listbox" aria-label="Listado de clínicas">
-                      {clinics.map((clinic) => {
+                    <div className={styles.clinicSearchWrap}>
+                      <input
+                        ref={clinicSearchInputRef}
+                        type="search"
+                        value={clinicSearchTerm}
+                        onChange={(event) => setClinicSearchTerm(event.target.value)}
+                        className={styles.clinicSearchInput}
+                        placeholder="Buscar por nombre, dirección, teléfono o correo"
+                        aria-label="Buscar clínica"
+                      />
+                    </div>
+                    <ul
+                      className={styles.clinicListbox}
+                      role="listbox"
+                      aria-label="Listado de clínicas"
+                      onWheel={handleClinicListWheel}
+                    >
+                      {filteredClinics.map((clinic) => {
                         const clinicId = String(clinic.id);
                         const isSelected = form.clinic_id === clinicId;
                         return (
@@ -380,6 +440,7 @@ export default function PatientRegistrationPage() {
                               className={`${styles.clinicOptionCard} ${isSelected ? styles.clinicOptionCardSelected : ""}`}
                               onClick={() => {
                                 handleChange("clinic_id", clinicId);
+                                setClinicSearchTerm("");
                                 setIsClinicDropdownOpen(false);
                               }}
                             >
@@ -404,6 +465,11 @@ export default function PatientRegistrationPage() {
                           </li>
                         );
                       })}
+                      {filteredClinics.length === 0 && (
+                        <li className={styles.clinicNoResults} aria-live="polite">
+                          No encontramos clínicas con ese criterio.
+                        </li>
+                      )}
                     </ul>
                   </div>,
                   document.body
