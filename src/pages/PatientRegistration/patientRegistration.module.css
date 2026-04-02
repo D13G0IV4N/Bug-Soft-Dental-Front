@@ -228,6 +228,13 @@
   font-weight: 600;
 }
 
+
+.helperText {
+  margin-top: -2px;
+  color: #5b7693;
+  font-size: 12px;
+  line-height: 1.45;
+}
 .termsRow {
   display: flex;
   align-items: flex-start;
