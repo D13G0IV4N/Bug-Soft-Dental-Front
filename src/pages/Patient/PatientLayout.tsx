@@ -67,7 +67,7 @@ function ProfileIcon() {
 const patientLinks: PatientLink[] = [
   { to: "/patient", label: "Inicio", icon: <IconWrapper><HomeIcon /></IconWrapper>, end: true },
   { to: "/patient/appointments", label: "Mis citas", icon: <IconWrapper><CalendarIcon /></IconWrapper> },
-  { to: "/patient/services", label: "Servicios", icon: <IconWrapper><ServicesIcon /></IconWrapper> },
+  { to: "/patient/services", label: "Detalles clínica", icon: <IconWrapper><ServicesIcon /></IconWrapper> },
   { to: "/patient/book", label: "Agendar cita", icon: <IconWrapper><BookIcon /></IconWrapper> },
   { to: "/patient/profile", label: "Mi perfil", icon: <IconWrapper><ProfileIcon /></IconWrapper> },
 ];

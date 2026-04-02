@@ -22,6 +22,7 @@ import PatientLayout from "./pages/Patient/PatientLayout";
 import PatientHomePage from "./pages/Patient/PatientHomePage";
 import PatientPlaceholderPage from "./pages/Patient/PatientPlaceholderPage";
 import PatientProfilePage from "./pages/Patient/PatientProfilePage";
+import PatientClinicDetailsPage from "./pages/Patient/PatientClinicDetailsPage";
 import PatientRegistrationPage from "./pages/PatientRegistration/PatientRegistrationPage";
 
 function HomeRedirect() {
@@ -97,7 +98,7 @@ export default function App() {
           <Route path="/patient" element={<PatientLayout />}>
             <Route index element={<PatientHomePage />} />
             <Route path="appointments" element={<PatientPlaceholderPage />} />
-            <Route path="services" element={<PatientPlaceholderPage />} />
+            <Route path="services" element={<PatientClinicDetailsPage />} />
             <Route path="book" element={<PatientPlaceholderPage />} />
             <Route path="profile" element={<PatientProfilePage />} />
           </Route>
