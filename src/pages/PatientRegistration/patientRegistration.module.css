@@ -490,6 +490,16 @@
   line-height: 1.5;
 }
 
+.errorMessage {
+  border: 1px solid #e3b3bd;
+  background: #fff5f7;
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: #a6364e;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .btn {
   margin-top: 2px;
   height: 54px;

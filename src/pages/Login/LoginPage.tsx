@@ -1,11 +1,19 @@
 import { useState } from "react";
 import styles from "./login.module.css";
 import { login } from "../../api/auth";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getPostLoginRoute, normalizeRole } from "../../utils/auth";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const registrationSuccess =
+    typeof location.state === "object" &&
+    location.state !== null &&
+    "registrationSuccess" in location.state &&
+    typeof (location.state as { registrationSuccess?: unknown }).registrationSuccess === "string"
+      ? (location.state as { registrationSuccess: string }).registrationSuccess
+      : "";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -78,6 +86,10 @@ export default function LoginPage() {
           </header>
 
           <form className={styles.form} onSubmit={onSubmit}>
+            {registrationSuccess && (
+              <div className={styles.successMessage}>{registrationSuccess}</div>
+            )}
+
             <div className={styles.row}>
               <label className={styles.label} htmlFor="email">
                 Correo corporativo
