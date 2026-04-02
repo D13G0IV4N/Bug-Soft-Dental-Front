@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   createPacientAppointment,
   toErrorMessage,
@@ -14,6 +14,8 @@ interface BookingFormState {
   service_id: string;
   dentist_user_id: string;
   start_at: string;
+  reason: string;
+  internal_notes: string;
 }
 
 interface BookingErrors {
@@ -31,19 +33,6 @@ function formatDateTimeForApi(value: string): string {
 
   const [, date, time, seconds] = match;
   return `${date} ${time}:${seconds ?? "00"}`;
-}
-
-function formatSummaryDateTime(value: string): string {
-  const formatted = formatDateTimeForApi(value);
-  if (!formatted) return "Pendiente";
-
-  const date = new Date(formatted.replace(" ", "T"));
-  if (Number.isNaN(date.getTime())) return formatted;
-
-  return new Intl.DateTimeFormat("es-CO", {
-    dateStyle: "full",
-    timeStyle: "short",
-  }).format(date);
 }
 
 function collectSpecialties(dentist: PatientClinicDentist): string {
@@ -72,6 +61,8 @@ export default function PatientBookAppointmentPage() {
     service_id: "",
     dentist_user_id: "",
     start_at: "",
+    reason: "",
+    internal_notes: "",
   });
   const [errors, setErrors] = useState<BookingErrors>({});
 
@@ -99,16 +90,6 @@ export default function PatientBookAppointmentPage() {
       active = false;
     };
   }, []);
-
-  const selectedService = useMemo(
-    () => services.find((service) => String(service.id) === form.service_id),
-    [form.service_id, services]
-  );
-
-  const selectedDentist = useMemo(
-    () => dentists.find((dentist) => String(dentist.id) === form.dentist_user_id),
-    [dentists, form.dentist_user_id]
-  );
 
   function updateField<K extends keyof BookingFormState>(field: K, value: BookingFormState[K]) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -149,10 +130,12 @@ export default function PatientBookAppointmentPage() {
         service_id: Number(form.service_id),
         dentist_user_id: Number(form.dentist_user_id),
         start_at: formatDateTimeForApi(form.start_at),
+        reason: form.reason,
+        internal_notes: form.internal_notes,
       });
 
       setSuccessMessage("¡Tu cita fue agendada correctamente! Te enviaremos los detalles de confirmación.");
-      setForm({ service_id: "", dentist_user_id: "", start_at: "" });
+      setForm({ service_id: "", dentist_user_id: "", start_at: "", reason: "", internal_notes: "" });
       setErrors({});
     } catch (error) {
       setSubmitError(toErrorMessage(error, "No pudimos agendar tu cita por ahora. Intenta nuevamente en unos minutos."));
@@ -191,7 +174,7 @@ export default function PatientBookAppointmentPage() {
         <p className={styles.welcomeEyebrow}>Agendamiento en línea</p>
         <h2 className={styles.welcomeTitle}>Agenda tu cita</h2>
         <p className={styles.welcomeDescription}>
-          Elige el servicio, el odontólogo y la fecha que mejor se ajusten a ti. Te tomará menos de un minuto confirmar tu cita.
+          Elige el servicio, el odontólogo y la fecha que mejor se ajusten a ti. También puedes agregar el motivo y notas adicionales para una mejor atención.
         </p>
       </header>
 
@@ -262,6 +245,36 @@ export default function PatientBookAppointmentPage() {
               {errors.start_at ? <p className={styles.bookingFieldError}>{errors.start_at}</p> : null}
             </section>
 
+            <section className={styles.bookingStepSection}>
+              <h3 className={styles.bookingStepTitle}>Paso 4 · Cuéntanos el motivo de tu cita</h3>
+              <p className={styles.bookingStepDescription}>Opcional. Esto nos ayuda a preparar mejor tu atención.</p>
+
+              <label className={styles.bookingFieldLabel} htmlFor="reason">Motivo de la cita</label>
+              <textarea
+                id="reason"
+                className={styles.bookingTextarea}
+                value={form.reason}
+                onChange={(event) => updateField("reason", event.target.value)}
+                rows={3}
+                placeholder="Ejemplo: dolor en una muela, control general, limpieza..."
+              />
+            </section>
+
+            <section className={styles.bookingStepSection}>
+              <h3 className={styles.bookingStepTitle}>Paso 5 · Agrega notas adicionales</h3>
+              <p className={styles.bookingStepDescription}>Opcional. Incluye información relevante para tu cita.</p>
+
+              <label className={styles.bookingFieldLabel} htmlFor="internal_notes">Notas adicionales</label>
+              <textarea
+                id="internal_notes"
+                className={styles.bookingTextarea}
+                value={form.internal_notes}
+                onChange={(event) => updateField("internal_notes", event.target.value)}
+                rows={4}
+                placeholder="Ejemplo: horario preferido, antecedentes importantes o indicaciones previas."
+              />
+            </section>
+
             {submitError ? <p className={styles.bookingAlertError}>{submitError}</p> : null}
             {successMessage ? <p className={styles.bookingAlertSuccess}>{successMessage}</p> : null}
 
@@ -270,31 +283,6 @@ export default function PatientBookAppointmentPage() {
             </button>
           </form>
         </article>
-
-        <aside className={styles.bookingSummaryCard}>
-          <p className={styles.sectionEyebrow}>Resumen</p>
-          <h3 className={styles.sectionTitle}>Tu cita en revisión</h3>
-          <p className={styles.sectionDescription}>Verifica los datos antes de confirmar.</p>
-
-          <dl className={styles.bookingSummaryList}>
-            <div>
-              <dt>Servicio</dt>
-              <dd>{selectedService?.name || "Pendiente"}</dd>
-            </div>
-            <div>
-              <dt>Odontólogo</dt>
-              <dd>{selectedDentist?.name || "Pendiente"}</dd>
-            </div>
-            <div>
-              <dt>Fecha y hora</dt>
-              <dd>{form.start_at ? formatSummaryDateTime(form.start_at) : "Pendiente"}</dd>
-            </div>
-          </dl>
-
-          <p className={styles.bookingSummaryTip}>
-            Consejo: llega 10 minutos antes para tu registro y evaluación inicial.
-          </p>
-        </aside>
       </div>
     </section>
   );

@@ -62,6 +62,8 @@ export interface PacientAppointmentPayload {
   service_id: number;
   dentist_user_id: number;
   start_at: string;
+  reason?: string | null;
+  internal_notes?: string | null;
 }
 
 export interface AppointmentUpdatePayload {
@@ -343,6 +345,8 @@ export async function createPacientAppointment(payload: PacientAppointmentPayloa
     service_id: payload.service_id,
     dentist_user_id: payload.dentist_user_id,
     start_at: toApiDateTime(payload.start_at),
+    reason: payload.reason?.trim() || null,
+    internal_notes: payload.internal_notes?.trim() || null,
   });
 
   return normalizeAppointment(normalizeOne<unknown>(data));
