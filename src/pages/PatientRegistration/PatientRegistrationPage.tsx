@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { extractPublicClinics, getPublicClinics, type PublicClinic } from "../../api/clinics";
 import styles from "./patientRegistration.module.css";
 
 type RegistrationForm = {
@@ -8,23 +9,11 @@ type RegistrationForm = {
   phone: string;
   password: string;
   confirmPassword: string;
-  clinicId: string;
+  clinic_id: string;
   acceptsTerms: boolean;
 };
 
 type RegistrationErrors = Partial<Record<keyof RegistrationForm, string>>;
-
-type ClinicOption = {
-  id: string;
-  name: string;
-  city: string;
-};
-
-const CLINIC_OPTIONS: ClinicOption[] = [
-  { id: "north", name: "Bug&Soft Dental Norte", city: "Bogotá" },
-  { id: "central", name: "Bug&Soft Dental Central", city: "Medellín" },
-  { id: "coast", name: "Bug&Soft Dental Costa", city: "Barranquilla" },
-];
 
 const INITIAL_FORM: RegistrationForm = {
   fullName: "",
@@ -32,7 +21,7 @@ const INITIAL_FORM: RegistrationForm = {
   phone: "",
   password: "",
   confirmPassword: "",
-  clinicId: "",
+  clinic_id: "",
   acceptsTerms: false,
 };
 
@@ -41,9 +30,28 @@ export default function PatientRegistrationPage() {
   const [errors, setErrors] = useState<RegistrationErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
+  const [clinics, setClinics] = useState<PublicClinic[]>([]);
+  const [isClinicLoading, setIsClinicLoading] = useState(true);
+  const [clinicError, setClinicError] = useState("");
 
-  const clinics = useMemo(() => CLINIC_OPTIONS, []);
-  const isClinicLoading = false;
+  useEffect(() => {
+    async function loadClinics() {
+      setIsClinicLoading(true);
+      setClinicError("");
+
+      try {
+        const response = await getPublicClinics();
+        setClinics(extractPublicClinics(response));
+      } catch {
+        setClinics([]);
+        setClinicError("No pudimos cargar las clínicas en este momento. Intenta nuevamente en unos minutos.");
+      } finally {
+        setIsClinicLoading(false);
+      }
+    }
+
+    void loadClinics();
+  }, []);
 
   const handleChange = <K extends keyof RegistrationForm>(
     key: K,
@@ -83,7 +91,7 @@ export default function PatientRegistrationPage() {
       nextErrors.confirmPassword = "Las contraseñas no coinciden.";
     }
 
-    if (!form.clinicId) nextErrors.clinicId = "Selecciona una clínica.";
+    if (!form.clinic_id) nextErrors.clinic_id = "Selecciona una clínica.";
 
     if (!form.acceptsTerms)
       nextErrors.acceptsTerms = "Debes aceptar el aviso de privacidad.";
@@ -108,6 +116,8 @@ export default function PatientRegistrationPage() {
       setIsSubmitting(false);
     }
   };
+
+  const hasClinicEmptyState = !isClinicLoading && !clinicError && clinics.length === 0;
 
   return (
     <main className={styles.page}>
@@ -229,30 +239,41 @@ export default function PatientRegistrationPage() {
             </div>
 
             <div className={styles.row}>
-              <label className={styles.label} htmlFor="clinicId">
+              <label className={styles.label} htmlFor="clinic_id">
                 Clínica
               </label>
               <select
-                id="clinicId"
-                className={`${styles.input} ${styles.selectInput} ${errors.clinicId ? styles.inputError : ""}`}
-                value={form.clinicId}
-                onChange={(e) => handleChange("clinicId", e.target.value)}
-                disabled={isClinicLoading}
-                aria-invalid={Boolean(errors.clinicId)}
+                id="clinic_id"
+                className={`${styles.input} ${styles.selectInput} ${errors.clinic_id ? styles.inputError : ""}`}
+                value={form.clinic_id}
+                onChange={(e) => handleChange("clinic_id", e.target.value)}
+                disabled={isClinicLoading || Boolean(clinicError) || hasClinicEmptyState}
+                aria-invalid={Boolean(errors.clinic_id)}
               >
                 <option value="">
                   {isClinicLoading
                     ? "Cargando clínicas disponibles..."
-                    : "Selecciona tu clínica de preferencia"}
+                    : clinicError
+                      ? "No se pudieron cargar las clínicas"
+                      : hasClinicEmptyState
+                        ? "No hay clínicas disponibles por ahora"
+                        : "Selecciona tu clínica de preferencia"}
                 </option>
                 {!isClinicLoading &&
+                  !clinicError &&
                   clinics.map((clinic) => (
                     <option key={clinic.id} value={clinic.id}>
-                      {clinic.name} · {clinic.city}
+                      {clinic.name}
                     </option>
                   ))}
               </select>
-              {errors.clinicId && <span className={styles.errorText}>{errors.clinicId}</span>}
+              {errors.clinic_id && <span className={styles.errorText}>{errors.clinic_id}</span>}
+              {clinicError && <span className={styles.helperText}>{clinicError}</span>}
+              {hasClinicEmptyState && (
+                <span className={styles.helperText}>
+                  Aún no hay clínicas activas para registro. Vuelve a intentarlo más tarde.
+                </span>
+              )}
             </div>
 
             <label className={styles.termsRow}>

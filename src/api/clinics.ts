@@ -12,6 +12,11 @@ export interface Clinic {
   updated_at?: string;
 }
 
+export type PublicClinic = {
+  id: string;
+  name: string;
+};
+
 // Datos del administrador que se crea junto con la clínica
 export interface ClinicAdmin {
   name: string;
@@ -22,6 +27,25 @@ export interface ClinicAdmin {
 
 function normalizeData(response: any) {
   return response?.data?.data ?? response?.data ?? response;
+}
+
+export function extractPublicClinics(response: any): PublicClinic[] {
+  const payload = normalizeData(response);
+  const rows = Array.isArray(payload) ? payload : [];
+
+  return rows
+    .map((clinic): PublicClinic | null => {
+      const id = clinic?.id;
+      const name = typeof clinic?.name === "string" ? clinic.name.trim() : "";
+
+      if (id === undefined || id === null || !name) return null;
+
+      return {
+        id: String(id),
+        name,
+      };
+    })
+    .filter((clinic): clinic is PublicClinic => clinic !== null);
 }
 
 export async function getPublicClinics() {

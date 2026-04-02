@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { me } from "../../api/auth";
-import { getPublicClinics } from "../../api/clinics";
+import { extractPublicClinics, getPublicClinics } from "../../api/clinics";
 import { getStoredUser, resolveClinicId, resolveClinicName } from "../../utils/auth";
 import styles from "./dentist.module.css";
 
@@ -37,10 +37,9 @@ export default function DentistLayout() {
         }
 
         const clinicsResponse = await getPublicClinics();
-        const clinicsPayload = clinicsResponse?.data?.data ?? clinicsResponse?.data ?? clinicsResponse ?? [];
-        const clinics = Array.isArray(clinicsPayload) ? clinicsPayload : [];
-        const matchedClinic = clinics.find((clinic) => Number(clinic?.id) === clinicId);
-        const matchedName = typeof matchedClinic?.name === "string" ? matchedClinic.name.trim() : "";
+        const clinics = extractPublicClinics(clinicsResponse);
+        const matchedClinic = clinics.find((clinic) => Number(clinic.id) === clinicId);
+        const matchedName = matchedClinic?.name ?? "";
 
         setClinicName(matchedName);
       } catch {
