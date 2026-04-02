@@ -748,6 +748,19 @@
   font: 500 0.87rem/1.5 "Inter", "Segoe UI", sans-serif;
 }
 
+
+.serviceMetaText {
+  margin: 0.38rem 0 0;
+  color: #355a96;
+  font: 620 0.82rem/1.4 "Inter", "Segoe UI", sans-serif;
+}
+
+.dentistContactText {
+  margin: 0.55rem 0 0;
+  color: #3d5f95;
+  font: 550 0.82rem/1.4 "Inter", "Segoe UI", sans-serif;
+}
+
 .dentistCardTop {
   display: flex;
   align-items: center;
