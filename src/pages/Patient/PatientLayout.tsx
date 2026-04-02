@@ -1,28 +1,80 @@
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useMemo } from "react";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useMemo, type ReactNode } from "react";
 import { getStoredUser, resolveClinicName } from "../../utils/auth";
 import styles from "./patient.module.css";
 
 type PatientLink = {
   to: string;
   label: string;
-  shortLabel: string;
+  icon: ReactNode;
   end?: boolean;
 };
 
+function IconWrapper({ children }: { children: ReactNode }) {
+  return (
+    <span className={styles.navIcon} aria-hidden="true">
+      {children}
+    </span>
+  );
+}
+
+function HomeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none">
+      <path d="M4.5 10.7 12 4l7.5 6.7v8.4a1 1 0 0 1-1 1H14v-5.2h-4v5.2H5.5a1 1 0 0 1-1-1v-8.4Z" />
+    </svg>
+  );
+}
+
+function CalendarIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none">
+      <rect x="4" y="6" width="16" height="14" rx="2" />
+      <path d="M8 3.8v4M16 3.8v4M4 10.3h16" />
+      <path d="M8.5 14h3M8.5 17h6.5" />
+    </svg>
+  );
+}
+
+function ServicesIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none">
+      <path d="M12 3.5c3.7 0 6.8 3 6.8 6.8 0 5.2-5.2 9.6-6.8 9.6-1.7 0-6.8-4.4-6.8-9.6 0-3.8 3-6.8 6.8-6.8Z" />
+      <path d="M9.2 10.8h5.6M12 8v5.6" />
+    </svg>
+  );
+}
+
+function BookIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none">
+      <rect x="4" y="4.2" width="16" height="15.6" rx="2.2" />
+      <path d="M8 8.5h8M8 12h8M8 15.5h4.6" />
+      <path d="M18.7 18.8 20 20.1M15.3 17a2.6 2.6 0 1 0 0 .1Z" />
+    </svg>
+  );
+}
+
+function ProfileIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="8.4" r="3.1" />
+      <path d="M5.2 19a6.8 6.8 0 0 1 13.6 0" />
+    </svg>
+  );
+}
+
 const patientLinks: PatientLink[] = [
-  { to: "/patient", label: "Inicio", shortLabel: "IN", end: true },
-  { to: "/patient/appointments", label: "Mis citas", shortLabel: "MC" },
-  { to: "/patient/services", label: "Servicios", shortLabel: "SV" },
-  { to: "/patient/book", label: "Agendar cita", shortLabel: "AG" },
-  { to: "/patient/profile", label: "Mi perfil", shortLabel: "MP" },
+  { to: "/patient", label: "Inicio", icon: <IconWrapper><HomeIcon /></IconWrapper>, end: true },
+  { to: "/patient/appointments", label: "Mis citas", icon: <IconWrapper><CalendarIcon /></IconWrapper> },
+  { to: "/patient/services", label: "Servicios", icon: <IconWrapper><ServicesIcon /></IconWrapper> },
+  { to: "/patient/book", label: "Agendar cita", icon: <IconWrapper><BookIcon /></IconWrapper> },
+  { to: "/patient/profile", label: "Mi perfil", icon: <IconWrapper><ProfileIcon /></IconWrapper> },
 ];
 
 export default function PatientLayout() {
   const navigate = useNavigate();
-  const location = useLocation();
   const storedUser = useMemo(() => getStoredUser(), []);
-  const patientName = storedUser?.name?.trim() || "Paciente";
   const clinicName = resolveClinicName(storedUser);
 
   function handleLogout() {
@@ -30,11 +82,6 @@ export default function PatientLayout() {
     localStorage.removeItem("user");
     navigate("/login", { replace: true });
   }
-
-  const activeLabel =
-    patientLinks.find((link) =>
-      link.end ? location.pathname === link.to : location.pathname.startsWith(link.to)
-    )?.label ?? "Inicio";
 
   return (
     <div className={styles.pageShell}>
@@ -57,7 +104,7 @@ export default function PatientLayout() {
               end={link.end}
               className={({ isActive }) => `${styles.navItem} ${isActive ? styles.navItemActive : ""}`.trim()}
             >
-              <span className={styles.navIcon}>{link.shortLabel}</span>
+              {link.icon}
               <span>{link.label}</span>
             </NavLink>
           ))}
@@ -69,14 +116,6 @@ export default function PatientLayout() {
       </aside>
 
       <main className={styles.main} id="patient-main">
-        <header className={styles.mainTopBar}>
-          <div>
-            <p className={styles.topBarLabel}>Hola</p>
-            <p className={styles.topBarName}>{patientName}</p>
-          </div>
-          <p className={styles.topBarSection}>{activeLabel}</p>
-        </header>
-
         <div className={styles.outletSurface}>
           <Outlet />
         </div>
