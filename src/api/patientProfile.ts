@@ -91,6 +91,11 @@ export async function getPatientProfile() {
   }
 }
 
+async function patchPatientMe(payload: Record<string, unknown>) {
+  const { data } = await api.patch("/auth/me", payload);
+  return normalizeOne(data);
+}
+
 export async function updatePatientProfile(payload: UpdatePatientProfilePayload) {
   const body = {
     name: payload.nombre.trim(),
@@ -102,15 +107,15 @@ export async function updatePatientProfile(payload: UpdatePatientProfilePayload)
     },
   };
 
-  const { data } = await api.patch("/auth/me", body);
-  return normalizePatientProfile(normalizeOne(data));
+  return normalizePatientProfile(await patchPatientMe(body));
 }
 
-export async function changePatientPassword(payload: ChangePasswordPayload) {
-  try {
-    await api.patch("/pacient/profile/password", payload);
-    return;
-  } catch {
-    await api.post("/auth/change-password", payload);
-  }
+export async function updatePatientPassword(payload: ChangePasswordPayload) {
+  const body = {
+    current_password: payload.current_password,
+    password: payload.password,
+    password_confirmation: payload.password_confirmation,
+  };
+
+  await patchPatientMe(body);
 }
