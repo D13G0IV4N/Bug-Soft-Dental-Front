@@ -15,11 +15,9 @@ export interface Clinic {
 export type PublicClinic = {
   id: string;
   name: string;
+  email: string;
+  phone: string;
   address: string;
-  city: string;
-  state: string;
-  location_label: string;
-  full_address: string;
 };
 
 // Datos del administrador que se crea junto con la clínica
@@ -41,32 +39,24 @@ export function extractPublicClinics(response: any): PublicClinic[] {
   const clean = (value: unknown) =>
     typeof value === "string" ? value.trim() : "";
 
-  const joinNonEmpty = (parts: string[]) =>
-    parts.filter(Boolean).join(", ");
-
   return rows
     .map((clinic): PublicClinic | null => {
       if (clinic?.status === false) return null;
 
       const id = clinic?.id;
       const name = clean(clinic?.name);
+      const email = clean(clinic?.email);
+      const phone = clean(clinic?.phone);
       const address = clean(clinic?.address);
-      const city = clean(clinic?.city);
-      const state = clean(clinic?.state);
-
-      const locationLabel = joinNonEmpty([city, state]);
-      const fullAddress = joinNonEmpty([address, city, state]);
 
       if (id === undefined || id === null || !name) return null;
 
       return {
         id: String(id),
         name,
+        email,
+        phone,
         address,
-        city,
-        state,
-        location_label: locationLabel,
-        full_address: fullAddress,
       };
     })
     .filter((clinic): clinic is PublicClinic => clinic !== null);
