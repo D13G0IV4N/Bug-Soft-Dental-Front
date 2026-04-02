@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { extractPublicClinics, getPublicClinics, type PublicClinic } from "../../api/clinics";
 import styles from "./patientRegistration.module.css";
@@ -35,6 +36,9 @@ export default function PatientRegistrationPage() {
   const [clinicError, setClinicError] = useState("");
   const [isClinicDropdownOpen, setIsClinicDropdownOpen] = useState(false);
   const clinicSelectorRef = useRef<HTMLDivElement | null>(null);
+  const clinicTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const clinicDropdownRef = useRef<HTMLDivElement | null>(null);
+  const [clinicDropdownPosition, setClinicDropdownPosition] = useState({ top: 0, left: 0, width: 0, maxHeight: 280 });
 
   useEffect(() => {
     async function loadClinics() {
@@ -138,13 +142,37 @@ export default function PatientRegistrationPage() {
           ? selectedClinic.name
           : "Selecciona tu clínica de preferencia";
 
+
+  const updateClinicDropdownPosition = useCallback(() => {
+    const trigger = clinicTriggerRef.current;
+    if (!trigger) return;
+
+    const rect = trigger.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const spaceBelow = viewportHeight - rect.bottom - 16;
+    const spaceAbove = rect.top - 16;
+    const openUpward = spaceBelow < 220 && spaceAbove > spaceBelow;
+    const availableHeight = Math.max(180, openUpward ? spaceAbove : spaceBelow);
+    const maxHeight = Math.min(320, availableHeight);
+
+    setClinicDropdownPosition({
+      top: openUpward ? Math.max(8, rect.top - maxHeight - 8) : rect.bottom + 8,
+      left: rect.left,
+      width: rect.width,
+      maxHeight,
+    });
+  }, []);
+
   useEffect(() => {
     if (!isClinicDropdownOpen) return;
 
+    updateClinicDropdownPosition();
+
     const handleClickOutside = (event: MouseEvent) => {
-      if (!clinicSelectorRef.current?.contains(event.target as Node)) {
-        setIsClinicDropdownOpen(false);
-      }
+      const targetNode = event.target as Node;
+      if (clinicSelectorRef.current?.contains(targetNode)) return;
+      if (clinicDropdownRef.current?.contains(targetNode)) return;
+      setIsClinicDropdownOpen(false);
     };
 
     const handleEscape = (event: KeyboardEvent) => {
@@ -153,12 +181,16 @@ export default function PatientRegistrationPage() {
 
     window.addEventListener("mousedown", handleClickOutside);
     window.addEventListener("keydown", handleEscape);
+    window.addEventListener("resize", updateClinicDropdownPosition);
+    window.addEventListener("scroll", updateClinicDropdownPosition, true);
 
     return () => {
       window.removeEventListener("mousedown", handleClickOutside);
       window.removeEventListener("keydown", handleEscape);
+      window.removeEventListener("resize", updateClinicDropdownPosition);
+      window.removeEventListener("scroll", updateClinicDropdownPosition, true);
     };
-  }, [isClinicDropdownOpen]);
+  }, [isClinicDropdownOpen, updateClinicDropdownPosition]);
 
   return (
     <main className={styles.page}>
@@ -291,8 +323,15 @@ export default function PatientRegistrationPage() {
                 <button
                   type="button"
                   id="clinic_selector"
+                  ref={clinicTriggerRef}
                   className={`${styles.clinicTrigger} ${errors.clinic_id ? styles.inputError : ""}`}
-                  onClick={() => setIsClinicDropdownOpen((prev) => !prev)}
+                  onClick={() => {
+                    setIsClinicDropdownOpen((prev) => {
+                      const nextState = !prev;
+                      if (!prev) updateClinicDropdownPosition();
+                      return nextState;
+                    });
+                  }}
                   disabled={isClinicSelectorDisabled}
                   aria-invalid={Boolean(errors.clinic_id)}
                   aria-haspopup="listbox"
@@ -304,8 +343,18 @@ export default function PatientRegistrationPage() {
                   </span>
                 </button>
 
-                {isClinicDropdownOpen && !isClinicSelectorDisabled && (
-                  <div className={styles.clinicDropdown} role="presentation">
+                {isClinicDropdownOpen && !isClinicSelectorDisabled && createPortal(
+                  <div
+                    className={styles.clinicDropdown}
+                    role="presentation"
+                    ref={clinicDropdownRef}
+                    style={{
+                      top: clinicDropdownPosition.top,
+                      left: clinicDropdownPosition.left,
+                      width: clinicDropdownPosition.width,
+                      maxHeight: clinicDropdownPosition.maxHeight,
+                    }}
+                  >
                     <ul className={styles.clinicListbox} role="listbox" aria-label="Listado de clínicas">
                       {clinics.map((clinic) => {
                         const clinicId = String(clinic.id);
@@ -336,7 +385,8 @@ export default function PatientRegistrationPage() {
                         );
                       })}
                     </ul>
-                  </div>
+                  </div>,
+                  document.body
                 )}
               </div>
               {errors.clinic_id && <span className={styles.errorText}>{errors.clinic_id}</span>}
