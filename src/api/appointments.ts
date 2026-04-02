@@ -57,6 +57,13 @@ export interface AppointmentPayload {
   internal_notes?: string;
 }
 
+
+export interface PacientAppointmentPayload {
+  service_id: number;
+  dentist_user_id: number;
+  start_at: string;
+}
+
 export interface AppointmentUpdatePayload {
   patient_user_id?: number;
   dentist_user_id?: number;
@@ -328,6 +335,16 @@ export async function getAppointmentById(appointmentId: number | string) {
 
 export async function createAppointment(payload: AppointmentPayload) {
   const { data } = await api.post("/appointments", buildAppointmentPayload(payload));
+  return normalizeAppointment(normalizeOne<unknown>(data));
+}
+
+export async function createPacientAppointment(payload: PacientAppointmentPayload) {
+  const { data } = await api.post("/pacient/appointments", {
+    service_id: payload.service_id,
+    dentist_user_id: payload.dentist_user_id,
+    start_at: toApiDateTime(payload.start_at),
+  });
+
   return normalizeAppointment(normalizeOne<unknown>(data));
 }
 
