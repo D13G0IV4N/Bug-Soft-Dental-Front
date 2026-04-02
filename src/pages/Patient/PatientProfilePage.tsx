@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
-  changePatientPassword,
+  updatePatientPassword,
   getPatientProfile,
   updatePatientProfile,
   type PatientProfileData,
@@ -213,7 +213,7 @@ export default function PatientProfilePage() {
 
     try {
       setSavingPassword(true);
-      await changePatientPassword({
+      await updatePatientPassword({
         current_password: passwordForm.actual,
         password: passwordForm.nueva,
         password_confirmation: passwordForm.confirmacion,
