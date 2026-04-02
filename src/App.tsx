@@ -21,6 +21,7 @@ import ReceptionistAppointmentsPage from "./pages/Receptionist/ReceptionistAppoi
 import PatientLayout from "./pages/Patient/PatientLayout";
 import PatientHomePage from "./pages/Patient/PatientHomePage";
 import PatientPlaceholderPage from "./pages/Patient/PatientPlaceholderPage";
+import PatientProfilePage from "./pages/Patient/PatientProfilePage";
 import PatientRegistrationPage from "./pages/PatientRegistration/PatientRegistrationPage";
 
 function HomeRedirect() {
@@ -98,7 +99,7 @@ export default function App() {
             <Route path="appointments" element={<PatientPlaceholderPage />} />
             <Route path="services" element={<PatientPlaceholderPage />} />
             <Route path="book" element={<PatientPlaceholderPage />} />
-            <Route path="profile" element={<PatientPlaceholderPage />} />
+            <Route path="profile" element={<PatientProfilePage />} />
           </Route>
         </Route>
       </Route>

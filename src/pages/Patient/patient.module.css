@@ -405,3 +405,163 @@
     width: 100%;
   }
 }
+
+.profileRoot {
+  display: grid;
+  gap: 1rem;
+}
+
+.profileLayout {
+  display: grid;
+  grid-template-columns: minmax(220px, 320px) minmax(0, 1fr);
+  gap: 0.95rem;
+  align-items: start;
+}
+
+.profileSummaryCard {
+  border-radius: 24px;
+  border: 1px solid #ccdcfb;
+  background: linear-gradient(165deg, #f6faff 0%, #edf4ff 100%);
+  box-shadow: 0 12px 26px rgba(14, 63, 162, 0.07);
+  padding: 1.25rem;
+}
+
+.profileSummaryList {
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.72rem;
+}
+
+.profileSummaryList li {
+  border-radius: 14px;
+  border: 1px solid #d8e6ff;
+  background: rgba(255, 255, 255, 0.82);
+  padding: 0.72rem 0.78rem;
+  display: grid;
+  gap: 0.24rem;
+}
+
+.profileSummaryList span {
+  color: #58709a;
+  font: 650 0.76rem/1.25 "Inter", "Segoe UI", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.profileSummaryList strong {
+  color: #193564;
+  font: 700 0.92rem/1.35 "Inter", "Segoe UI", sans-serif;
+}
+
+.profileFormsColumn {
+  display: grid;
+  gap: 0.95rem;
+}
+
+.profileForm {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.82rem;
+}
+
+.profileField {
+  display: grid;
+  gap: 0.42rem;
+  color: #2d497c;
+  font: 650 0.86rem/1.2 "Inter", "Segoe UI", sans-serif;
+}
+
+.profileField input {
+  border-radius: 12px;
+  border: 1px solid #c8dbff;
+  background: #f7faff;
+  color: #11346c;
+  padding: 0.68rem 0.75rem;
+  font: 550 0.9rem/1.3 "Inter", "Segoe UI", sans-serif;
+  transition: 160ms ease;
+}
+
+.profileField input:focus-visible {
+  outline: 2px solid rgba(31, 94, 255, 0.28);
+  border-color: #9fc0ff;
+  background: #fff;
+}
+
+.profileField input[readonly] {
+  color: #5673a0;
+  background: #f2f6ff;
+}
+
+.fieldHint {
+  margin: 0;
+  color: #4f6993;
+  font: 500 0.82rem/1.45 "Inter", "Segoe UI", sans-serif;
+}
+
+.profileActions {
+  margin-top: 0.25rem;
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.58rem;
+}
+
+.secondaryAction {
+  border-radius: 12px;
+  border: 1px solid #cbddff;
+  background: #f4f8ff;
+  color: #224377;
+  padding: 0.68rem 0.85rem;
+  font: 700 0.84rem/1 "Inter", "Segoe UI", sans-serif;
+  cursor: pointer;
+}
+
+.secondaryAction:hover {
+  background: #fff;
+  border-color: #bad2ff;
+}
+
+.primaryAction:disabled,
+.secondaryAction:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.formError,
+.formSuccess {
+  margin: 0.9rem 0 0;
+  border-radius: 12px;
+  padding: 0.65rem 0.75rem;
+  font: 600 0.84rem/1.42 "Inter", "Segoe UI", sans-serif;
+}
+
+.formError {
+  border: 1px solid #ffcbcb;
+  background: #fff4f4;
+  color: #a52a2a;
+}
+
+.formSuccess {
+  border: 1px solid #bde9c7;
+  background: #effcf2;
+  color: #1a6d36;
+}
+
+@media (max-width: 1140px) {
+  .profileLayout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .profileActions {
+    flex-direction: column-reverse;
+  }
+
+  .secondaryAction,
+  .primaryAction {
+    width: 100%;
+  }
+}
