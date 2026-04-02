@@ -43,7 +43,7 @@
   border: 1px solid rgba(219, 232, 245, 0.92);
   box-shadow: var(--shell-shadow);
   backdrop-filter: blur(8px);
-  overflow: hidden;
+  overflow: visible;
   display: grid;
   grid-template-columns: minmax(280px, 40%) 1fr;
 }
@@ -58,6 +58,8 @@
   background:
     linear-gradient(154deg, #0c427d 0%, #1c6dc2 48%, #3794ed 100%),
     linear-gradient(30deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0));
+  border-radius: 32px 0 0 32px;
+  overflow: hidden;
 }
 
 .brandPanel::after {
@@ -134,6 +136,7 @@
   padding: clamp(26px, 4.5vw, 42px);
   display: grid;
   align-content: center;
+  border-radius: 0 32px 32px 0;
 }
 
 .formHeader {
@@ -292,7 +295,7 @@
 
 .clinicDropdown {
   position: fixed;
-  z-index: 1800;
+  z-index: 2200;
   border: 1px solid #c9dcf0;
   border-radius: 16px;
   background: linear-gradient(180deg, #ffffff 0%, #f9fcff 100%);
@@ -307,11 +310,30 @@
   padding: 0;
   height: 100%;
   max-height: 100%;
-  overflow-y: auto;
+  overflow-y: scroll;
   overflow-x: hidden;
   display: grid;
   gap: 10px;
   scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #8fb4dc #e9f3fd;
+  overscroll-behavior: contain;
+  padding-right: 2px;
+}
+
+.clinicListbox::-webkit-scrollbar {
+  width: 10px;
+}
+
+.clinicListbox::-webkit-scrollbar-track {
+  background: #e9f3fd;
+  border-radius: 999px;
+}
+
+.clinicListbox::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #9abfe4, #739ecf);
+  border-radius: 999px;
+  border: 2px solid #e9f3fd;
 }
 
 .clinicOptionCard {
@@ -475,10 +497,19 @@
   .shell {
     grid-template-columns: 1fr;
     width: min(690px, 100%);
+    border-radius: 24px;
   }
 
   .brandCopy {
     max-width: 46ch;
+  }
+
+  .brandPanel {
+    border-radius: 24px 24px 0 0;
+  }
+
+  .formPanel {
+    border-radius: 0 0 24px 24px;
   }
 }
 
@@ -493,10 +524,12 @@
 
   .brandPanel {
     padding: 24px;
+    border-radius: 22px 22px 0 0;
   }
 
   .formPanel {
     padding: 22px;
+    border-radius: 0 0 22px 22px;
   }
 
   .doubleRow {
