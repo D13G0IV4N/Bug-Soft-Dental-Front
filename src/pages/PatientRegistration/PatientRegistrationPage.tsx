@@ -263,7 +263,9 @@ export default function PatientRegistrationPage() {
                   !clinicError &&
                   clinics.map((clinic) => (
                     <option key={clinic.id} value={clinic.id}>
-                      {clinic.name}
+                      {clinic.location_label
+                        ? `${clinic.name} — ${clinic.location_label}`
+                        : clinic.name}
                     </option>
                   ))}
               </select>
