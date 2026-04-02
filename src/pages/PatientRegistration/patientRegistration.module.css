@@ -263,8 +263,25 @@
 }
 
 .clinicTriggerText {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  flex: 1;
+}
+
+.clinicTriggerPrimary {
   font-size: 15px;
+  font-weight: 600;
   line-height: 1.4;
+  color: #163858;
+}
+
+.clinicTriggerSecondary {
+  font-size: 12.5px;
+  color: #5b7693;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .clinicTriggerIcon {
@@ -275,12 +292,12 @@
 
 .clinicDropdown {
   position: fixed;
-  z-index: 1100;
-  border: 1px solid #cfe0f2;
-  border-radius: 14px;
-  background: #ffffff;
-  box-shadow: 0 22px 44px rgba(17, 46, 78, 0.16);
-  padding: 8px;
+  z-index: 1800;
+  border: 1px solid #c9dcf0;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #f9fcff 100%);
+  box-shadow: 0 26px 50px rgba(17, 46, 78, 0.2);
+  padding: 10px;
   overflow: hidden;
 }
 
@@ -293,30 +310,32 @@
   overflow-y: auto;
   overflow-x: hidden;
   display: grid;
-  gap: 8px;
+  gap: 10px;
   scrollbar-gutter: stable;
 }
 
 .clinicOptionCard {
   width: 100%;
-  border-radius: 12px;
-  border: 1px solid #d9e7f5;
-  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #d3e3f3;
+  background: #fdfefe;
   display: grid;
-  gap: 4px;
+  gap: 5px;
   text-align: left;
-  padding: 11px 38px 11px 12px;
+  padding: 12px 38px 12px 12px;
   position: relative;
   cursor: pointer;
   transition:
     border-color 0.14s ease,
     background-color 0.14s ease,
+    box-shadow 0.14s ease,
     transform 0.08s ease;
 }
 
 .clinicOptionCard:hover {
-  border-color: #9fc4ea;
-  background: #f4f9ff;
+  border-color: #96bee8;
+  background: #f3f9ff;
+  box-shadow: 0 8px 14px rgba(47, 134, 230, 0.1);
 }
 
 .clinicOptionCard:focus-visible {
@@ -326,8 +345,9 @@
 }
 
 .clinicOptionCardSelected {
-  border-color: #4193eb;
-  background: #edf6ff;
+  border-color: #3f93eb;
+  background: linear-gradient(180deg, #f1f8ff 0%, #e8f3ff 100%);
+  box-shadow: 0 0 0 1px rgba(63, 147, 235, 0.22);
 }
 
 .clinicOptionMain {
@@ -340,6 +360,20 @@
 .clinicOptionSecondary {
   font-size: 12.5px;
   color: #5b7693;
+}
+
+.clinicOptionMeta {
+  font-size: 11.5px;
+  color: #6f86a0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+
+.clinicOptionMeta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .clinicOptionCheck {

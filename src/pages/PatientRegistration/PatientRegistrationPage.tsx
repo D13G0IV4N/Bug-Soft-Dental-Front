@@ -138,9 +138,9 @@ export default function PatientRegistrationPage() {
       ? "No se pudieron cargar las clínicas"
       : hasClinicEmptyState
         ? "No hay clínicas disponibles por ahora"
-        : selectedClinic
-          ? selectedClinic.name
-          : "Selecciona tu clínica de preferencia";
+        : "Selecciona tu clínica de preferencia";
+
+  const selectedClinicSecondary = selectedClinic?.address || selectedClinic?.phone || selectedClinic?.email || "";
 
 
   const updateClinicDropdownPosition = useCallback(() => {
@@ -337,7 +337,16 @@ export default function PatientRegistrationPage() {
                   aria-haspopup="listbox"
                   aria-expanded={isClinicDropdownOpen}
                 >
-                  <span className={styles.clinicTriggerText}>{clinicTriggerLabel}</span>
+                  <span className={styles.clinicTriggerText}>
+                    <span className={styles.clinicTriggerPrimary}>
+                      {selectedClinic ? selectedClinic.name : clinicTriggerLabel}
+                    </span>
+                    {selectedClinic && selectedClinicSecondary && (
+                      <span className={styles.clinicTriggerSecondary}>
+                        {selectedClinicSecondary}
+                      </span>
+                    )}
+                  </span>
                   <span className={styles.clinicTriggerIcon} aria-hidden="true">
                     ▾
                   </span>
@@ -370,9 +379,15 @@ export default function PatientRegistrationPage() {
                               }}
                             >
                               <span className={styles.clinicOptionMain}>{clinic.name}</span>
-                              {clinic.location_label && (
+                              {clinic.address && (
                                 <span className={styles.clinicOptionSecondary}>
-                                  {clinic.location_label}
+                                  {clinic.address}
+                                </span>
+                              )}
+                              {(clinic.phone || clinic.email) && (
+                                <span className={styles.clinicOptionMeta}>
+                                  {clinic.phone && <span>{clinic.phone}</span>}
+                                  {clinic.email && <span>{clinic.email}</span>}
                                 </span>
                               )}
                               {isSelected && (
