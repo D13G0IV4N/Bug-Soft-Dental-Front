@@ -38,7 +38,12 @@ export default function PatientRegistrationPage() {
   const clinicSelectorRef = useRef<HTMLDivElement | null>(null);
   const clinicTriggerRef = useRef<HTMLButtonElement | null>(null);
   const clinicDropdownRef = useRef<HTMLDivElement | null>(null);
-  const [clinicDropdownPosition, setClinicDropdownPosition] = useState({ top: 0, left: 0, width: 0, maxHeight: 280 });
+  const [clinicDropdownPosition, setClinicDropdownPosition] = useState({
+    top: 0,
+    left: 0,
+    width: 0,
+    maxHeight: 280,
+  });
 
   useEffect(() => {
     async function loadClinics() {
@@ -152,8 +157,8 @@ export default function PatientRegistrationPage() {
     const spaceBelow = viewportHeight - rect.bottom - 16;
     const spaceAbove = rect.top - 16;
     const openUpward = spaceBelow < 220 && spaceAbove > spaceBelow;
-    const availableHeight = Math.max(180, openUpward ? spaceAbove : spaceBelow);
-    const maxHeight = Math.min(320, availableHeight);
+    const availableHeight = Math.max(220, openUpward ? spaceAbove : spaceBelow);
+    const maxHeight = Math.min(360, availableHeight);
 
     setClinicDropdownPosition({
       top: openUpward ? Math.max(8, rect.top - maxHeight - 8) : rect.bottom + 8,
