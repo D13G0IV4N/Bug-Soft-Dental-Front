@@ -1,23 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import { getPublicClinics, extractPublicClinics } from "../../api/clinics";
-import { getServices, type Service } from "../../api/services";
-import { getClinicUsers, type ClinicUser } from "../../api/users";
-import { me } from "../../api/auth";
+import {
+  getPatientClinicDetails,
+  type PatientClinicDetails,
+  type PatientClinicDentist,
+} from "../../api/patientClinic";
 import { toErrorMessage } from "../../api/appointments";
-import { getStoredUser, resolveClinicId, resolveClinicName } from "../../utils/auth";
 import styles from "./patient.module.css";
 
-type ClinicDetailsData = {
-  clinic: {
-    id: number | null;
-    name: string;
-    address: string;
-    phone: string;
-    email: string;
-  };
-  services: Service[];
-  dentists: ClinicUser[];
-};
+type ClinicDetailsData = PatientClinicDetails;
 
 function BuildingIcon() {
   return (
@@ -68,12 +58,34 @@ function SpecialtyTag({ name }: { name: string }) {
   return <span className={styles.dentistSpecialtyTag}>{name}</span>;
 }
 
+function formatPrice(price: number | null | undefined): string {
+  if (typeof price !== "number" || Number.isNaN(price)) return "";
+  return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(price);
+}
+
+function formatDuration(duration: number | null | undefined): string {
+  if (typeof duration !== "number" || Number.isNaN(duration) || duration <= 0) return "";
+  return `${duration} min`;
+}
+
+function collectDentistSpecialties(dentist: PatientClinicDentist): string[] {
+  const byName = Array.isArray(dentist.dentist_profile?.specialties)
+    ? dentist.dentist_profile?.specialties.map((item) => item.name?.trim() ?? "").filter(Boolean)
+    : [];
+
+  const fallback = [dentist.specialty?.trim(), dentist.dentist_profile?.specialty?.trim()].filter(
+    (value): value is string => Boolean(value)
+  );
+
+  return [...byName, ...fallback].filter((name, index, list) => list.indexOf(name) === index);
+}
+
 export default function PatientClinicDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [data, setData] = useState<ClinicDetailsData>({
     clinic: {
-      id: null,
+      id: undefined,
       name: "Clínica dental",
       address: "",
       phone: "",
@@ -86,65 +98,12 @@ export default function PatientClinicDetailsPage() {
   useEffect(() => {
     let active = true;
 
-    async function loadClinicDetails() {
+    void (async () => {
       try {
         setLoading(true);
-
-        const userFromStorage = getStoredUser();
-        const meResponse = await me();
-        const mePayload = meResponse?.data?.data ?? meResponse?.data ?? {};
-
-        const clinicId = resolveClinicId(mePayload) ?? resolveClinicId(userFromStorage);
-        const clinicName =
-          resolveClinicName(mePayload) ||
-          resolveClinicName(userFromStorage) ||
-          "Clínica dental";
-
-        const [publicClinicsResponse, servicesResponse, dentistsResponse] = await Promise.all([
-          getPublicClinics().catch(() => null),
-          getServices().catch(() => []),
-          clinicId ? getClinicUsers(clinicId).catch(() => []) : Promise.resolve([]),
-        ]);
-
+        const response = await getPatientClinicDetails();
         if (!active) return;
-
-        const publicClinics = publicClinicsResponse
-          ? extractPublicClinics(publicClinicsResponse)
-          : [];
-
-        const matchedClinic = publicClinics.find((clinic) => Number(clinic.id) === clinicId) ?? null;
-        const clinicInfoFromMe = (mePayload?.clinic ?? mePayload?.profile?.clinic ?? {}) as Record<string, unknown>;
-
-        const clinicAddress =
-          (typeof matchedClinic?.address === "string" ? matchedClinic.address : "") ||
-          (typeof clinicInfoFromMe.address === "string" ? clinicInfoFromMe.address : "");
-
-        const clinicPhone =
-          (typeof matchedClinic?.phone === "string" ? matchedClinic.phone : "") ||
-          (typeof clinicInfoFromMe.phone === "string" ? clinicInfoFromMe.phone : "");
-
-        const clinicEmail =
-          (typeof matchedClinic?.email === "string" ? matchedClinic.email : "") ||
-          (typeof clinicInfoFromMe.email === "string" ? clinicInfoFromMe.email : "");
-
-        const servicesByClinic = (servicesResponse ?? [])
-          .filter((service) => service.status !== false)
-          .filter((service) => (clinicId ? service.clinic_id === clinicId || service.clinic_id === undefined : true));
-
-        const dentists = (dentistsResponse ?? []).filter((user) => user.role === "dentist" && user.status !== false);
-
-        setData({
-          clinic: {
-            id: clinicId,
-            name: matchedClinic?.name || clinicName,
-            address: clinicAddress,
-            phone: clinicPhone,
-            email: clinicEmail,
-          },
-          services: servicesByClinic,
-          dentists,
-        });
-
+        setData(response);
         setError("");
       } catch (requestError) {
         if (!active) return;
@@ -152,9 +111,7 @@ export default function PatientClinicDetailsPage() {
       } finally {
         if (active) setLoading(false);
       }
-    }
-
-    void loadClinicDetails();
+    })();
 
     return () => {
       active = false;
@@ -165,7 +122,7 @@ export default function PatientClinicDetailsPage() {
     () =>
       data.dentists.map((dentist) => ({
         ...dentist,
-        specialtyNames: dentist.dentistProfile?.specialties?.map((item) => item.name).filter(Boolean) ?? [],
+        specialtyNames: collectDentistSpecialties(dentist),
       })),
     [data.dentists]
   );
@@ -269,16 +226,27 @@ export default function PatientClinicDetailsPage() {
             </div>
           ) : (
             <div className={styles.serviceCardsGrid}>
-              {data.services.map((service) => (
-                <article className={styles.serviceSummaryCard} key={service.id}>
-                  <h4 className={styles.serviceSummaryTitle}>{service.name}</h4>
-                  {service.description ? (
-                    <p className={styles.serviceSummaryDescription}>{service.description}</p>
-                  ) : (
-                    <p className={styles.serviceSummaryDescription}>Servicio clínico disponible en tu sede.</p>
-                  )}
-                </article>
-              ))}
+              {data.services.map((service) => {
+                const priceText = formatPrice(service.price);
+                const durationText = formatDuration(service.duration_minutes);
+
+                return (
+                  <article className={styles.serviceSummaryCard} key={service.id}>
+                    <h4 className={styles.serviceSummaryTitle}>{service.name}</h4>
+                    {service.specialty ? <p className={styles.serviceMetaText}>Especialidad: {service.specialty}</p> : null}
+                    {(priceText || durationText) && (
+                      <p className={styles.serviceMetaText}>
+                        {[priceText, durationText].filter(Boolean).join(" • ")}
+                      </p>
+                    )}
+                    {service.description ? (
+                      <p className={styles.serviceSummaryDescription}>{service.description}</p>
+                    ) : (
+                      <p className={styles.serviceSummaryDescription}>Servicio clínico disponible en tu sede.</p>
+                    )}
+                  </article>
+                );
+              })}
             </div>
           )}
         </article>
@@ -302,14 +270,28 @@ export default function PatientClinicDetailsPage() {
               {dentistsWithSpecialties.map((dentist) => (
                 <article className={styles.dentistCard} key={dentist.id}>
                   <div className={styles.dentistCardTop}>
-                    <span className={styles.dentistAvatar} aria-hidden="true">
+                    <span
+                      className={styles.dentistAvatar}
+                      aria-hidden="true"
+                      style={dentist.dentist_profile?.color ? { background: dentist.dentist_profile.color } : undefined}
+                    >
                       {dentist.name?.trim()?.charAt(0).toUpperCase() || "D"}
                     </span>
                     <div>
                       <h4 className={styles.dentistName}>{dentist.name || "Odontólogo"}</h4>
-                      <p className={styles.dentistRole}>Odontología clínica</p>
+                      <p className={styles.dentistRole}>
+                        {dentist.dentist_profile?.license_number
+                          ? `Registro profesional: ${dentist.dentist_profile.license_number}`
+                          : "Odontología clínica"}
+                      </p>
                     </div>
                   </div>
+
+                  {(dentist.phone || dentist.email) && (
+                    <p className={styles.dentistContactText}>
+                      {[dentist.phone, dentist.email].filter(Boolean).join(" • ")}
+                    </p>
+                  )}
 
                   <div className={styles.dentistSpecialtiesWrap}>
                     {dentist.specialtyNames.length > 0 ? (
