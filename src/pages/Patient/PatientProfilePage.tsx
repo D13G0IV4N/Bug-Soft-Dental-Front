@@ -66,7 +66,11 @@ type ReportAppointment = {
   hora: string;
   estado: string;
   motivo: string;
-  notasInternas: string;
+  notas: {
+    note: string;
+    createdAt: string;
+    authorName: string;
+  }[];
   clinica: string;
 };
 
@@ -134,12 +138,35 @@ function resolveAppointmentReason(appointment: Record<string, unknown>, nestedAp
   return getValueFromKeys(appointment, ["reason"]) || getValueFromKeys(nestedAppointment, ["reason"]) || "Sin motivo registrado";
 }
 
-function resolveAppointmentInternalNotes(appointment: Record<string, unknown>, nestedAppointment: Record<string, unknown>) {
-  return (
-    getValueFromKeys(appointment, ["internal_notes"]) ||
-    getValueFromKeys(nestedAppointment, ["internal_notes"]) ||
-    "Sin notas internas"
-  );
+function formatNoteCreatedAt(value: unknown) {
+  const raw = toText(value);
+  if (!raw) return "";
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return raw;
+  return date.toLocaleString("es-ES", { dateStyle: "long", timeStyle: "short" });
+}
+
+function resolveAppointmentNotes(appointment: Record<string, unknown>, nestedAppointment: Record<string, unknown>) {
+  const notesValue = Array.isArray(appointment.notes)
+    ? appointment.notes
+    : Array.isArray(nestedAppointment.notes)
+      ? nestedAppointment.notes
+      : [];
+
+  return notesValue
+    .map((entry) => {
+      const noteRecord = asRecord(entry);
+      const authorRecord = asRecord(noteRecord.author);
+      const note = toText(noteRecord.note);
+      if (!note) return null;
+
+      return {
+        note,
+        createdAt: formatNoteCreatedAt(noteRecord.created_at),
+        authorName: getValueFromKeys(authorRecord, ["name"]),
+      };
+    })
+    .filter((entry): entry is NonNullable<typeof entry> => entry !== null);
 }
 
 function findAppointmentsArray(payload: unknown): unknown[] {
@@ -195,7 +222,7 @@ function buildAppointmentExportReport(data: unknown, profileData: PatientProfile
     const startRaw = appointment.start_at ?? nestedAppointment.start_at ?? appointment.fecha ?? appointment.date;
     const { fecha, hora } = parseDateParts(startRaw);
     const reason = resolveAppointmentReason(appointment, nestedAppointment);
-    const internalNotes = resolveAppointmentInternalNotes(appointment, nestedAppointment);
+    const notes = resolveAppointmentNotes(appointment, nestedAppointment);
 
     return {
       servicio:
@@ -214,7 +241,7 @@ function buildAppointmentExportReport(data: unknown, profileData: PatientProfile
         `${hora}${toText(appointment.end_at) ? ` - ${parseDateParts(appointment.end_at).hora}` : ""}`,
       estado: normalizeStatus(getValueFromKeys(appointment, ["estado", "status"]) || getValueFromKeys(nestedAppointment, ["status"]) || "Sin estado"),
       motivo: reason,
-      notasInternas: internalNotes,
+      notas: notes,
       clinica:
         getValueFromKeys(appointment, ["clinic_name", "clinica"]) ||
         getValueFromKeys(nestedAppointment, ["clinic_name", "clinica"]) ||
@@ -366,8 +393,14 @@ function createStyledAppointmentPdf(report: AppointmentExportReport) {
   } else {
     report.appointments.forEach((appointment, index) => {
       const notesLines = splitText(`Motivo: ${appointment.motivo}`, CONTENT_WIDTH - 24, 10);
-      const internalLines = splitText(`Notas: ${appointment.notasInternas}`, CONTENT_WIDTH - 24, 10);
-      const cardHeightDynamic = 92 + (notesLines.length + internalLines.length) * 12;
+      const appointmentNotesLines = appointment.notas.length
+        ? appointment.notas.flatMap((noteEntry, noteIndex) => {
+          const metadata = [noteEntry.createdAt, noteEntry.authorName ? `Autor: ${noteEntry.authorName}` : ""].filter(Boolean).join(" · ");
+          const detail = metadata ? ` (${metadata})` : "";
+          return splitText(`${noteIndex === 0 ? "Notas: " : "       "}• ${noteEntry.note}${detail}`, CONTENT_WIDTH - 24, 10);
+        })
+        : splitText("Notas: Sin notas registradas", CONTENT_WIDTH - 24, 10);
+      const cardHeightDynamic = 92 + (notesLines.length + appointmentNotesLines.length) * 12;
       ensureSpace(cardHeightDynamic + 12);
 
       rect(MARGIN, y - cardHeightDynamic, CONTENT_WIDTH, cardHeightDynamic, [1, 1, 1], true);
@@ -388,7 +421,7 @@ function createStyledAppointmentPdf(report: AppointmentExportReport) {
         text(line, MARGIN + 12, textY, 10, "F1", [0.2, 0.22, 0.3]);
         textY -= 12;
       });
-      internalLines.forEach((line) => {
+      appointmentNotesLines.forEach((line) => {
         text(line, MARGIN + 12, textY, 10, "F1", [0.2, 0.22, 0.3]);
         textY -= 12;
       });
