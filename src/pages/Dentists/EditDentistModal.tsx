@@ -7,6 +7,14 @@ import SpecialtiesField from "./SpecialtiesField";
 
 interface Props { clinicId: string; dentist: Dentist; onClose: () => void; onUpdated: () => void; }
 
+type ErrorLike = { message?: string; response?: { data?: { message?: string } } };
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  const err = (error && typeof error === "object" ? error : {}) as ErrorLike;
+  return err.response?.data?.message || err.message || fallback;
+}
+
+
 export default function EditDentistModal({ clinicId, dentist, onClose, onUpdated }: Props) {
   const [form, setForm] = useState<Dentist>({ ...dentist, specialtyIds: dentist.specialtyIds ?? [], password: "" });
   const [specialties, setSpecialties] = useState<Specialty[]>([]);
@@ -24,7 +32,7 @@ export default function EditDentistModal({ clinicId, dentist, onClose, onUpdated
         if (active) setSpecialties(catalog);
       } catch (err: unknown) {
         if (active) {
-          setError(err?.response?.data?.message || err?.message || "No se pudieron cargar las especialidades");
+          setError(getErrorMessage(err, "No se pudieron cargar las especialidades"));
         }
       } finally {
         if (active) setLoadingSpecialties(false);
@@ -53,8 +61,8 @@ export default function EditDentistModal({ clinicId, dentist, onClose, onUpdated
       onUpdated();
       onClose();
     } catch (err: unknown) {
-      console.error("Update dentist error:", err?.response?.data || err);
-      setError(err?.response?.data?.message || err?.message || "No se pudo actualizar el dentista");
+      console.error("Update dentist error:", ((err && typeof err === "object" ? err : {}) as ErrorLike).response?.data || err);
+      setError(getErrorMessage(err, "No se pudo actualizar el dentista"));
     } finally { setLoading(false); }
   }
 
@@ -67,8 +75,8 @@ export default function EditDentistModal({ clinicId, dentist, onClose, onUpdated
       onUpdated();
       onClose();
     } catch (err: unknown) {
-      console.error("Delete dentist error:", err?.response?.data || err);
-      setError(err?.response?.data?.message || err?.message || "No se pudo eliminar el dentista");
+      console.error("Delete dentist error:", ((err && typeof err === "object" ? err : {}) as ErrorLike).response?.data || err);
+      setError(getErrorMessage(err, "No se pudo eliminar el dentista"));
     } finally { setLoading(false); }
   }
 

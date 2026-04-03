@@ -36,12 +36,22 @@ export interface UpdateClinicUserPayload {
   status?: boolean;
 }
 
+type UnknownRecord = Record<string, unknown>;
+
+function asRecord(value: unknown): UnknownRecord {
+  return value && typeof value === "object" ? (value as UnknownRecord) : {};
+}
+
 function normalizeList(res: unknown) {
-  return res?.data?.data ?? res?.data ?? res ?? [];
+  const root = asRecord(res);
+  const nested = asRecord(root.data);
+  return nested.data ?? root.data ?? res ?? [];
 }
 
 function normalizeOne(res: unknown) {
-  return res?.data?.data ?? res?.data ?? res;
+  const root = asRecord(res);
+  const nested = asRecord(root.data);
+  return nested.data ?? root.data ?? res;
 }
 
 function toStatus(value: unknown): boolean {
@@ -55,50 +65,62 @@ function toStatus(value: unknown): boolean {
 }
 
 function toSpecialty(source: unknown): Specialty | null {
-  if (!source || typeof source !== "object") return null;
+  const specialty = asRecord(source);
 
-  const id = Number(source.id ?? source.specialty_id ?? 0);
-  const name = source.name ?? source.specialty ?? source.title ?? "";
-  if (!id || !name) return null;
+  const id = Number(specialty.id ?? specialty.specialty_id ?? 0);
+  const name = specialty.name ?? specialty.specialty ?? specialty.title ?? "";
+  if (!id || typeof name !== "string" || !name) return null;
 
   return {
     id,
     name,
-    description: source.description ?? null,
-    status: toStatus(source.status),
+    description: typeof specialty.description === "string" ? specialty.description : null,
+    status: toStatus(specialty.status),
   };
 }
 
 function mapToClinicUser(user: unknown): ClinicUser {
-  const profile = user?.dentist_profile ?? user?.dentistProfile ?? {};
+  const userRecord = asRecord(user);
+  const profile = asRecord(userRecord.dentist_profile ?? userRecord.dentistProfile);
   const specialties = [
-    ...(Array.isArray(user?.specialties) ? user.specialties : []),
-    ...(Array.isArray(profile?.specialties) ? profile.specialties : []),
+    ...(Array.isArray(userRecord.specialties) ? userRecord.specialties : []),
+    ...(Array.isArray(profile.specialties) ? profile.specialties : []),
   ]
     .map(toSpecialty)
     .filter((item): item is Specialty => Boolean(item));
 
   const specialtyIds = [
-    ...(Array.isArray(user?.specialty_ids) ? user.specialty_ids : []),
-    ...(Array.isArray(profile?.specialty_ids) ? profile.specialty_ids : []),
+    ...(Array.isArray(userRecord.specialty_ids) ? userRecord.specialty_ids : []),
+    ...(Array.isArray(profile.specialty_ids) ? profile.specialty_ids : []),
     ...specialties.map((item) => item.id),
   ]
     .map((value) => Number(value))
     .filter((value, index, array) => Number.isInteger(value) && value > 0 && array.indexOf(value) === index);
 
   return {
-    id: user?.id,
-    name: user?.name ?? "",
-    email: user?.email ?? "",
-    phone: user?.phone ?? "",
-    role: user?.role ?? "client",
-    status: toStatus(user?.status),
+    id: typeof userRecord.id === "number" ? userRecord.id : Number(userRecord.id) || 0,
+    name: typeof userRecord.name === "string" ? userRecord.name : "",
+    email: typeof userRecord.email === "string" ? userRecord.email : "",
+    phone: typeof userRecord.phone === "string" ? userRecord.phone : "",
+    role: typeof userRecord.role === "string" ? userRecord.role : "client",
+    status: toStatus(userRecord.status),
     dentistProfile: {
       specialtyIds,
       specialties,
       licenseNumber:
-        profile?.license_number ?? profile?.licenseNumber ?? user?.license_number ?? null,
-      color: profile?.color ?? user?.color ?? null,
+        typeof profile.license_number === "string"
+          ? profile.license_number
+          : typeof profile.licenseNumber === "string"
+            ? profile.licenseNumber
+            : typeof userRecord.license_number === "string"
+              ? userRecord.license_number
+              : null,
+      color:
+        typeof profile.color === "string"
+          ? profile.color
+          : typeof userRecord.color === "string"
+            ? userRecord.color
+            : null,
     },
   };
 }

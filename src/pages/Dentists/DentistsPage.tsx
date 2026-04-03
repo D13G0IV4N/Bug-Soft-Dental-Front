@@ -20,6 +20,14 @@ function formatSpecialties(dentist: Dentist, specialtiesCatalog: Specialty[]) {
   return names.length > 0 ? Array.from(new Set(names)).join(", ") : "Sin especialidad";
 }
 
+type ErrorLike = { message?: string; response?: { data?: { message?: string } } };
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  const err = (error && typeof error === "object" ? error : {}) as ErrorLike;
+  return err.response?.data?.message || err.message || fallback;
+}
+
+
 export default function DentistsPage() {
   const navigate = useNavigate();
   const { clinicId } = useParams();
@@ -52,12 +60,8 @@ export default function DentistsPage() {
       const list = await getDentistsByClinic(clinicId);
       setDentists(Array.isArray(list) ? list : []);
     } catch (e: unknown) {
-      console.error("Dentists error:", e?.response?.data || e);
-      setError(
-        e?.response?.data?.message ||
-          e?.message ||
-          "No se pudieron cargar los dentistas"
-      );
+      console.error("Dentists error:", ((e && typeof e === "object" ? e : {}) as ErrorLike).response?.data || e);
+      setError(getErrorMessage(e, "No se pudieron cargar los dentistas"));
     } finally {
       setLoading(false);
     }

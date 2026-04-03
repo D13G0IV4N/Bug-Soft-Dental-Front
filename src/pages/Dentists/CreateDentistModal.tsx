@@ -7,6 +7,14 @@ import SpecialtiesField from "./SpecialtiesField";
 
 interface Props { clinicId: string; onClose: () => void; onCreated: () => void; }
 
+type ErrorLike = { message?: string; response?: { data?: { message?: string } } };
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  const err = (error && typeof error === "object" ? error : {}) as ErrorLike;
+  return err.response?.data?.message || err.message || fallback;
+}
+
+
 const emptyDentist: Dentist = {
   name: "",
   email: "",
@@ -36,7 +44,7 @@ export default function CreateDentistModal({ clinicId, onClose, onCreated }: Pro
         if (active) setSpecialties(catalog);
       } catch (err: unknown) {
         if (active) {
-          setError(err?.response?.data?.message || err?.message || "No se pudieron cargar las especialidades");
+          setError(getErrorMessage(err, "No se pudieron cargar las especialidades"));
         }
       } finally {
         if (active) setLoadingSpecialties(false);
@@ -60,8 +68,8 @@ export default function CreateDentistModal({ clinicId, onClose, onCreated }: Pro
       onCreated();
       onClose();
     } catch (err: unknown) {
-      console.error("Create dentist error:", err?.response?.data || err);
-      setError(err?.response?.data?.message || err?.message || "No se pudo crear el dentista");
+      console.error("Create dentist error:", ((err && typeof err === "object" ? err : {}) as ErrorLike).response?.data || err);
+      setError(getErrorMessage(err, "No se pudo crear el dentista"));
     } finally { setLoading(false); }
   }
 
