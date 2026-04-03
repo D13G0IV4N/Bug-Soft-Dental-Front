@@ -3,6 +3,7 @@ import {
   updatePatientPassword,
   getPatientProfile,
   updatePatientProfile,
+  exportPatientAppointmentSummary,
   type PatientProfileData,
 } from "../../api/patientProfile";
 import { getStoredUser } from "../../utils/auth";
@@ -66,11 +67,14 @@ export default function PatientProfilePage() {
   const [loading, setLoading] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
+  const [downloadingSummary, setDownloadingSummary] = useState(false);
 
   const [profileError, setProfileError] = useState("");
   const [profileFeedback, setProfileFeedback] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [passwordFeedback, setPasswordFeedback] = useState("");
+  const [summaryError, setSummaryError] = useState("");
+  const [summaryFeedback, setSummaryFeedback] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -229,6 +233,118 @@ export default function PatientProfilePage() {
     }
   }
 
+  function downloadPdfBlob(blob: Blob, filename: string) {
+    const fileUrl = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = fileUrl;
+    anchor.download = filename.endsWith(".pdf") ? filename : `${filename}.pdf`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(fileUrl);
+  }
+
+  function generatePdfFromSummaryData(data: unknown) {
+    const payload = (typeof data === "object" && data !== null ? data : {}) as Record<string, unknown>;
+    const appointments = Array.isArray(payload.appointments) ? payload.appointments : [];
+    const summary = (payload.summary ?? {}) as Record<string, unknown>;
+    const generatedAt = new Date().toLocaleString("es-ES", { dateStyle: "long", timeStyle: "short" });
+    const lines = [
+      "Resumen de citas",
+      "",
+      `Paciente: ${profileData.nombre || "Paciente"}`,
+      `Correo: ${profileData.correo || "No registrado"}`,
+      `Fecha de generación: ${generatedAt}`,
+      "",
+      "Resumen general",
+      `- Total de citas: ${String(summary.total ?? appointments.length)}`,
+      `- Completadas: ${String(summary.completed ?? summary.completadas ?? 0)}`,
+      `- Canceladas: ${String(summary.cancelled ?? summary.canceladas ?? 0)}`,
+      "",
+      "Listado de citas",
+    ];
+
+    if (!appointments.length) {
+      lines.push("No hay citas registradas para mostrar.");
+    } else {
+      appointments.slice(0, 30).forEach((entry, index) => {
+        const appointment = (typeof entry === "object" && entry !== null ? entry : {}) as Record<string, unknown>;
+        lines.push(
+          `${index + 1}. ${String(appointment.start_at ?? appointment.fecha ?? "Fecha no disponible")} | ${String(
+            appointment.status ?? appointment.estado ?? "Sin estado"
+          )} | ${String(appointment.reason ?? appointment.motivo ?? "Sin motivo")}`
+        );
+      });
+    }
+
+    const pdfBlob = createBasicPdf(lines);
+    downloadPdfBlob(pdfBlob, `resumen-citas-${new Date().toISOString().slice(0, 10)}.pdf`);
+  }
+
+  function createBasicPdf(lines: string[]) {
+    const escapeText = (text: string) => text.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
+    const normalizedLines = lines.map((line) => escapeText(line.normalize("NFD").replace(/[\u0300-\u036f]/g, "")));
+    const commands = [
+      "BT",
+      "/F1 12 Tf",
+      "50 790 Td",
+      ...normalizedLines.flatMap((line, index) => [`(${line}) Tj`, index < normalizedLines.length - 1 ? "0 -16 Td" : ""]),
+      "ET",
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    const stream = `<< /Length ${commands.length} >>\nstream\n${commands}\nendstream`;
+    const objects = [
+      "1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj",
+      "2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj",
+      "3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >> endobj",
+      "4 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj",
+      `5 0 obj ${stream} endobj`,
+    ];
+
+    let pdf = "%PDF-1.4\n";
+    const offsets = [0];
+    objects.forEach((object) => {
+      offsets.push(pdf.length);
+      pdf += `${object}\n`;
+    });
+
+    const xrefPosition = pdf.length;
+    pdf += `xref\n0 ${objects.length + 1}\n`;
+    pdf += "0000000000 65535 f \n";
+    offsets.slice(1).forEach((offset) => {
+      pdf += `${String(offset).padStart(10, "0")} 00000 n \n`;
+    });
+    pdf += `trailer << /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefPosition}\n%%EOF`;
+
+    return new Blob([pdf], { type: "application/pdf" });
+  }
+
+  async function handleDownloadSummary() {
+    setSummaryFeedback("");
+    setSummaryError("");
+
+    try {
+      setDownloadingSummary(true);
+      const exportResult = await exportPatientAppointmentSummary();
+
+      if (exportResult.kind === "pdf") {
+        downloadPdfBlob(exportResult.blob, exportResult.filename);
+      } else {
+        generatePdfFromSummaryData(exportResult.data);
+      }
+
+      setSummaryFeedback("Tu resumen de citas se descargó correctamente.");
+    } catch (error) {
+      setSummaryError(
+        toErrorMessage(error, "No pudimos generar tu resumen de citas en este momento. Inténtalo nuevamente.")
+      );
+    } finally {
+      setDownloadingSummary(false);
+    }
+  }
+
   return (
     <section className={styles.profileRoot}>
       <header className={styles.welcomeHero}>
@@ -270,6 +386,23 @@ export default function PatientProfilePage() {
                 <strong>{profileData.rol}</strong>
               </li>
             </ul>
+
+            <div className={styles.profileToolBox}>
+              <p className={styles.profileToolTitle}>Herramientas de cuenta</p>
+              <p className={styles.profileToolText}>
+                Descarga un reporte en PDF con tu historial y resumen de citas para conservarlo o compartirlo.
+              </p>
+              <button
+                className={styles.primaryAction}
+                type="button"
+                onClick={handleDownloadSummary}
+                disabled={downloadingSummary}
+              >
+                {downloadingSummary ? "Generando PDF..." : "Descargar resumen de citas"}
+              </button>
+              {summaryError && <p className={styles.formError}>{summaryError}</p>}
+              {summaryFeedback && <p className={styles.formSuccess}>{summaryFeedback}</p>}
+            </div>
           </article>
 
           <div className={styles.profileContentGrid}>
