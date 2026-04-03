@@ -352,6 +352,20 @@ export async function createPacientAppointment(payload: PacientAppointmentPayloa
   return normalizeAppointment(normalizeOne<unknown>(data));
 }
 
+export async function cancelPacientAppointment(appointmentId: number | string) {
+  const { data } = await api.delete(`/pacient/appointments/${appointmentId}`);
+  const payload = normalizeOne<unknown>(data);
+
+  if (payload && typeof payload === "object") {
+    const record = asRecord(payload);
+    if (record.id !== undefined || record.status !== undefined) {
+      return normalizeAppointment(payload);
+    }
+  }
+
+  return null;
+}
+
 export async function updateAppointment(appointmentId: number | string, payload: AppointmentUpdatePayload) {
   const body: Record<string, unknown> = {};
 
