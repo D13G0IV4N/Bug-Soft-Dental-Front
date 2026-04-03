@@ -16,9 +16,16 @@ export interface Dentist {
 }
 
 const BASE = (clinicId: number | string) => `/super/clinics/${clinicId}/users`;
+type UnknownRecord = Record<string, unknown>;
+
+function asRecord(value: unknown): UnknownRecord {
+  return value && typeof value === "object" ? (value as UnknownRecord) : {};
+}
 
 function normalizeList(res: unknown) {
-  return res?.data?.data ?? res?.data ?? res ?? [];
+  const root = asRecord(res);
+  const nested = asRecord(root.data);
+  return nested.data ?? root.data ?? res ?? [];
 }
 
 function toStatus(value: unknown): boolean {
@@ -32,27 +39,28 @@ function toStatus(value: unknown): boolean {
 }
 
 function toSpecialty(source: unknown): Specialty | null {
-  if (!source || typeof source !== "object") return null;
+  const specialty = asRecord(source);
 
-  const id = Number(source.id ?? source.specialty_id ?? 0);
-  const name = source.name ?? source.specialty ?? source.title ?? "";
+  const id = Number(specialty.id ?? specialty.specialty_id ?? 0);
+  const name = specialty.name ?? specialty.specialty ?? specialty.title ?? "";
 
-  if (!id || !name) return null;
+  if (!id || typeof name !== "string" || !name) return null;
 
   return {
     id,
     name,
-    description: source.description ?? null,
-    status: toStatus(source.status),
+    description: typeof specialty.description === "string" ? specialty.description : null,
+    status: toStatus(specialty.status),
   };
 }
 
 function extractSpecialties(user: unknown): Specialty[] {
-  const profile = user?.dentist_profile ?? user?.dentistProfile ?? {};
+  const userRecord = asRecord(user);
+  const profile = asRecord(userRecord.dentist_profile ?? userRecord.dentistProfile);
   const candidates = [
-    ...(Array.isArray(user?.specialties) ? user.specialties : []),
-    ...(Array.isArray(profile?.specialties) ? profile.specialties : []),
-    ...(Array.isArray(user?.dentist_specialties) ? user.dentist_specialties : []),
+    ...(Array.isArray(userRecord.specialties) ? userRecord.specialties : []),
+    ...(Array.isArray(profile.specialties) ? profile.specialties : []),
+    ...(Array.isArray(userRecord.dentist_specialties) ? userRecord.dentist_specialties : []),
   ];
 
   const mapped = candidates.map(toSpecialty).filter((item): item is Specialty => Boolean(item));
@@ -66,10 +74,11 @@ function extractSpecialties(user: unknown): Specialty[] {
 }
 
 function extractSpecialtyIds(user: unknown, specialties: Specialty[]): number[] {
-  const profile = user?.dentist_profile ?? user?.dentistProfile ?? {};
+  const userRecord = asRecord(user);
+  const profile = asRecord(userRecord.dentist_profile ?? userRecord.dentistProfile);
   const nestedIds = [
-    ...(Array.isArray(user?.specialty_ids) ? user.specialty_ids : []),
-    ...(Array.isArray(profile?.specialty_ids) ? profile.specialty_ids : []),
+    ...(Array.isArray(userRecord.specialty_ids) ? userRecord.specialty_ids : []),
+    ...(Array.isArray(profile.specialty_ids) ? profile.specialty_ids : []),
   ]
     .map((value) => Number(value))
     .filter((value) => Number.isInteger(value) && value > 0);
@@ -79,20 +88,33 @@ function extractSpecialtyIds(user: unknown, specialties: Specialty[]): number[] 
 }
 
 function mapToDentist(u: unknown): Dentist {
-  const profile = u?.dentist_profile ?? u?.dentistProfile ?? {};
+  const user = asRecord(u);
+  const profile = asRecord(user.dentist_profile ?? user.dentistProfile);
   const specialties = extractSpecialties(u);
 
   return {
-    id: u?.id,
-    name: u?.name ?? "",
-    email: u?.email ?? "",
-    phone: u?.phone ?? "",
-    role: u?.role,
-    status: toStatus(u?.status),
+    id: typeof user.id === "number" ? user.id : Number(user.id) || undefined,
+    name: typeof user.name === "string" ? user.name : "",
+    email: typeof user.email === "string" ? user.email : "",
+    phone: typeof user.phone === "string" ? user.phone : "",
+    role: user.role === "dentist" ? "dentist" : undefined,
+    status: toStatus(user.status),
     specialtyIds: extractSpecialtyIds(u, specialties),
     specialties,
-    licenseNumber: profile?.license_number ?? profile?.licenseNumber ?? u?.license_number ?? null,
-    color: profile?.color ?? u?.color ?? null,
+    licenseNumber:
+      typeof profile.license_number === "string"
+        ? profile.license_number
+        : typeof profile.licenseNumber === "string"
+          ? profile.licenseNumber
+          : typeof user.license_number === "string"
+            ? user.license_number
+            : null,
+    color:
+      typeof profile.color === "string"
+        ? profile.color
+        : typeof user.color === "string"
+          ? user.color
+          : null,
   };
 }
 
@@ -133,7 +155,7 @@ export async function getDentistsByClinic(clinicId: number | string) {
 
   const list = normalizeList(data);
   const arr = Array.isArray(list) ? list : [];
-  return arr.filter((u) => u?.role === "dentist").map(mapToDentist);
+  return arr.filter((u) => asRecord(u).role === "dentist").map(mapToDentist);
 }
 
 export async function createDentist(clinicId: number | string, dentist: Dentist) {

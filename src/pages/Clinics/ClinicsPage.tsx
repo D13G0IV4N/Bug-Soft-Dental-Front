@@ -3,19 +3,14 @@ import { useNavigate } from "react-router-dom";
 import styles from "./clinics.module.css";
 
 import { getSuperClinics } from "../../api/clinics";
+import type { Clinic } from "../../api/clinics";
 import CreateClinicModal from "./CreateClinicModal";
 import EditClinicModal from "./EditClinicModal";
 
-type ClinicCard = {
+type ClinicCard = Clinic & {
   id: number;
-  name?: string;
   nombre?: string;
-  address?: string;
   direccion?: string;
-  phone?: string;
-  email?: string;
-  status?: boolean;
-  created_at?: string;
 };
 
 export default function ClinicsPage() {
@@ -44,9 +39,27 @@ export default function ClinicsPage() {
       setLoading(true);
       setError("");
 
-      const data: any = await getSuperClinics();
+      const data: unknown = await getSuperClinics();
       const list = Array.isArray(data) ? data : [];
-      setClinics(list);
+      const normalized = list
+        .map((row): ClinicCard | null => {
+          if (!row || typeof row !== "object") return null;
+          const clinic = row as Record<string, unknown>;
+          const id = Number(clinic.id);
+          if (!Number.isInteger(id) || id <= 0) return null;
+
+          const nameValue = clinic.name ?? clinic.nombre;
+          const addressValue = clinic.address ?? clinic.direccion;
+
+          return {
+            ...(clinic as Partial<ClinicCard>),
+            id,
+            name: typeof nameValue === "string" ? nameValue : `Clínica #${id}`,
+            address: typeof addressValue === "string" ? addressValue : undefined,
+          };
+        })
+        .filter((clinic): clinic is ClinicCard => Boolean(clinic));
+      setClinics(normalized);
     } catch (e: any) {
       console.error("Clinics error:", e?.response?.data || e);
       setError(
