@@ -59,6 +59,360 @@ function normalizePhone(value: string) {
   return value.replace(/[^\d+\-()\s]/g, "").trimStart();
 }
 
+type ReportAppointment = {
+  servicio: string;
+  odontologo: string;
+  fecha: string;
+  hora: string;
+  estado: string;
+  motivo: string;
+  notasInternas: string;
+  clinica: string;
+};
+
+type AppointmentExportReport = {
+  pacienteNombre: string;
+  pacienteCorreo: string;
+  generatedAt: string;
+  total: number;
+  completed: number;
+  cancelled: number;
+  pending: number;
+  appointments: ReportAppointment[];
+};
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : {};
+}
+
+function toText(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function normalizeStatus(status: string) {
+  const key = status.toLowerCase().trim();
+  if (["completed", "completada", "completado"].includes(key)) return "Completada";
+  if (["cancelled", "canceled", "cancelada", "cancelado"].includes(key)) return "Cancelada";
+  if (["pending", "pendiente"].includes(key)) return "Pendiente";
+  if (["scheduled", "programada", "confirmada", "confirmed"].includes(key)) return "Programada";
+  return status || "Sin estado";
+}
+
+function normalizePdfText(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\x20-\x7E]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function escapePdfText(value: string) {
+  return normalizePdfText(value).replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
+}
+
+function parseDateParts(value: unknown) {
+  const raw = toText(value);
+  if (!raw) return { fecha: "No registrada", hora: "No registrada" };
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return { fecha: raw, hora: "No registrada" };
+  return {
+    fecha: date.toLocaleDateString("es-ES", { dateStyle: "long" }),
+    hora: date.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" }),
+  };
+}
+
+function getValueFromKeys(source: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    const value = source[key];
+    if (value !== undefined && value !== null && toText(value)) return toText(value);
+  }
+  return "";
+}
+
+function findAppointmentsArray(payload: unknown): unknown[] {
+  const queue: unknown[] = [payload];
+  while (queue.length) {
+    const current = queue.shift();
+    if (!current) continue;
+    if (Array.isArray(current)) {
+      if (current.some((item) => {
+        const record = asRecord(item);
+        return Boolean(record.start_at || record.fecha || record.service_name || record.servicio || record.status || record.estado);
+      })) {
+        return current;
+      }
+      continue;
+    }
+    const record = asRecord(current);
+    const explicitAppointments = record.appointments;
+    if (Array.isArray(explicitAppointments)) return explicitAppointments;
+    Object.values(record).forEach((value) => queue.push(value));
+  }
+  return [];
+}
+
+function findFirstRecordByKey(payload: unknown, keys: string[]) {
+  const queue: unknown[] = [payload];
+  while (queue.length) {
+    const current = queue.shift();
+    if (!current) continue;
+    if (Array.isArray(current)) {
+      current.forEach((entry) => queue.push(entry));
+      continue;
+    }
+    const record = asRecord(current);
+    if (keys.some((key) => record[key] !== undefined)) return record;
+    Object.values(record).forEach((value) => queue.push(value));
+  }
+  return {};
+}
+
+function buildAppointmentExportReport(data: unknown, profileData: PatientProfileData): AppointmentExportReport {
+  const appointmentsRaw = findAppointmentsArray(data);
+  const patientRecord = findFirstRecordByKey(data, ["patient", "patient_name", "nombre", "correo", "email"]);
+  const summaryRecord = findFirstRecordByKey(data, ["summary", "total", "completed", "cancelled", "pending", "programadas"]);
+  const nestedSummary = asRecord(summaryRecord.summary);
+
+  const appointments = appointmentsRaw.map((entry) => {
+    const appointment = asRecord(entry);
+    const serviceRecord = asRecord(appointment.service);
+    const dentistRecord = asRecord(appointment.dentist);
+    const clinicRecord = asRecord(appointment.clinic);
+    const startRaw = appointment.start_at ?? appointment.fecha ?? appointment.date;
+    const { fecha, hora } = parseDateParts(startRaw);
+
+    return {
+      servicio:
+        getValueFromKeys(appointment, ["servicio", "service_name", "service"]) ||
+        getValueFromKeys(serviceRecord, ["name"]) ||
+        "Servicio no especificado",
+      odontologo:
+        getValueFromKeys(appointment, ["odontologo", "dentist_name"]) ||
+        getValueFromKeys(dentistRecord, ["name"]) ||
+        "No especificado",
+      fecha,
+      hora:
+        getValueFromKeys(appointment, ["hora"]) ||
+        `${hora}${toText(appointment.end_at) ? ` - ${parseDateParts(appointment.end_at).hora}` : ""}`,
+      estado: normalizeStatus(getValueFromKeys(appointment, ["estado", "status"]) || "Sin estado"),
+      motivo: getValueFromKeys(appointment, ["motivo", "reason"]) || "Sin motivo registrado",
+      notasInternas: getValueFromKeys(appointment, ["internal_notes", "notas_internas", "notes"]) || "Sin notas internas",
+      clinica:
+        getValueFromKeys(appointment, ["clinic_name", "clinica"]) ||
+        getValueFromKeys(clinicRecord, ["name"]) ||
+        profileData.clinica ||
+        "Clinica dental",
+    } satisfies ReportAppointment;
+  });
+
+  const patientNested = asRecord(patientRecord.patient);
+  const patientName =
+    getValueFromKeys(patientRecord, ["patient_name", "nombre", "name"]) ||
+    getValueFromKeys(patientNested, ["nombre", "name"]) ||
+    profileData.nombre ||
+    "Paciente";
+  const patientEmail =
+    getValueFromKeys(patientRecord, ["correo", "email", "patient_email"]) ||
+    getValueFromKeys(patientNested, ["correo", "email"]) ||
+    profileData.correo ||
+    "No registrado";
+
+  const total = Number(nestedSummary.total ?? summaryRecord.total ?? appointments.length) || appointments.length;
+  const completed = Number(nestedSummary.completed ?? summaryRecord.completed ?? nestedSummary.completadas ?? summaryRecord.completadas ?? 0) || 0;
+  const cancelled = Number(nestedSummary.cancelled ?? summaryRecord.cancelled ?? nestedSummary.canceladas ?? summaryRecord.canceladas ?? 0) || 0;
+  const pending =
+    Number(
+      nestedSummary.pending ??
+      summaryRecord.pending ??
+      nestedSummary.programadas ??
+      summaryRecord.programadas ??
+      nestedSummary.scheduled ??
+      summaryRecord.scheduled ??
+      0
+    ) || 0;
+
+  return {
+    pacienteNombre: patientName,
+    pacienteCorreo: patientEmail,
+    generatedAt: new Date().toLocaleString("es-ES", { dateStyle: "long", timeStyle: "short" }),
+    total,
+    completed,
+    cancelled,
+    pending,
+    appointments,
+  };
+}
+
+function createStyledAppointmentPdf(report: AppointmentExportReport) {
+  const PAGE_WIDTH = 595;
+  const PAGE_HEIGHT = 842;
+  const MARGIN = 40;
+  const CONTENT_WIDTH = PAGE_WIDTH - MARGIN * 2;
+  const pages: string[] = [""];
+  let pageIndex = 0;
+  let y = PAGE_HEIGHT - MARGIN;
+
+  function addPage() {
+    pages.push("");
+    pageIndex += 1;
+    y = PAGE_HEIGHT - MARGIN;
+  }
+
+  function add(command: string) {
+    pages[pageIndex] += `${command}\n`;
+  }
+
+  function rect(x: number, rectY: number, w: number, h: number, fillRgb?: [number, number, number], stroke = false) {
+    if (fillRgb) add(`${fillRgb[0]} ${fillRgb[1]} ${fillRgb[2]} rg`);
+    if (stroke) add("0.83 0.86 0.92 RG");
+    add(`${x.toFixed(2)} ${rectY.toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)} re ${fillRgb && stroke ? "B" : fillRgb ? "f" : "S"}`);
+  }
+
+  function text(value: string, x: number, textY: number, size = 10, font: "F1" | "F2" = "F1", color: [number, number, number] = [0.1, 0.13, 0.2]) {
+    add("BT");
+    add(`/${font} ${size} Tf`);
+    add(`${color[0]} ${color[1]} ${color[2]} rg`);
+    add(`${x.toFixed(2)} ${textY.toFixed(2)} Td`);
+    add(`(${escapePdfText(value)}) Tj`);
+    add("ET");
+  }
+
+  function splitText(value: string, maxWidth: number, size: number) {
+    const words = normalizePdfText(value).split(" ").filter(Boolean);
+    if (!words.length) return [""];
+    const lines: string[] = [];
+    let current = words[0];
+    const maxChars = Math.max(12, Math.floor(maxWidth / (size * 0.5)));
+    for (let i = 1; i < words.length; i += 1) {
+      const candidate = `${current} ${words[i]}`;
+      if (candidate.length > maxChars) {
+        lines.push(current);
+        current = words[i];
+      } else {
+        current = candidate;
+      }
+    }
+    lines.push(current);
+    return lines;
+  }
+
+  function ensureSpace(height: number) {
+    if (y - height < MARGIN) addPage();
+  }
+
+  rect(MARGIN, PAGE_HEIGHT - MARGIN - 95, CONTENT_WIDTH, 95, [0.93, 0.96, 1], true);
+  text("Portal Odontologico", MARGIN + 16, PAGE_HEIGHT - MARGIN - 28, 11, "F2", [0.2, 0.33, 0.54]);
+  text("Resumen de citas", MARGIN + 16, PAGE_HEIGHT - MARGIN - 50, 23, "F2", [0.08, 0.12, 0.22]);
+  text(`Generado: ${report.generatedAt}`, MARGIN + 16, PAGE_HEIGHT - MARGIN - 72, 10, "F1", [0.28, 0.34, 0.45]);
+  y = PAGE_HEIGHT - MARGIN - 120;
+
+  ensureSpace(98);
+  rect(MARGIN, y - 88, CONTENT_WIDTH, 88, [0.98, 0.985, 1], true);
+  text("Informacion del paciente", MARGIN + 14, y - 24, 12, "F2", [0.12, 0.19, 0.32]);
+  text(`Nombre: ${report.pacienteNombre}`, MARGIN + 14, y - 46, 11, "F1");
+  text(`Correo: ${report.pacienteCorreo}`, MARGIN + 14, y - 66, 11, "F1");
+  y -= 106;
+
+  const gap = 10;
+  const cardWidth = (CONTENT_WIDTH - gap) / 2;
+  const cardHeight = 64;
+  ensureSpace(cardHeight * 2 + gap + 24);
+  text("Resumen general", MARGIN, y, 13, "F2", [0.12, 0.19, 0.32]);
+  y -= 14;
+  const cards = [
+    { label: "Total de citas", value: String(report.total) },
+    { label: "Completadas", value: String(report.completed) },
+    { label: "Canceladas", value: String(report.cancelled) },
+    { label: "Programadas/Pendientes", value: String(report.pending) },
+  ];
+  cards.forEach((card, index) => {
+    const col = index % 2;
+    const row = Math.floor(index / 2);
+    const x = MARGIN + col * (cardWidth + gap);
+    const cardY = y - row * (cardHeight + gap);
+    rect(x, cardY - cardHeight, cardWidth, cardHeight, [0.95, 0.97, 1], true);
+    text(card.label, x + 12, cardY - 24, 10, "F1", [0.25, 0.31, 0.44]);
+    text(card.value, x + 12, cardY - 48, 20, "F2", [0.08, 0.12, 0.22]);
+  });
+  y -= cardHeight * 2 + gap + 26;
+
+  ensureSpace(30);
+  text("Historial completo de citas", MARGIN, y, 14, "F2", [0.12, 0.19, 0.32]);
+  y -= 16;
+
+  if (!report.appointments.length) {
+    ensureSpace(42);
+    rect(MARGIN, y - 40, CONTENT_WIDTH, 40, [0.99, 0.99, 1], true);
+    text("No hay citas disponibles en el export para este paciente.", MARGIN + 12, y - 24, 10);
+  } else {
+    report.appointments.forEach((appointment, index) => {
+      const notesLines = splitText(`Motivo: ${appointment.motivo}`, CONTENT_WIDTH - 24, 10);
+      const internalLines = splitText(`Notas: ${appointment.notasInternas}`, CONTENT_WIDTH - 24, 10);
+      const cardHeightDynamic = 92 + (notesLines.length + internalLines.length) * 12;
+      ensureSpace(cardHeightDynamic + 12);
+
+      rect(MARGIN, y - cardHeightDynamic, CONTENT_WIDTH, cardHeightDynamic, [1, 1, 1], true);
+      text(`Cita #${index + 1}`, MARGIN + 12, y - 20, 11, "F2", [0.11, 0.16, 0.3]);
+
+      const statusColor: [number, number, number] =
+        appointment.estado === "Completada" ? [0.16, 0.5, 0.26] : appointment.estado === "Cancelada" ? [0.7, 0.2, 0.2] : [0.73, 0.48, 0.1];
+      rect(PAGE_WIDTH - MARGIN - 122, y - 28, 110, 18, [0.96, 0.97, 1], true);
+      text(appointment.estado, PAGE_WIDTH - MARGIN - 114, y - 16, 10, "F2", statusColor);
+
+      text(`Servicio: ${appointment.servicio}`, MARGIN + 12, y - 38, 10);
+      text(`Odontologo: ${appointment.odontologo}`, MARGIN + 12, y - 54, 10);
+      text(`Fecha: ${appointment.fecha}  |  Hora: ${appointment.hora}`, MARGIN + 12, y - 70, 10);
+      text(`Clinica: ${appointment.clinica}`, MARGIN + 12, y - 86, 10);
+
+      let textY = y - 102;
+      notesLines.forEach((line) => {
+        text(line, MARGIN + 12, textY, 10, "F1", [0.2, 0.22, 0.3]);
+        textY -= 12;
+      });
+      internalLines.forEach((line) => {
+        text(line, MARGIN + 12, textY, 10, "F1", [0.2, 0.22, 0.3]);
+        textY -= 12;
+      });
+
+      y -= cardHeightDynamic + 12;
+    });
+  }
+
+  ensureSpace(30);
+  text("Reporte generado automaticamente por el portal del paciente.", MARGIN, 24, 9, "F1", [0.44, 0.48, 0.57]);
+
+  const objects: string[] = [];
+  objects.push("<< /Type /Catalog /Pages 2 0 R >>");
+  const kidsRefs = pages.map((_, idx) => `${idx * 2 + 3} 0 R`).join(" ");
+  objects.push(`<< /Type /Pages /Kids [${kidsRefs}] /Count ${pages.length} >>`);
+
+  pages.forEach((stream, idx) => {
+    const pageObjectId = idx * 2 + 3;
+    const contentObjectId = idx * 2 + 4;
+    objects[pageObjectId - 1] =
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PAGE_WIDTH} ${PAGE_HEIGHT}] /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> /F2 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >> >> >> /Contents ${contentObjectId} 0 R >>`;
+    objects[contentObjectId - 1] = `<< /Length ${stream.length} >>\nstream\n${stream}endstream`;
+  });
+
+  let pdf = "%PDF-1.4\n";
+  const offsets = [0];
+  objects.forEach((object, index) => {
+    offsets.push(pdf.length);
+    pdf += `${index + 1} 0 obj\n${object}\nendobj\n`;
+  });
+
+  const xrefPosition = pdf.length;
+  pdf += `xref\n0 ${objects.length + 1}\n`;
+  pdf += "0000000000 65535 f \n";
+  offsets.slice(1).forEach((offset) => {
+    pdf += `${String(offset).padStart(10, "0")} 00000 n \n`;
+  });
+  pdf += `trailer << /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefPosition}\n%%EOF`;
+
+  return new Blob([pdf], { type: "application/pdf" });
+}
+
 export default function PatientProfilePage() {
   const [profileData, setProfileData] = useState<PatientProfileData>(getInitialProfileFromStorage);
   const [profileForm, setProfileForm] = useState<ProfileFormValues>(EMPTY_PROFILE);
@@ -245,80 +599,9 @@ export default function PatientProfilePage() {
   }
 
   function generatePdfFromSummaryData(data: unknown) {
-    const payload = (typeof data === "object" && data !== null ? data : {}) as Record<string, unknown>;
-    const appointments = Array.isArray(payload.appointments) ? payload.appointments : [];
-    const summary = (payload.summary ?? {}) as Record<string, unknown>;
-    const generatedAt = new Date().toLocaleString("es-ES", { dateStyle: "long", timeStyle: "short" });
-    const lines = [
-      "Resumen de citas",
-      "",
-      `Paciente: ${profileData.nombre || "Paciente"}`,
-      `Correo: ${profileData.correo || "No registrado"}`,
-      `Fecha de generación: ${generatedAt}`,
-      "",
-      "Resumen general",
-      `- Total de citas: ${String(summary.total ?? appointments.length)}`,
-      `- Completadas: ${String(summary.completed ?? summary.completadas ?? 0)}`,
-      `- Canceladas: ${String(summary.cancelled ?? summary.canceladas ?? 0)}`,
-      "",
-      "Listado de citas",
-    ];
-
-    if (!appointments.length) {
-      lines.push("No hay citas registradas para mostrar.");
-    } else {
-      appointments.slice(0, 30).forEach((entry, index) => {
-        const appointment = (typeof entry === "object" && entry !== null ? entry : {}) as Record<string, unknown>;
-        lines.push(
-          `${index + 1}. ${String(appointment.start_at ?? appointment.fecha ?? "Fecha no disponible")} | ${String(
-            appointment.status ?? appointment.estado ?? "Sin estado"
-          )} | ${String(appointment.reason ?? appointment.motivo ?? "Sin motivo")}`
-        );
-      });
-    }
-
-    const pdfBlob = createBasicPdf(lines);
+    const report = buildAppointmentExportReport(data, profileData);
+    const pdfBlob = createStyledAppointmentPdf(report);
     downloadPdfBlob(pdfBlob, `resumen-citas-${new Date().toISOString().slice(0, 10)}.pdf`);
-  }
-
-  function createBasicPdf(lines: string[]) {
-    const escapeText = (text: string) => text.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
-    const normalizedLines = lines.map((line) => escapeText(line.normalize("NFD").replace(/[\u0300-\u036f]/g, "")));
-    const commands = [
-      "BT",
-      "/F1 12 Tf",
-      "50 790 Td",
-      ...normalizedLines.flatMap((line, index) => [`(${line}) Tj`, index < normalizedLines.length - 1 ? "0 -16 Td" : ""]),
-      "ET",
-    ]
-      .filter(Boolean)
-      .join("\n");
-
-    const stream = `<< /Length ${commands.length} >>\nstream\n${commands}\nendstream`;
-    const objects = [
-      "1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj",
-      "2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj",
-      "3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >> endobj",
-      "4 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj",
-      `5 0 obj ${stream} endobj`,
-    ];
-
-    let pdf = "%PDF-1.4\n";
-    const offsets = [0];
-    objects.forEach((object) => {
-      offsets.push(pdf.length);
-      pdf += `${object}\n`;
-    });
-
-    const xrefPosition = pdf.length;
-    pdf += `xref\n0 ${objects.length + 1}\n`;
-    pdf += "0000000000 65535 f \n";
-    offsets.slice(1).forEach((offset) => {
-      pdf += `${String(offset).padStart(10, "0")} 00000 n \n`;
-    });
-    pdf += `trailer << /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefPosition}\n%%EOF`;
-
-    return new Blob([pdf], { type: "application/pdf" });
   }
 
   async function handleDownloadSummary() {
