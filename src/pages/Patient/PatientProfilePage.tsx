@@ -146,12 +146,8 @@ function formatNoteCreatedAt(value: unknown) {
   return date.toLocaleString("es-ES", { dateStyle: "long", timeStyle: "short" });
 }
 
-function resolveAppointmentNotes(appointment: Record<string, unknown>, nestedAppointment: Record<string, unknown>) {
-  const notesValue = Array.isArray(appointment.notes)
-    ? appointment.notes
-    : Array.isArray(nestedAppointment.notes)
-      ? nestedAppointment.notes
-      : [];
+function resolveAppointmentNotes(appointment: Record<string, unknown>) {
+  const notesValue = Array.isArray(appointment.notes) ? appointment.notes : [];
 
   return notesValue
     .map((entry) => {
@@ -222,7 +218,7 @@ function buildAppointmentExportReport(data: unknown, profileData: PatientProfile
     const startRaw = appointment.start_at ?? nestedAppointment.start_at ?? appointment.fecha ?? appointment.date;
     const { fecha, hora } = parseDateParts(startRaw);
     const reason = resolveAppointmentReason(appointment, nestedAppointment);
-    const notes = resolveAppointmentNotes(appointment, nestedAppointment);
+    const notes = resolveAppointmentNotes(appointment);
 
     return {
       servicio:
