@@ -27,6 +27,17 @@ export interface ChangePasswordPayload {
   password_confirmation: string;
 }
 
+type ExportResult =
+  | {
+      kind: "pdf";
+      blob: Blob;
+      filename: string;
+    }
+  | {
+      kind: "json";
+      data: unknown;
+    };
+
 function asRecord(value: unknown): Record<string, unknown> {
   return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : {};
 }
@@ -40,6 +51,32 @@ function normalizeOne(payload: unknown): Record<string, unknown> {
 
 function toText(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function decodeFilename(value: string) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
+function getFilenameFromDisposition(disposition: string | undefined) {
+  if (!disposition) return "";
+  const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+  if (utf8Match?.[1]) return decodeFilename(utf8Match[1].replace(/["']/g, ""));
+
+  const plainMatch = disposition.match(/filename="?([^"]+)"?/i);
+  if (plainMatch?.[1]) return plainMatch[1].trim();
+  return "";
+}
+
+function toBlobFromBase64(base64: string, mimeType: string) {
+  const normalized = base64.includes(",") ? base64.split(",")[1] : base64;
+  const binary = atob(normalized);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
+  return new Blob([bytes], { type: mimeType });
 }
 
 function resolveRole(rawRole: unknown): string {
@@ -118,4 +155,53 @@ export async function updatePatientPassword(payload: ChangePasswordPayload) {
   };
 
   await patchPatientMe(body);
+}
+
+async function tryPatientAppointmentSummaryExport(path: string): Promise<ExportResult> {
+  const response = await api.get(path, {
+    responseType: "blob",
+    headers: {
+      Accept: "application/pdf, application/json",
+    },
+  });
+
+  const disposition = response.headers["content-disposition"] as string | undefined;
+  const filename = getFilenameFromDisposition(disposition) || `resumen-citas-${new Date().toISOString().slice(0, 10)}.pdf`;
+  const contentType = toText(response.headers["content-type"]).toLowerCase();
+
+  if (contentType.includes("application/pdf") || response.data.type === "application/pdf") {
+    return { kind: "pdf", blob: response.data, filename };
+  }
+
+  const text = await response.data.text();
+  const parsed = JSON.parse(text) as Record<string, unknown>;
+  const pdfBase64 = toText(parsed.pdf_base64 ?? parsed.file_base64 ?? parsed.base64_pdf ?? parsed.pdf);
+
+  if (pdfBase64) {
+    return {
+      kind: "pdf",
+      blob: toBlobFromBase64(pdfBase64, "application/pdf"),
+      filename,
+    };
+  }
+
+  return {
+    kind: "json",
+    data: parsed,
+  };
+}
+
+export async function exportPatientAppointmentSummary() {
+  const candidatePaths = ["/pacient/appointments/export", "/pacient/appointments/history/export"];
+  let lastError: unknown;
+
+  for (const path of candidatePaths) {
+    try {
+      return await tryPatientAppointmentSummaryExport(path);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError;
 }
