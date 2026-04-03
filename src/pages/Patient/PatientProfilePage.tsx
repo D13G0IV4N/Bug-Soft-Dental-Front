@@ -130,6 +130,18 @@ function getValueFromKeys(source: Record<string, unknown>, keys: string[]) {
   return "";
 }
 
+function resolveAppointmentReason(appointment: Record<string, unknown>, nestedAppointment: Record<string, unknown>) {
+  return getValueFromKeys(appointment, ["reason"]) || getValueFromKeys(nestedAppointment, ["reason"]) || "Sin motivo registrado";
+}
+
+function resolveAppointmentInternalNotes(appointment: Record<string, unknown>, nestedAppointment: Record<string, unknown>) {
+  return (
+    getValueFromKeys(appointment, ["internal_notes"]) ||
+    getValueFromKeys(nestedAppointment, ["internal_notes"]) ||
+    "Sin notas internas"
+  );
+}
+
 function findAppointmentsArray(payload: unknown): unknown[] {
   const queue: unknown[] = [payload];
   while (queue.length) {
@@ -182,14 +194,8 @@ function buildAppointmentExportReport(data: unknown, profileData: PatientProfile
     const clinicRecord = asRecord(appointment.clinic);
     const startRaw = appointment.start_at ?? nestedAppointment.start_at ?? appointment.fecha ?? appointment.date;
     const { fecha, hora } = parseDateParts(startRaw);
-    const reason =
-      getValueFromKeys(appointment, ["reason", "motivo"]) ||
-      getValueFromKeys(nestedAppointment, ["reason", "motivo"]) ||
-      "Sin motivo registrado";
-    const internalNotes =
-      getValueFromKeys(appointment, ["internal_notes", "notes", "notas_internas"]) ||
-      getValueFromKeys(nestedAppointment, ["internal_notes", "notes", "notas_internas"]) ||
-      "Sin notas internas";
+    const reason = resolveAppointmentReason(appointment, nestedAppointment);
+    const internalNotes = resolveAppointmentInternalNotes(appointment, nestedAppointment);
 
     return {
       servicio:
