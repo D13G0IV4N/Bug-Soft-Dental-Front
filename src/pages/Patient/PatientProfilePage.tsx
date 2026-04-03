@@ -176,30 +176,42 @@ function buildAppointmentExportReport(data: unknown, profileData: PatientProfile
 
   const appointments = appointmentsRaw.map((entry) => {
     const appointment = asRecord(entry);
+    const nestedAppointment = asRecord(appointment.appointment);
     const serviceRecord = asRecord(appointment.service);
     const dentistRecord = asRecord(appointment.dentist);
     const clinicRecord = asRecord(appointment.clinic);
-    const startRaw = appointment.start_at ?? appointment.fecha ?? appointment.date;
+    const startRaw = appointment.start_at ?? nestedAppointment.start_at ?? appointment.fecha ?? appointment.date;
     const { fecha, hora } = parseDateParts(startRaw);
+    const reason =
+      getValueFromKeys(appointment, ["reason", "motivo"]) ||
+      getValueFromKeys(nestedAppointment, ["reason", "motivo"]) ||
+      "Sin motivo registrado";
+    const internalNotes =
+      getValueFromKeys(appointment, ["internal_notes", "notes", "notas_internas"]) ||
+      getValueFromKeys(nestedAppointment, ["internal_notes", "notes", "notas_internas"]) ||
+      "Sin notas internas";
 
     return {
       servicio:
         getValueFromKeys(appointment, ["servicio", "service_name", "service"]) ||
+        getValueFromKeys(nestedAppointment, ["service_name", "service"]) ||
         getValueFromKeys(serviceRecord, ["name"]) ||
         "Servicio no especificado",
       odontologo:
         getValueFromKeys(appointment, ["odontologo", "dentist_name"]) ||
+        getValueFromKeys(nestedAppointment, ["dentist_name"]) ||
         getValueFromKeys(dentistRecord, ["name"]) ||
         "No especificado",
       fecha,
       hora:
         getValueFromKeys(appointment, ["hora"]) ||
         `${hora}${toText(appointment.end_at) ? ` - ${parseDateParts(appointment.end_at).hora}` : ""}`,
-      estado: normalizeStatus(getValueFromKeys(appointment, ["estado", "status"]) || "Sin estado"),
-      motivo: getValueFromKeys(appointment, ["motivo", "reason"]) || "Sin motivo registrado",
-      notasInternas: getValueFromKeys(appointment, ["internal_notes", "notas_internas", "notes"]) || "Sin notas internas",
+      estado: normalizeStatus(getValueFromKeys(appointment, ["estado", "status"]) || getValueFromKeys(nestedAppointment, ["status"]) || "Sin estado"),
+      motivo: reason,
+      notasInternas: internalNotes,
       clinica:
         getValueFromKeys(appointment, ["clinic_name", "clinica"]) ||
+        getValueFromKeys(nestedAppointment, ["clinic_name", "clinica"]) ||
         getValueFromKeys(clinicRecord, ["name"]) ||
         profileData.clinica ||
         "Clinica dental",
