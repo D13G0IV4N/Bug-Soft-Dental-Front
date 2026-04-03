@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getPacientAppointments, toErrorMessage, type Appointment } from "../../api/appointments";
+import AppModal from "../../components/ui/AppModal";
+import { cancelPacientAppointment, getPacientAppointments, toErrorMessage, type Appointment } from "../../api/appointments";
 import { parseAppointmentDateTime } from "../Dentist/dateUtils";
 import styles from "./patient.module.css";
 
@@ -78,12 +79,36 @@ function getAppointmentClinic(appointment: Appointment) {
   return clinicFromNested || clinicFromName || "";
 }
 
-function AppointmentCard({ appointment, emphasize }: { appointment: Appointment; emphasize?: boolean }) {
+function isAppointmentCancellable(appointment: Appointment) {
+  const normalized = (appointment.status ?? "").toLowerCase();
+  return normalized === "scheduled" || normalized === "confirmed" || normalized === "pending";
+}
+
+function sortAppointments(source: Appointment[]) {
+  return [...source].sort((a, b) => {
+    const first = parseStartDate(a.start_at)?.getTime() ?? 0;
+    const second = parseStartDate(b.start_at)?.getTime() ?? 0;
+    return first - second;
+  });
+}
+
+function AppointmentCard({
+  appointment,
+  emphasize,
+  onCancel,
+  canceling,
+}: {
+  appointment: Appointment;
+  emphasize?: boolean;
+  onCancel?: (appointment: Appointment) => void;
+  canceling?: boolean;
+}) {
   const statusKey = getStatusKey(appointment.status);
   const statusLabel = getStatusLabel(appointment.status);
   const reason = appointment.reason?.trim();
   const notes = appointment.internal_notes?.trim();
   const clinic = getAppointmentClinic(appointment);
+  const canCancel = isAppointmentCancellable(appointment) && Boolean(onCancel);
 
   return (
     <article className={`${styles.patientAppointmentCard} ${emphasize ? styles.patientAppointmentCardFeatured : ""}`}>
@@ -123,6 +148,13 @@ function AppointmentCard({ appointment, emphasize }: { appointment: Appointment;
           </div>
         )}
       </div>
+      {canCancel ? (
+        <div className={styles.patientAppointmentActions}>
+          <button className={styles.patientCancelAction} type="button" onClick={() => onCancel?.(appointment)} disabled={canceling}>
+            {canceling ? "Cancelando..." : "Cancelar cita"}
+          </button>
+        </div>
+      ) : null}
     </article>
   );
 }
@@ -132,6 +164,15 @@ export default function PatientAppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [cancelError, setCancelError] = useState("");
+  const [appointmentToCancel, setAppointmentToCancel] = useState<Appointment | null>(null);
+  const [cancelingAppointmentId, setCancelingAppointmentId] = useState<number | null>(null);
+
+  const loadAppointments = useCallback(async () => {
+    const response = await getPacientAppointments();
+    setAppointments(sortAppointments(response));
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -142,13 +183,7 @@ export default function PatientAppointmentsPage() {
         const response = await getPacientAppointments();
         if (!active) return;
 
-        const sorted = [...response].sort((a, b) => {
-          const first = parseStartDate(a.start_at)?.getTime() ?? 0;
-          const second = parseStartDate(b.start_at)?.getTime() ?? 0;
-          return first - second;
-        });
-
-        setAppointments(sorted);
+        setAppointments(sortAppointments(response));
         setError("");
       } catch (requestError: unknown) {
         if (!active) return;
@@ -165,6 +200,31 @@ export default function PatientAppointmentsPage() {
       active = false;
     };
   }, []);
+
+  async function handleConfirmCancelAppointment() {
+    if (!appointmentToCancel?.id || cancelingAppointmentId) return;
+
+    try {
+      setCancelError("");
+      setSuccessMessage("");
+      setCancelingAppointmentId(appointmentToCancel.id);
+
+      const updated = await cancelPacientAppointment(appointmentToCancel.id);
+
+      if (updated?.id) {
+        setAppointments((current) => sortAppointments(current.map((item) => (item.id === updated.id ? updated : item))));
+      } else {
+        await loadAppointments();
+      }
+
+      setSuccessMessage("La cita se canceló correctamente.");
+      setAppointmentToCancel(null);
+    } catch (requestError: unknown) {
+      setCancelError(toErrorMessage(requestError, "No pudimos cancelar la cita. Inténtalo de nuevo."));
+    } finally {
+      setCancelingAppointmentId(null);
+    }
+  }
 
   const { upcoming, history, nextAppointment, completedCount, cancelledCount } = useMemo(() => {
     const now = new Date().getTime();
@@ -204,6 +264,8 @@ export default function PatientAppointmentsPage() {
         <p className={styles.patientAppointmentsDescription}>
           Visualiza tus próximas visitas y tu historial en un solo espacio claro, ordenado y fácil de revisar.
         </p>
+        {successMessage ? <p className={styles.patientSuccessMessage}>{successMessage}</p> : null}
+        {cancelError ? <p className={styles.patientErrorMessage}>{cancelError}</p> : null}
       </header>
 
       {loading ? (
@@ -278,7 +340,13 @@ export default function PatientAppointmentsPage() {
             ) : (
               <div className={styles.patientAppointmentsGrid}>
                 {upcoming.map((appointment, index) => (
-                  <AppointmentCard key={appointment.id ?? `${appointment.start_at}-${index}`} appointment={appointment} emphasize={index === 0} />
+                  <AppointmentCard
+                    key={appointment.id ?? `${appointment.start_at}-${index}`}
+                    appointment={appointment}
+                    emphasize={index === 0}
+                    onCancel={setAppointmentToCancel}
+                    canceling={cancelingAppointmentId === appointment.id}
+                  />
                 ))}
               </div>
             )}
@@ -296,13 +364,53 @@ export default function PatientAppointmentsPage() {
             ) : (
               <div className={styles.patientHistoryStack}>
                 {history.map((appointment, index) => (
-                  <AppointmentCard key={appointment.id ?? `history-${appointment.start_at}-${index}`} appointment={appointment} />
+                  <AppointmentCard
+                    key={appointment.id ?? `history-${appointment.start_at}-${index}`}
+                    appointment={appointment}
+                    onCancel={setAppointmentToCancel}
+                    canceling={cancelingAppointmentId === appointment.id}
+                  />
                 ))}
               </div>
             )}
           </section>
         </>
       )}
+
+      <AppModal
+        open={Boolean(appointmentToCancel)}
+        size="narrow"
+        onClose={() => (cancelingAppointmentId ? null : setAppointmentToCancel(null))}
+        title="¿Seguro que deseas cancelar esta cita?"
+        subtitle="Esta acción no se puede deshacer."
+        closeLabel="Cerrar confirmación"
+        closeDisabled={Boolean(cancelingAppointmentId)}
+        actions={(
+          <div className={styles.patientCancelModalActions}>
+            <button
+              type="button"
+              className={styles.patientCancelModalBack}
+              onClick={() => setAppointmentToCancel(null)}
+              disabled={Boolean(cancelingAppointmentId)}
+            >
+              Volver
+            </button>
+            <button
+              type="button"
+              className={styles.patientCancelModalConfirm}
+              onClick={() => void handleConfirmCancelAppointment()}
+              disabled={Boolean(cancelingAppointmentId)}
+            >
+              {cancelingAppointmentId ? "Cancelando..." : "Sí, cancelar"}
+            </button>
+          </div>
+        )}
+      >
+        <p className={styles.patientCancelModalText}>
+          Se cancelará tu cita de {appointmentToCancel ? formatAppointmentDate(appointmentToCancel.start_at) : "la fecha seleccionada"}.
+        </p>
+        {cancelError ? <p className={styles.patientErrorMessage}>{cancelError}</p> : null}
+      </AppModal>
     </section>
   );
 }

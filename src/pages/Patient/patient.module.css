@@ -1041,6 +1041,26 @@
   font: 500 0.95rem/1.58 "Inter", "Segoe UI", sans-serif;
 }
 
+.patientSuccessMessage,
+.patientErrorMessage {
+  margin: 0.8rem 0 0;
+  border-radius: 12px;
+  padding: 0.62rem 0.74rem;
+  font: 600 0.82rem/1.4 "Inter", "Segoe UI", sans-serif;
+}
+
+.patientSuccessMessage {
+  border: 1px solid #c2ead8;
+  background: #f2fcf7;
+  color: #1f6d46;
+}
+
+.patientErrorMessage {
+  border: 1px solid #f6ccd3;
+  background: #fff5f6;
+  color: #9f3049;
+}
+
 .patientAppointmentsStateCard,
 .patientAppointmentsEmpty,
 .patientSectionBlock {
@@ -1224,6 +1244,91 @@
 .patientAppointmentBody {
   display: grid;
   gap: 0.58rem;
+}
+
+.patientAppointmentActions {
+  padding-top: 0.2rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.patientCancelAction {
+  border: 1px solid #f3c9d1;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fff7f9 0%, #fff1f4 100%);
+  color: #a1354f;
+  padding: 0.56rem 0.78rem;
+  font: 700 0.8rem/1 "Inter", "Segoe UI", sans-serif;
+  cursor: pointer;
+  transition: 150ms ease;
+}
+
+.patientCancelAction:hover:not(:disabled) {
+  border-color: #e9b0bd;
+  box-shadow: 0 6px 14px rgba(161, 53, 79, 0.16);
+  transform: translateY(-1px);
+}
+
+.patientCancelAction:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.patientCancelModalText {
+  margin: 0;
+  color: #3f5d8f;
+  font: 520 0.92rem/1.55 "Inter", "Segoe UI", sans-serif;
+}
+
+.patientCancelModalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.56rem;
+}
+
+.patientCancelModalBack,
+.patientCancelModalConfirm {
+  border-radius: 12px;
+  padding: 0.62rem 0.84rem;
+  font: 700 0.82rem/1 "Inter", "Segoe UI", sans-serif;
+  cursor: pointer;
+  transition: 150ms ease;
+}
+
+.patientCancelModalBack {
+  border: 1px solid #cdddf8;
+  background: #f6f9ff;
+  color: #2d4f86;
+}
+
+.patientCancelModalConfirm {
+  border: 1px solid #df98a8;
+  background: linear-gradient(135deg, #e76282 0%, #c93d61 100%);
+  color: #fff;
+}
+
+.patientCancelModalBack:hover:not(:disabled),
+.patientCancelModalConfirm:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.patientCancelModalBack:hover:not(:disabled) {
+  border-color: #bacff5;
+}
+
+.patientCancelModalConfirm:hover:not(:disabled) {
+  border-color: #ca6d84;
+  box-shadow: 0 8px 16px rgba(180, 41, 79, 0.28);
+}
+
+.patientCancelModalBack:disabled,
+.patientCancelModalConfirm:disabled {
+  opacity: 0.66;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .patientInfoRow {
