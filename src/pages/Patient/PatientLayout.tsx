@@ -102,27 +102,7 @@ export default function PatientLayout() {
           <p className={styles.brandMeta}>{clinicName || "Tu espacio de cuidado dental"}</p>
         </div>
 
-        <div className={styles.mobileNavHeader}>
-          <div>
-            <p className={styles.mobileNavEyebrow}>Portal de paciente</p>
-            <p className={styles.mobileNavClinic}>{clinicName || "Bug&Soft Dental"}</p>
-          </div>
-          <button
-            type="button"
-            className={styles.mobileNavToggle}
-            aria-expanded={isNavOpen}
-            aria-controls="patient-sidebar-nav"
-            onClick={() => setIsNavOpen((current) => !current)}
-          >
-            <span>{isNavOpen ? "Cerrar menú" : "Abrir menú"}</span>
-            <span className={styles.mobileNavToggleIcon} aria-hidden="true">{isNavOpen ? "−" : "+"}</span>
-          </button>
-        </div>
-
-        <nav
-          id="patient-sidebar-nav"
-          className={`${styles.sidebarNav} ${isNavOpen ? styles.sidebarNavOpen : ""}`.trim()}
-        >
+        <nav id="patient-sidebar-nav" className={styles.sidebarNav}>
           {patientLinks.map((link) => (
             <NavLink
               key={link.to}
@@ -141,6 +121,59 @@ export default function PatientLayout() {
           Cerrar sesión
         </button>
       </aside>
+
+      <button
+        type="button"
+        className={styles.mobileFixedTrigger}
+        aria-expanded={isNavOpen}
+        aria-controls="patient-mobile-nav"
+        onClick={() => setIsNavOpen((current) => !current)}
+      >
+        <span className={styles.mobileFixedTriggerLabel}>Menú</span>
+        <span className={styles.mobileFixedTriggerState}>{isNavOpen ? "Cerrar" : "Abrir"}</span>
+      </button>
+
+      <button
+        type="button"
+        className={`${styles.mobileNavBackdrop} ${isNavOpen ? styles.mobileNavBackdropOpen : ""}`.trim()}
+        aria-label="Cerrar menú de navegación"
+        onClick={() => setIsNavOpen(false)}
+      />
+
+      <section
+        id="patient-mobile-nav"
+        className={`${styles.mobileNavSheet} ${isNavOpen ? styles.mobileNavSheetOpen : ""}`.trim()}
+        aria-label="Menú móvil de paciente"
+      >
+        <header className={styles.mobileSheetHeader}>
+          <div>
+            <p className={styles.mobileNavEyebrow}>Portal de paciente</p>
+            <p className={styles.mobileNavClinic}>{clinicName || "Bug&Soft Dental"}</p>
+          </div>
+          <button type="button" className={styles.mobileSheetClose} onClick={() => setIsNavOpen(false)}>
+            Cerrar
+          </button>
+        </header>
+
+        <nav className={styles.mobileSheetNav}>
+          {patientLinks.map((link) => (
+            <NavLink
+              key={link.to}
+              to={link.to}
+              end={link.end}
+              onClick={() => setIsNavOpen(false)}
+              className={({ isActive }) => `${styles.navItem} ${isActive ? styles.navItemActive : ""}`.trim()}
+            >
+              {link.icon}
+              <span>{link.label}</span>
+            </NavLink>
+          ))}
+        </nav>
+
+        <button className={styles.mobileSheetLogout} type="button" onClick={handleLogout}>
+          Cerrar sesión
+        </button>
+      </section>
 
       <main className={styles.main} id="patient-main">
         <div className={styles.outletSurface}>
