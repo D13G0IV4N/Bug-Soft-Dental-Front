@@ -1086,15 +1086,83 @@
 
 .bookingRoot {
   display: grid;
-  gap: 1rem;
+  gap: 0.85rem;
 }
 
 .bookingHero {
-  border-radius: 24px;
-  border: 1px solid #cbddff;
-  background: linear-gradient(145deg, #ffffff 0%, #f3f8ff 55%, #eaf2ff 100%);
-  padding: 1.35rem;
-  box-shadow: 0 12px 26px rgba(20, 73, 186, 0.08);
+  border-radius: 22px;
+  border: 1px solid #d5e4ff;
+  background: linear-gradient(145deg, #ffffff 0%, #f6faff 60%, #edf4ff 100%);
+  padding: clamp(0.95rem, 2.8vw, 1.25rem);
+  box-shadow: 0 8px 20px rgba(20, 73, 186, 0.08);
+  display: grid;
+  gap: 0.95rem;
+}
+
+.bookingTitle {
+  margin: 0.36rem 0 0;
+  font: 700 clamp(1.5rem, 6.5vw, 2rem)/1.08 "Plus Jakarta Sans", "Inter", "Segoe UI", sans-serif;
+}
+
+.bookingSubtitle {
+  margin: 0.5rem 0 0;
+  color: #55739d;
+  font: 500 0.88rem/1.45 "Inter", "Segoe UI", sans-serif;
+}
+
+.bookingProgressPanel {
+  border-radius: 16px;
+  border: 1px solid #d7e5ff;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.72rem 0.8rem 0.78rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.bookingProgressText {
+  margin: 0;
+  color: #254d92;
+  font: 700 0.8rem/1.1 "Inter", "Segoe UI", sans-serif;
+}
+
+.bookingProgressTrack {
+  height: 6px;
+  border-radius: 999px;
+  background: #deebff;
+  overflow: hidden;
+}
+
+.bookingProgressFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #2b6bff 0%, #1b50cb 100%);
+  transition: width 220ms ease;
+}
+
+.bookingProgressSteps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  gap: 0.34rem;
+  overflow-x: auto;
+}
+
+.bookingProgressStep,
+.bookingProgressStepDone {
+  border-radius: 999px;
+  border: 1px solid #cfddf5;
+  padding: 0.26rem 0.54rem;
+  white-space: nowrap;
+  color: #5d7499;
+  font: 600 0.72rem/1.1 "Inter", "Segoe UI", sans-serif;
+}
+
+.bookingProgressStepDone {
+  border-color: #bdd3ff;
+  color: #204c9f;
+  background: #edf3ff;
 }
 
 .bookingGrid {
@@ -1102,77 +1170,185 @@
 }
 
 .bookingFormCard {
-  border-radius: 22px;
-  border: 1px solid #cfe0fd;
+  border-radius: 20px;
+  border: 1px solid #d6e4ff;
   background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
-  box-shadow: 0 12px 24px rgba(15, 67, 173, 0.07);
-  padding: clamp(1.15rem, 2vw, 1.65rem);
-  max-width: 900px;
+  box-shadow: 0 10px 22px rgba(15, 67, 173, 0.07);
+  padding: clamp(0.9rem, 2.4vw, 1.25rem);
+  max-width: 860px;
   margin: 0 auto;
 }
 
 .bookingForm {
   display: grid;
-  gap: 1rem;
+  gap: 0.74rem;
 }
 
 .bookingStepSection {
-  border-radius: 16px;
-  border: 1px solid #d8e6ff;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
-  padding: 0.9rem;
+  border-radius: 14px;
+  border: 1px solid #dce8ff;
+  background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
+  padding: 0.8rem;
   display: grid;
-  gap: 0.45rem;
+  gap: 0.38rem;
+}
+
+.bookingStepSectionSoft {
+  border-style: dashed;
+  background: #fbfdff;
+}
+
+.bookingStepHeading {
+  display: grid;
+  gap: 0.16rem;
+}
+
+.bookingStepNumber {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #5579af;
+  font: 700 0.7rem/1 "Inter", "Segoe UI", sans-serif;
 }
 
 .bookingStepTitle {
   margin: 0;
   color: #173d7a;
-  font: 700 1rem/1.3 "Plus Jakarta Sans", "Inter", "Segoe UI", sans-serif;
-}
-
-.bookingStepDescription {
-  margin: 0;
-  color: #57719b;
-  font: 500 0.86rem/1.45 "Inter", "Segoe UI", sans-serif;
+  font: 700 0.98rem/1.3 "Plus Jakarta Sans", "Inter", "Segoe UI", sans-serif;
 }
 
 .bookingFieldLabel {
-  margin-top: 0.25rem;
+  margin-top: 0.14rem;
   color: #2f4f84;
-  font: 650 0.83rem/1.3 "Inter", "Segoe UI", sans-serif;
+  font: 650 0.78rem/1.3 "Inter", "Segoe UI", sans-serif;
+}
+
+.bookingSelectWrap {
+  position: relative;
+}
+
+.bookingSelectIcon {
+  position: absolute;
+  right: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #3f64a3;
+  font-size: 0.85rem;
+  pointer-events: none;
 }
 
 .bookingSelect,
 .bookingInput {
+  width: 100%;
   border-radius: 12px;
-  border: 1px solid #c8dcff;
-  background: #f9fbff;
+  border: 1px solid #c9dcff;
+  background: linear-gradient(180deg, #ffffff 0%, #f6faff 100%);
   color: #15386f;
-  padding: 0.66rem 0.74rem;
-  font: 600 0.9rem/1.3 "Inter", "Segoe UI", sans-serif;
+  min-height: 2.8rem;
+  padding: 0.72rem 0.82rem;
+  font: 600 0.9rem/1.2 "Inter", "Segoe UI", sans-serif;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+.bookingSelect {
+  appearance: none;
+  padding-right: 2.3rem;
 }
 
 .bookingSelect:focus,
 .bookingInput:focus {
-  outline: 2px solid rgba(31, 94, 255, 0.25);
-  border-color: #8cb4ff;
+  outline: none;
+  border-color: #82adff;
+  box-shadow: 0 0 0 3px rgba(31, 94, 255, 0.16);
+  background: #fff;
+}
+
+.bookingDateTimeGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.58rem;
+}
+
+.bookingSelectionHint {
+  margin: 0.18rem 0 0;
+  color: #3c5f97;
+  font: 600 0.79rem/1.35 "Inter", "Segoe UI", sans-serif;
 }
 
 .bookingTextarea {
+  width: 100%;
   border-radius: 12px;
   border: 1px solid #c8dcff;
-  background: #f9fbff;
+  background: #f8fbff;
   color: #15386f;
-  padding: 0.7rem 0.74rem;
-  font: 600 0.9rem/1.45 "Inter", "Segoe UI", sans-serif;
+  padding: 0.68rem 0.74rem;
+  font: 550 0.88rem/1.45 "Inter", "Segoe UI", sans-serif;
   resize: vertical;
-  min-height: 94px;
+  min-height: 88px;
 }
 
 .bookingTextarea:focus {
-  outline: 2px solid rgba(31, 94, 255, 0.25);
-  border-color: #8cb4ff;
+  outline: none;
+  border-color: #82adff;
+  box-shadow: 0 0 0 3px rgba(31, 94, 255, 0.14);
+}
+
+.bookingNotesToggle {
+  border: 0;
+  border-radius: 11px;
+  background: #eef4ff;
+  color: #24488c;
+  padding: 0.66rem 0.76rem;
+  font: 700 0.8rem/1.15 "Inter", "Segoe UI", sans-serif;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.bookingNotesPanel {
+  padding-top: 0.2rem;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.bookingSummaryCard {
+  border-radius: 14px;
+  border: 1px solid #bfd4ff;
+  background: linear-gradient(160deg, #eef4ff 0%, #f9fbff 100%);
+  padding: 0.82rem;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.bookingSummaryTitle {
+  margin: 0;
+  color: #193f83;
+  font: 700 0.92rem/1.25 "Plus Jakarta Sans", "Inter", "Segoe UI", sans-serif;
+}
+
+.bookingSummaryList {
+  margin: 0;
+  display: grid;
+  gap: 0.48rem;
+}
+
+.bookingSummaryList div {
+  display: grid;
+  gap: 0.16rem;
+}
+
+.bookingSummaryList dt {
+  color: #4d6a98;
+  font: 600 0.72rem/1.2 "Inter", "Segoe UI", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.bookingSummaryList dd {
+  margin: 0;
+  color: #13366a;
+  font: 650 0.85rem/1.35 "Inter", "Segoe UI", sans-serif;
 }
 
 .bookingFieldError {
@@ -1203,11 +1379,12 @@
 
 .bookingSubmitButton {
   border: 0;
-  border-radius: 13px;
+  border-radius: 14px;
   background: linear-gradient(135deg, #1f5eff 0%, #1747bf 100%);
   color: #fff;
+  min-height: 2.95rem;
   padding: 0.8rem 0.96rem;
-  font: 700 0.9rem/1.1 "Inter", "Segoe UI", sans-serif;
+  font: 700 0.94rem/1.1 "Inter", "Segoe UI", sans-serif;
   cursor: pointer;
   transition: 180ms ease;
 }
@@ -1220,6 +1397,12 @@
 .bookingSubmitButton:not(:disabled):hover {
   transform: translateY(-1px);
   box-shadow: 0 10px 20px rgba(19, 72, 192, 0.25);
+}
+
+@media (max-width: 760px) {
+  .bookingDateTimeGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .patientAppointmentsRoot {

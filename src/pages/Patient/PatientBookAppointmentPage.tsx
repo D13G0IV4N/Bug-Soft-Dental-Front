@@ -49,6 +49,18 @@ function collectSpecialties(dentist: PatientClinicDentist): string {
   return [...new Set(names)].join(" • ");
 }
 
+function getDatePart(value: string): string {
+  if (!value) return "";
+  const [date = ""] = value.split("T");
+  return date;
+}
+
+function getTimePart(value: string): string {
+  if (!value) return "";
+  const [, time = ""] = value.split("T");
+  return time.slice(0, 5);
+}
+
 export default function PatientBookAppointmentPage() {
   const [loadingData, setLoadingData] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -65,6 +77,7 @@ export default function PatientBookAppointmentPage() {
     internal_notes: "",
   });
   const [errors, setErrors] = useState<BookingErrors>({});
+  const [showNotes, setShowNotes] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -96,6 +109,21 @@ export default function PatientBookAppointmentPage() {
     setSubmitError("");
     setSuccessMessage("");
     setErrors((prev) => ({ ...prev, [field]: undefined }));
+  }
+
+  function updateDateTimePart(field: "date" | "time", value: string) {
+    const currentDate = getDatePart(form.start_at);
+    const currentTime = getTimePart(form.start_at);
+
+    const nextDate = field === "date" ? value : currentDate;
+    const nextTime = field === "time" ? value : currentTime;
+
+    if (!nextDate || !nextTime) {
+      updateField("start_at", "");
+      return;
+    }
+
+    updateField("start_at", `${nextDate}T${nextTime}`);
   }
 
   function validate(): boolean {
@@ -144,6 +172,14 @@ export default function PatientBookAppointmentPage() {
     }
   }
 
+  const selectedService = services.find((service) => String(service.id) === form.service_id);
+  const selectedDentist = dentists.find((dentist) => String(dentist.id) === form.dentist_user_id);
+  const selectedDatePart = getDatePart(form.start_at);
+  const selectedTimePart = getTimePart(form.start_at);
+  const selectionProgress = [form.service_id, form.dentist_user_id, form.start_at].filter(Boolean).length;
+  const currentStep = Math.min(5, selectionProgress + 1);
+  const summaryReady = Boolean(form.service_id && form.dentist_user_id && form.start_at);
+
   if (loadingData) {
     return (
       <section className={styles.dashboardRoot}>
@@ -171,83 +207,129 @@ export default function PatientBookAppointmentPage() {
   return (
     <section className={styles.bookingRoot}>
       <header className={styles.bookingHero}>
-        <p className={styles.welcomeEyebrow}>Agendamiento en línea</p>
-        <h2 className={styles.welcomeTitle}>Agenda tu cita</h2>
-        <p className={styles.welcomeDescription}>
-          Elige el servicio, el odontólogo y la fecha que mejor se ajusten a ti. También puedes agregar el motivo y notas adicionales para una mejor atención.
-        </p>
+        <div>
+          <p className={styles.welcomeEyebrow}>Agendamiento en línea</p>
+          <h2 className={styles.bookingTitle}>Agenda tu cita</h2>
+          <p className={styles.bookingSubtitle}>Completa los pasos y confirma en menos de un minuto.</p>
+        </div>
+        <div className={styles.bookingProgressPanel} aria-label="Progreso del formulario de agendamiento">
+          <p className={styles.bookingProgressText}>Paso {currentStep} de 5</p>
+          <div className={styles.bookingProgressTrack} aria-hidden="true">
+            <span className={styles.bookingProgressFill} style={{ width: `${Math.max(16, (currentStep / 5) * 100)}%` }} />
+          </div>
+          <ul className={styles.bookingProgressSteps}>
+            <li className={form.service_id ? styles.bookingProgressStepDone : styles.bookingProgressStep}>Servicio</li>
+            <li className={form.dentist_user_id ? styles.bookingProgressStepDone : styles.bookingProgressStep}>Odontólogo</li>
+            <li className={form.start_at ? styles.bookingProgressStepDone : styles.bookingProgressStep}>Fecha</li>
+            <li className={form.reason ? styles.bookingProgressStepDone : styles.bookingProgressStep}>Motivo</li>
+            <li className={summaryReady ? styles.bookingProgressStepDone : styles.bookingProgressStep}>Confirmar</li>
+          </ul>
+        </div>
       </header>
 
       <div className={styles.bookingGrid}>
         <article className={styles.bookingFormCard}>
           <form className={styles.bookingForm} onSubmit={handleSubmit} noValidate>
             <section className={styles.bookingStepSection}>
-              <h3 className={styles.bookingStepTitle}>Paso 1 · Selecciona un servicio</h3>
-              <p className={styles.bookingStepDescription}>Escoge el tratamiento dental que deseas agendar.</p>
+              <div className={styles.bookingStepHeading}>
+                <p className={styles.bookingStepNumber}>Paso 1</p>
+                <h3 className={styles.bookingStepTitle}>Servicio</h3>
+              </div>
 
               <label className={styles.bookingFieldLabel} htmlFor="service_id">Servicio</label>
-              <select
-                id="service_id"
-                className={styles.bookingSelect}
-                value={form.service_id}
-                onChange={(event) => updateField("service_id", event.target.value)}
-              >
-                <option value="">Selecciona un servicio</option>
-                {services.map((service) => (
-                  <option key={service.id} value={service.id}>
-                    {service.name}
-                    {service.duration_minutes ? ` · ${service.duration_minutes} min` : ""}
-                  </option>
-                ))}
-              </select>
+              <div className={styles.bookingSelectWrap}>
+                <select
+                  id="service_id"
+                  className={styles.bookingSelect}
+                  value={form.service_id}
+                  onChange={(event) => updateField("service_id", event.target.value)}
+                >
+                  <option value="">Selecciona un servicio</option>
+                  {services.map((service) => (
+                    <option key={service.id} value={service.id}>
+                      {service.name}
+                      {service.duration_minutes ? ` · ${service.duration_minutes} min` : ""}
+                    </option>
+                  ))}
+                </select>
+                <span className={styles.bookingSelectIcon} aria-hidden="true">▾</span>
+              </div>
               {errors.service_id ? <p className={styles.bookingFieldError}>{errors.service_id}</p> : null}
             </section>
 
             <section className={styles.bookingStepSection}>
-              <h3 className={styles.bookingStepTitle}>Paso 2 · Selecciona un odontólogo</h3>
-              <p className={styles.bookingStepDescription}>Selecciona el profesional que te atenderá.</p>
+              <div className={styles.bookingStepHeading}>
+                <p className={styles.bookingStepNumber}>Paso 2</p>
+                <h3 className={styles.bookingStepTitle}>Odontólogo</h3>
+              </div>
 
               <label className={styles.bookingFieldLabel} htmlFor="dentist_user_id">Odontólogo</label>
-              <select
-                id="dentist_user_id"
-                className={styles.bookingSelect}
-                value={form.dentist_user_id}
-                onChange={(event) => updateField("dentist_user_id", event.target.value)}
-              >
-                <option value="">Selecciona un odontólogo</option>
-                {dentists.map((dentist) => {
-                  const specialties = collectSpecialties(dentist);
+              <div className={styles.bookingSelectWrap}>
+                <select
+                  id="dentist_user_id"
+                  className={styles.bookingSelect}
+                  value={form.dentist_user_id}
+                  onChange={(event) => updateField("dentist_user_id", event.target.value)}
+                >
+                  <option value="">Selecciona un odontólogo</option>
+                  {dentists.map((dentist) => {
+                    const specialties = collectSpecialties(dentist);
 
-                  return (
-                    <option key={dentist.id} value={dentist.id}>
-                      {dentist.name}
-                      {specialties ? ` · ${specialties}` : ""}
-                    </option>
-                  );
-                })}
-              </select>
+                    return (
+                      <option key={dentist.id} value={dentist.id}>
+                        {dentist.name}
+                        {specialties ? ` · ${specialties}` : ""}
+                      </option>
+                    );
+                  })}
+                </select>
+                <span className={styles.bookingSelectIcon} aria-hidden="true">▾</span>
+              </div>
               {errors.dentist_user_id ? <p className={styles.bookingFieldError}>{errors.dentist_user_id}</p> : null}
             </section>
 
             <section className={styles.bookingStepSection}>
-              <h3 className={styles.bookingStepTitle}>Paso 3 · Elige fecha y hora</h3>
-              <p className={styles.bookingStepDescription}>Selecciona cuándo deseas tu cita. Se guardará con precisión de segundos.</p>
+              <div className={styles.bookingStepHeading}>
+                <p className={styles.bookingStepNumber}>Paso 3</p>
+                <h3 className={styles.bookingStepTitle}>Fecha y hora</h3>
+              </div>
 
-              <label className={styles.bookingFieldLabel} htmlFor="start_at">Fecha y hora</label>
-              <input
-                id="start_at"
-                className={styles.bookingInput}
-                type="datetime-local"
-                value={form.start_at}
-                onChange={(event) => updateField("start_at", event.target.value)}
-                step={60}
-              />
+              <div className={styles.bookingDateTimeGrid}>
+                <div>
+                  <label className={styles.bookingFieldLabel} htmlFor="booking_date">Fecha</label>
+                  <input
+                    id="booking_date"
+                    className={styles.bookingInput}
+                    type="date"
+                    value={selectedDatePart}
+                    onChange={(event) => updateDateTimePart("date", event.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className={styles.bookingFieldLabel} htmlFor="booking_time">Hora</label>
+                  <input
+                    id="booking_time"
+                    className={styles.bookingInput}
+                    type="time"
+                    value={selectedTimePart}
+                    onChange={(event) => updateDateTimePart("time", event.target.value)}
+                    step={60}
+                  />
+                </div>
+              </div>
+              {form.start_at ? (
+                <p className={styles.bookingSelectionHint}>
+                  Seleccionaste: <strong>{selectedDatePart}</strong> a las <strong>{selectedTimePart}</strong>.
+                </p>
+              ) : null}
               {errors.start_at ? <p className={styles.bookingFieldError}>{errors.start_at}</p> : null}
             </section>
 
-            <section className={styles.bookingStepSection}>
-              <h3 className={styles.bookingStepTitle}>Paso 4 · Cuéntanos el motivo de tu cita</h3>
-              <p className={styles.bookingStepDescription}>Opcional. Esto nos ayuda a preparar mejor tu atención.</p>
+            <section className={`${styles.bookingStepSection} ${styles.bookingStepSectionSoft}`}>
+              <div className={styles.bookingStepHeading}>
+                <p className={styles.bookingStepNumber}>Paso 4 · Opcional</p>
+                <h3 className={styles.bookingStepTitle}>Motivo de la cita</h3>
+              </div>
 
               <label className={styles.bookingFieldLabel} htmlFor="reason">Motivo de la cita</label>
               <textarea
@@ -260,19 +342,55 @@ export default function PatientBookAppointmentPage() {
               />
             </section>
 
-            <section className={styles.bookingStepSection}>
-              <h3 className={styles.bookingStepTitle}>Paso 5 · Agrega notas adicionales</h3>
-              <p className={styles.bookingStepDescription}>Opcional. Incluye información relevante para tu cita.</p>
+            <section className={`${styles.bookingStepSection} ${styles.bookingStepSectionSoft}`}>
+              <button
+                className={styles.bookingNotesToggle}
+                type="button"
+                onClick={() => setShowNotes((prev) => !prev)}
+                aria-expanded={showNotes}
+                aria-controls="booking_internal_notes_group"
+              >
+                <span>Notas adicionales (opcional)</span>
+                <span aria-hidden="true">{showNotes ? "−" : "+"}</span>
+              </button>
 
-              <label className={styles.bookingFieldLabel} htmlFor="internal_notes">Notas adicionales</label>
-              <textarea
-                id="internal_notes"
-                className={styles.bookingTextarea}
-                value={form.internal_notes}
-                onChange={(event) => updateField("internal_notes", event.target.value)}
-                rows={4}
-                placeholder="Ejemplo: horario preferido, antecedentes importantes o indicaciones previas."
-              />
+              {showNotes ? (
+                <div id="booking_internal_notes_group" className={styles.bookingNotesPanel}>
+                  <label className={styles.bookingFieldLabel} htmlFor="internal_notes">Notas adicionales</label>
+                  <textarea
+                    id="internal_notes"
+                    className={styles.bookingTextarea}
+                    value={form.internal_notes}
+                    onChange={(event) => updateField("internal_notes", event.target.value)}
+                    rows={3}
+                    placeholder="Horario preferido, antecedentes importantes o indicaciones previas."
+                  />
+                </div>
+              ) : null}
+            </section>
+
+            <section className={styles.bookingSummaryCard}>
+              <h3 className={styles.bookingSummaryTitle}>Resumen de tu cita</h3>
+              <dl className={styles.bookingSummaryList}>
+                <div>
+                  <dt>Servicio</dt>
+                  <dd>{selectedService?.name ?? "Pendiente de selección"}</dd>
+                </div>
+                <div>
+                  <dt>Odontólogo</dt>
+                  <dd>{selectedDentist?.name ?? "Pendiente de selección"}</dd>
+                </div>
+                <div>
+                  <dt>Fecha y hora</dt>
+                  <dd>{form.start_at ? `${selectedDatePart} · ${selectedTimePart}` : "Pendiente de selección"}</dd>
+                </div>
+                {form.reason ? (
+                  <div>
+                    <dt>Motivo</dt>
+                    <dd>{form.reason}</dd>
+                  </div>
+                ) : null}
+              </dl>
             </section>
 
             {submitError ? <p className={styles.bookingAlertError}>{submitError}</p> : null}
