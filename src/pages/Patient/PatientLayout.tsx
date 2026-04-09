@@ -1,5 +1,5 @@
+import { useMemo, useState, type ReactNode } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { useMemo, type ReactNode } from "react";
 import { getStoredUser, resolveClinicName } from "../../utils/auth";
 import styles from "./patient.module.css";
 
@@ -76,6 +76,7 @@ export default function PatientLayout() {
   const navigate = useNavigate();
   const storedUser = useMemo(() => getStoredUser(), []);
   const clinicName = resolveClinicName(storedUser);
+  const [isNavOpen, setIsNavOpen] = useState(false);
 
   function handleLogout() {
     localStorage.removeItem("authToken");
@@ -96,12 +97,27 @@ export default function PatientLayout() {
           <p className={styles.brandMeta}>{clinicName || "Tu espacio de cuidado dental"}</p>
         </div>
 
-        <nav className={styles.sidebarNav}>
+        <button
+          type="button"
+          className={styles.mobileNavToggle}
+          aria-expanded={isNavOpen}
+          aria-controls="patient-sidebar-nav"
+          onClick={() => setIsNavOpen((current) => !current)}
+        >
+          <span>{isNavOpen ? "Ocultar navegación" : "Mostrar navegación"}</span>
+          <span className={styles.mobileNavToggleIcon} aria-hidden="true">{isNavOpen ? "−" : "+"}</span>
+        </button>
+
+        <nav
+          id="patient-sidebar-nav"
+          className={`${styles.sidebarNav} ${isNavOpen ? styles.sidebarNavOpen : ""}`.trim()}
+        >
           {patientLinks.map((link) => (
             <NavLink
               key={link.to}
               to={link.to}
               end={link.end}
+              onClick={() => setIsNavOpen(false)}
               className={({ isActive }) => `${styles.navItem} ${isActive ? styles.navItemActive : ""}`.trim()}
             >
               {link.icon}

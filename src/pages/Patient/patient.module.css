@@ -87,6 +87,10 @@
   gap: 0.45rem;
 }
 
+.mobileNavToggle {
+  display: none;
+}
+
 .navItem {
   border-radius: 14px;
   padding: 0.7rem 0.8rem;
@@ -128,16 +132,16 @@
 }
 
 .navItemActive {
-  color: #fff;
-  border-color: transparent;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-deep) 100%);
-  box-shadow: 0 12px 24px rgba(19, 72, 192, 0.27);
+  color: #123b83;
+  border-color: #aac5fb;
+  background: linear-gradient(135deg, #eff5ff 0%, #e1ecff 100%);
+  box-shadow: 0 10px 20px rgba(19, 72, 192, 0.15);
 }
 
 .navItemActive .navIcon {
-  border-color: rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.18);
-  color: #fff;
+  border-color: #9fbcf8;
+  background: #dce9ff;
+  color: #174aaa;
 }
 
 .logoutButton {
@@ -386,6 +390,86 @@
 @media (max-width: 680px) {
   .pageShell {
     padding: 0.8rem;
+  }
+
+  .sidebar {
+    border-radius: 20px;
+    padding: 0.8rem;
+    gap: 0.75rem;
+  }
+
+  .brandBlock {
+    padding: 0.75rem;
+    border-radius: 16px;
+  }
+
+  .brandTitle {
+    font-size: 1.2rem;
+  }
+
+  .brandMeta {
+    margin-top: 0.3rem;
+    font-size: 0.82rem;
+  }
+
+  .mobileNavToggle {
+    border: 1px solid #ccdfff;
+    background: #fff;
+    border-radius: 14px;
+    color: #153f93;
+    padding: 0.62rem 0.78rem;
+    font: 700 0.84rem/1.1 "Inter", "Segoe UI", sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    width: 100%;
+    cursor: pointer;
+  }
+
+  .mobileNavToggleIcon {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    background: #edf4ff;
+    color: #173f93;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font: 700 1rem/1 "Inter", "Segoe UI", sans-serif;
+  }
+
+  .sidebarNav {
+    grid-template-columns: 1fr;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+    transition: max-height 220ms ease, opacity 180ms ease;
+  }
+
+  .sidebarNavOpen {
+    max-height: 30rem;
+    opacity: 1;
+    pointer-events: auto;
+    margin-top: 0.2rem;
+  }
+
+  .navItem {
+    padding: 0.58rem 0.7rem;
+    border-radius: 12px;
+    min-height: 46px;
+    gap: 0.56rem;
+    font-size: 0.86rem;
+  }
+
+  .navIcon {
+    min-width: 1.9rem;
+    height: 1.9rem;
+  }
+
+  .logoutButton {
+    margin-top: 0.15rem;
   }
 
   .outletSurface {
