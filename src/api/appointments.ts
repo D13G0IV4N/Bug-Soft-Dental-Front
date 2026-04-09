@@ -353,7 +353,7 @@ export async function createPacientAppointment(payload: PacientAppointmentPayloa
 }
 
 export async function cancelPacientAppointment(appointmentId: number | string) {
-  const { data } = await api.delete(`/pacient/appointments/${appointmentId}`);
+  const { data } = await api.patch(`/pacient/appointments/${appointmentId}/cancel`);
   const payload = normalizeOne<unknown>(data);
 
   if (payload && typeof payload === "object") {

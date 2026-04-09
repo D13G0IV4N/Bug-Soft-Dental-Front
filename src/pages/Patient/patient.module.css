@@ -1823,6 +1823,50 @@
   font: 550 0.73rem/1.2 "Inter", "Segoe UI", sans-serif;
 }
 
+.reminderList {
+  margin: 0.72rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.reminderItem {
+  border-radius: 12px;
+  border: 1px solid #d5e4fb;
+  background: #f7faff;
+  padding: 0.62rem 0.7rem;
+  display: grid;
+  gap: 0.18rem;
+}
+
+.reminderItem_pending {
+  border-color: #f2d5b2;
+  background: #fff8ef;
+}
+
+.reminderItem_ok {
+  border-color: #c9e5d2;
+  background: #f2fbf5;
+}
+
+.reminderItem_info {
+  border-color: #d5e4fb;
+  background: #f7faff;
+}
+
+.reminderTitle {
+  margin: 0;
+  color: #173663;
+  font: 700 0.8rem/1.25 "Inter", "Segoe UI", sans-serif;
+}
+
+.reminderDetail {
+  margin: 0;
+  color: #4c668f;
+  font: 560 0.74rem/1.28 "Inter", "Segoe UI", sans-serif;
+}
+
 .historyList {
   margin-top: 0.7rem;
   gap: 0.45rem;
