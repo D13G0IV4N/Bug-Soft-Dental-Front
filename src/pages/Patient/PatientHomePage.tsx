@@ -11,6 +11,11 @@ const dateFormatter = new Intl.DateTimeFormat("es-MX", {
   day: "numeric",
 });
 
+const shortDateFormatter = new Intl.DateTimeFormat("es-MX", {
+  day: "2-digit",
+  month: "short",
+});
+
 const timeFormatter = new Intl.DateTimeFormat("es-MX", {
   hour: "numeric",
   minute: "2-digit",
@@ -24,6 +29,11 @@ function getAppointmentDate(value?: string) {
 function formatAppointmentDate(value?: string) {
   const parsed = getAppointmentDate(value);
   return parsed ? dateFormatter.format(parsed) : "Fecha pendiente";
+}
+
+function formatAppointmentShortDate(value?: string) {
+  const parsed = getAppointmentDate(value);
+  return parsed ? shortDateFormatter.format(parsed) : "--";
 }
 
 function formatAppointmentTime(value?: string) {
@@ -46,15 +56,12 @@ function getStatusLabel(status?: string) {
   return "Programada";
 }
 
-function DashboardSectionHeader({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
-  return (
-    <header className={styles.sectionHeader}>
-      <p className={styles.sectionEyebrow}>{eyebrow}</p>
-      <h3 className={styles.sectionTitle}>{title}</h3>
-      <p className={styles.sectionDescription}>{description}</p>
-    </header>
-  );
-}
+const quickActions = [
+  { label: "Agendar cita", hint: "Nueva consulta", to: "/patient/book" },
+  { label: "Mis citas", hint: "Próximas y pasadas", to: "/patient/appointments" },
+  { label: "Ver historial", hint: "Tratamientos previos", to: "/patient/appointments" },
+  { label: "Mi perfil", hint: "Datos personales", to: "/patient/profile" },
+];
 
 export default function PatientHomePage() {
   const navigate = useNavigate();
@@ -126,85 +133,121 @@ export default function PatientHomePage() {
         const second = getAppointmentDate(b.start_at)?.getTime() ?? 0;
         return second - first;
       })
-      .slice(0, 2);
+      .slice(0, 3);
   }, [appointments]);
+
+  const canReschedule = Boolean(nextAppointment && ["scheduled", "pending", "confirmed"].includes((nextAppointment.status ?? "").toLowerCase()));
 
   return (
     <section className={styles.dashboardRoot}>
-      <header className={styles.welcomeHero}>
-        <div>
-          <p className={styles.welcomeEyebrow}>Panel de paciente</p>
-          <h2 className={styles.welcomeTitle}>Bienvenido de nuevo, {firstName}.</h2>
-          <p className={styles.welcomeDescription}>
-            Este es tu resumen de cuidado. Revisa tu próxima cita y elige qué deseas hacer a continuación.
-          </p>
-        </div>
+      <header className={styles.mobileGreetingHeader}>
+        <p className={styles.mobileGreetingEyebrow}>Resumen de hoy</p>
+        <h2 className={styles.mobileGreetingTitle}>Hola, {firstName}</h2>
+        <p className={styles.mobileGreetingSubtitle}>Aquí tienes tu actividad dental más importante.</p>
       </header>
 
-      <article className={styles.featuredCard}>
-        <DashboardSectionHeader
-          eyebrow="Destacado"
-          title="Tu próxima cita"
-          description="Todo lo importante para tu próxima visita dental en un solo lugar."
-        />
+      <article className={styles.nextAppointmentHero}>
+        <div className={styles.nextAppointmentHeroTop}>
+          <div>
+            <p className={styles.sectionEyebrow}>Próxima cita</p>
+            <h3 className={styles.nextAppointmentHeroTitle}>Tu siguiente visita</h3>
+          </div>
+          {nextAppointment ? <span className={styles.statusPill}>{getStatusLabel(nextAppointment.status)}</span> : null}
+        </div>
 
         {loading ? (
-          <p className={styles.featuredState}>Cargando tu agenda de citas...</p>
+          <p className={styles.compactState}>Cargando tu agenda...</p>
         ) : error ? (
           <div className={styles.errorCard}>
-            <p className={styles.errorTitle}>No pudimos cargar la información de tus citas.</p>
+            <p className={styles.errorTitle}>No pudimos cargar tus citas.</p>
             <p className={styles.errorBody}>{error}</p>
             <button className={styles.primaryAction} type="button" onClick={() => window.location.reload()}>
-              Actualizar panel
+              Reintentar
             </button>
           </div>
         ) : nextAppointment ? (
-          <div className={styles.appointmentSpotlight}>
-            <p className={styles.appointmentDate}>{formatAppointmentDate(nextAppointment.start_at)}</p>
-            <p className={styles.appointmentTime}>{formatAppointmentTime(nextAppointment.start_at)}</p>
-            <p className={styles.appointmentService}>
-              {nextAppointment.service?.name || nextAppointment.service_name || "Servicio por confirmar"}
-            </p>
-            <div className={styles.appointmentMeta}>
-              <span>{nextAppointment.dentist?.name || nextAppointment.dentist_name || "Odontólogo por asignar"}</span>
-              <span className={styles.statusPill}>{getStatusLabel(nextAppointment.status)}</span>
+          <>
+            <div className={styles.appointmentHeroGrid}>
+              <div className={styles.appointmentDateChip}>
+                <strong>{formatAppointmentShortDate(nextAppointment.start_at)}</strong>
+                <span>{formatAppointmentTime(nextAppointment.start_at)}</span>
+              </div>
+              <div className={styles.appointmentHeroInfo}>
+                <p className={styles.appointmentService}>
+                  {nextAppointment.service?.name || nextAppointment.service_name || "Servicio por confirmar"}
+                </p>
+                <p className={styles.appointmentDate}>{formatAppointmentDate(nextAppointment.start_at)}</p>
+                <p className={styles.appointmentDentist}>
+                  {nextAppointment.dentist?.name || nextAppointment.dentist_name || "Odontólogo por asignar"}
+                </p>
+              </div>
             </div>
-          </div>
+            <div className={styles.heroActionsRow}>
+              <button className={styles.primaryAction} type="button" onClick={() => navigate("/patient/appointments")}>
+                Ver detalles
+              </button>
+              <button
+                className={styles.secondaryAction}
+                type="button"
+                onClick={() => navigate("/patient/book")}
+                disabled={!canReschedule}
+              >
+                Reprogramar
+              </button>
+              <button className={styles.ghostAction} type="button" onClick={() => navigate("/patient/appointments")}>
+                Cancelar
+              </button>
+            </div>
+          </>
         ) : (
           <div className={styles.emptyStateCard}>
-            <h4 className={styles.emptyStateTitle}>Aún no tienes una cita próxima.</h4>
-            <p className={styles.emptyStateText}>Agenda tu siguiente revisión para cuidar tu salud bucal a tiempo.</p>
+            <h4 className={styles.emptyStateTitle}>No tienes una cita próxima.</h4>
+            <p className={styles.emptyStateText}>Agenda tu siguiente revisión en menos de un minuto.</p>
             <button className={styles.primaryAction} type="button" onClick={() => navigate("/patient/book")}>
-              Agendar cita
+              Agendar ahora
             </button>
           </div>
         )}
       </article>
 
-      <section className={styles.secondaryGrid}>
-        <article className={styles.surfaceCard}>
-          <DashboardSectionHeader
-            eyebrow="Historial reciente"
-            title="Tus últimas visitas completadas"
-            description="Una vista rápida de la actividad reciente de tus tratamientos."
-          />
+      <article className={styles.surfaceCard}>
+        <div className={styles.quickActionsHeader}>
+          <p className={styles.sectionEyebrow}>Accesos rápidos</p>
+          <h3 className={styles.sectionTitle}>¿Qué necesitas hacer?</h3>
+        </div>
+        <div className={styles.quickActionGrid}>
+          {quickActions.map((action) => (
+            <button key={action.label} className={styles.quickActionButton} type="button" onClick={() => navigate(action.to)}>
+              <span>{action.label}</span>
+              <small>{action.hint}</small>
+            </button>
+          ))}
+        </div>
+      </article>
 
-          {loading ? (
-            <p className={styles.compactState}>Cargando actividad reciente...</p>
-          ) : recentVisits.length === 0 ? (
-            <p className={styles.compactState}>Aún no tienes visitas completadas. Tu historial aparecerá aquí.</p>
-          ) : (
-            <ul className={styles.historyList}>
-              {recentVisits.map((visit) => (
-                <li className={styles.historyItem} key={visit.id}>
-                  <p className={styles.historyDate}>{formatAppointmentDate(visit.start_at)}</p>
+      <article className={styles.surfaceCard}>
+        <div className={styles.quickActionsHeader}>
+          <p className={styles.sectionEyebrow}>Historial reciente</p>
+          <h3 className={styles.sectionTitle}>Últimas visitas</h3>
+        </div>
+        {loading ? (
+          <p className={styles.compactState}>Cargando actividad...</p>
+        ) : recentVisits.length === 0 ? (
+          <p className={styles.compactState}>Aún no tienes visitas completadas.</p>
+        ) : (
+          <ul className={styles.historyList}>
+            {recentVisits.map((visit) => (
+              <li className={styles.historyItem} key={visit.id}>
+                <div>
                   <p className={styles.historyService}>{visit.service?.name || visit.service_name || "Cita dental"}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </article>
-      </section>
+                  <p className={styles.historyDate}>{formatAppointmentDate(visit.start_at)}</p>
+                </div>
+                <span className={styles.historyTag}>Completada</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </article>
     </section>
   );
 }

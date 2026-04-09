@@ -77,6 +77,7 @@ export default function PatientLayout() {
   const location = useLocation();
   const storedUser = useMemo(() => getStoredUser(), []);
   const clinicName = resolveClinicName(storedUser);
+  const firstName = storedUser?.name?.trim()?.split(/\s+/)[0] || "Paciente";
   const [isNavOpen, setIsNavOpen] = useState(false);
 
   useEffect(() => {
@@ -134,20 +135,6 @@ export default function PatientLayout() {
         </button>
       </aside>
 
-      <button
-        type="button"
-        className={`${styles.mobileMenuButton} ${isNavOpen ? styles.mobileMenuButtonHidden : ""}`.trim()}
-        aria-expanded={isNavOpen}
-        aria-controls="patient-mobile-nav"
-        aria-label={isNavOpen ? "Cerrar menú de navegación" : "Abrir menú de navegación"}
-        onClick={() => setIsNavOpen((current) => !current)}
-      >
-        <span className={styles.mobileMenuButtonLines} aria-hidden="true">
-          <span />
-          <span />
-          <span />
-        </span>
-      </button>
 
       <button
         type="button"
@@ -198,6 +185,27 @@ export default function PatientLayout() {
       </section>
 
       <main className={styles.main} id="patient-main">
+        <header className={styles.mobileTopBar}>
+          <button
+            type="button"
+            className={styles.mobileTopBarMenu}
+            aria-expanded={isNavOpen}
+            aria-controls="patient-mobile-nav"
+            aria-label={isNavOpen ? "Cerrar menú de navegación" : "Abrir menú de navegación"}
+            onClick={() => setIsNavOpen((current) => !current)}
+          >
+            <span className={styles.mobileMenuButtonLines} aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </span>
+          </button>
+          <div className={styles.mobileTopBarCopy}>
+            <p>{`Hola, ${firstName}`}</p>
+            <small>{clinicName || "Portal de pacientes"}</small>
+          </div>
+        </header>
+
         <div className={styles.outletSurface}>
           <Outlet />
         </div>
