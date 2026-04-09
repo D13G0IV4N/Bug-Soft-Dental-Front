@@ -87,6 +87,10 @@
   gap: 0.45rem;
 }
 
+.mobileNavHeader {
+  display: none;
+}
+
 .mobileNavToggle {
   display: none;
 }
@@ -132,16 +136,16 @@
 }
 
 .navItemActive {
-  color: #123b83;
-  border-color: #aac5fb;
-  background: linear-gradient(135deg, #eff5ff 0%, #e1ecff 100%);
+  color: #ffffff;
+  border-color: #245fdd;
+  background: linear-gradient(135deg, #1f5eff 0%, #194bbd 100%);
   box-shadow: 0 10px 20px rgba(19, 72, 192, 0.15);
 }
 
 .navItemActive .navIcon {
-  border-color: #9fbcf8;
-  background: #dce9ff;
-  color: #174aaa;
+  border-color: rgba(255, 255, 255, 0.44);
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
 }
 
 .logoutButton {
@@ -394,22 +398,37 @@
 
   .sidebar {
     border-radius: 20px;
-    padding: 0.8rem;
+    padding: 0.72rem;
     gap: 0.75rem;
   }
 
   .brandBlock {
-    padding: 0.75rem;
-    border-radius: 16px;
+    display: none;
   }
 
-  .brandTitle {
-    font-size: 1.2rem;
+  .mobileNavHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.7rem;
+    border: 1px solid #d4e4ff;
+    border-radius: 14px;
+    background: linear-gradient(145deg, #f9fcff 0%, #eef4ff 100%);
+    padding: 0.58rem 0.65rem;
   }
 
-  .brandMeta {
-    margin-top: 0.3rem;
-    font-size: 0.82rem;
+  .mobileNavEyebrow {
+    margin: 0;
+    color: #4e6994;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font: 700 0.62rem/1.2 "Inter", "Segoe UI", sans-serif;
+  }
+
+  .mobileNavClinic {
+    margin: 0.2rem 0 0;
+    color: #163b7a;
+    font: 700 0.76rem/1.35 "Inter", "Segoe UI", sans-serif;
   }
 
   .mobileNavToggle {
@@ -423,7 +442,8 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.6rem;
-    width: 100%;
+    width: auto;
+    flex-shrink: 0;
     cursor: pointer;
   }
 
