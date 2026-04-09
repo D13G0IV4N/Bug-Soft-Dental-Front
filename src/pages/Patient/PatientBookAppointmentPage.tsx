@@ -118,8 +118,18 @@ export default function PatientBookAppointmentPage() {
     const nextDate = field === "date" ? value : currentDate;
     const nextTime = field === "time" ? value : currentTime;
 
-    if (!nextDate || !nextTime) {
+    if (!nextDate && !nextTime) {
       updateField("start_at", "");
+      return;
+    }
+
+    if (!nextDate) {
+      updateField("start_at", `T${nextTime}`);
+      return;
+    }
+
+    if (!nextTime) {
+      updateField("start_at", `${nextDate}T`);
       return;
     }
 
