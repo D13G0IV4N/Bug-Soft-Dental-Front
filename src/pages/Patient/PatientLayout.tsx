@@ -83,6 +83,18 @@ export default function PatientLayout() {
     setIsNavOpen(false);
   }, [location.pathname]);
 
+  useEffect(() => {
+    if (!isNavOpen) {
+      document.body.style.removeProperty("overflow");
+      return;
+    }
+
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.removeProperty("overflow");
+    };
+  }, [isNavOpen]);
+
   function handleLogout() {
     localStorage.removeItem("authToken");
     localStorage.removeItem("user");
@@ -124,13 +136,17 @@ export default function PatientLayout() {
 
       <button
         type="button"
-        className={styles.mobileFixedTrigger}
+        className={`${styles.mobileMenuButton} ${isNavOpen ? styles.mobileMenuButtonHidden : ""}`.trim()}
         aria-expanded={isNavOpen}
         aria-controls="patient-mobile-nav"
+        aria-label={isNavOpen ? "Cerrar menú de navegación" : "Abrir menú de navegación"}
         onClick={() => setIsNavOpen((current) => !current)}
       >
-        <span className={styles.mobileFixedTriggerLabel}>Menú</span>
-        <span className={styles.mobileFixedTriggerState}>{isNavOpen ? "Cerrar" : "Abrir"}</span>
+        <span className={styles.mobileMenuButtonLines} aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </span>
       </button>
 
       <button
@@ -145,15 +161,24 @@ export default function PatientLayout() {
         className={`${styles.mobileNavSheet} ${isNavOpen ? styles.mobileNavSheetOpen : ""}`.trim()}
         aria-label="Menú móvil de paciente"
       >
-        <header className={styles.mobileSheetHeader}>
-          <div>
-            <p className={styles.mobileNavEyebrow}>Portal de paciente</p>
-            <p className={styles.mobileNavClinic}>{clinicName || "Bug&Soft Dental"}</p>
-          </div>
-          <button type="button" className={styles.mobileSheetClose} onClick={() => setIsNavOpen(false)}>
-            Cerrar
+        <div className={styles.mobileSheetTopRow}>
+          <button
+            type="button"
+            className={styles.mobileSheetMenuButton}
+            aria-label="Cerrar menú de navegación"
+            onClick={() => setIsNavOpen(false)}
+          >
+            <span className={styles.mobileMenuButtonLines} aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </span>
           </button>
-        </header>
+
+          <button className={styles.mobileSheetLogoutChip} type="button" onClick={handleLogout}>
+            Salir
+          </button>
+        </div>
 
         <nav className={styles.mobileSheetNav}>
           {patientLinks.map((link) => (
@@ -170,9 +195,6 @@ export default function PatientLayout() {
           ))}
         </nav>
 
-        <button className={styles.mobileSheetLogout} type="button" onClick={handleLogout}>
-          Cerrar sesión
-        </button>
       </section>
 
       <main className={styles.main} id="patient-main">
