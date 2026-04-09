@@ -1,5 +1,5 @@
-import { useMemo, useState, type ReactNode } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { getStoredUser, resolveClinicName } from "../../utils/auth";
 import styles from "./patient.module.css";
 
@@ -74,9 +74,14 @@ const patientLinks: PatientLink[] = [
 
 export default function PatientLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const storedUser = useMemo(() => getStoredUser(), []);
   const clinicName = resolveClinicName(storedUser);
   const [isNavOpen, setIsNavOpen] = useState(false);
+
+  useEffect(() => {
+    setIsNavOpen(false);
+  }, [location.pathname]);
 
   function handleLogout() {
     localStorage.removeItem("authToken");
@@ -97,16 +102,22 @@ export default function PatientLayout() {
           <p className={styles.brandMeta}>{clinicName || "Tu espacio de cuidado dental"}</p>
         </div>
 
-        <button
-          type="button"
-          className={styles.mobileNavToggle}
-          aria-expanded={isNavOpen}
-          aria-controls="patient-sidebar-nav"
-          onClick={() => setIsNavOpen((current) => !current)}
-        >
-          <span>{isNavOpen ? "Ocultar navegación" : "Mostrar navegación"}</span>
-          <span className={styles.mobileNavToggleIcon} aria-hidden="true">{isNavOpen ? "−" : "+"}</span>
-        </button>
+        <div className={styles.mobileNavHeader}>
+          <div>
+            <p className={styles.mobileNavEyebrow}>Portal de paciente</p>
+            <p className={styles.mobileNavClinic}>{clinicName || "Bug&Soft Dental"}</p>
+          </div>
+          <button
+            type="button"
+            className={styles.mobileNavToggle}
+            aria-expanded={isNavOpen}
+            aria-controls="patient-sidebar-nav"
+            onClick={() => setIsNavOpen((current) => !current)}
+          >
+            <span>{isNavOpen ? "Cerrar menú" : "Abrir menú"}</span>
+            <span className={styles.mobileNavToggleIcon} aria-hidden="true">{isNavOpen ? "−" : "+"}</span>
+          </button>
+        </div>
 
         <nav
           id="patient-sidebar-nav"

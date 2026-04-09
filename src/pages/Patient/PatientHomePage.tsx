@@ -184,31 +184,6 @@ export default function PatientHomePage() {
       <section className={styles.secondaryGrid}>
         <article className={styles.surfaceCard}>
           <DashboardSectionHeader
-            eyebrow="Acciones rápidas"
-            title="Elige tu siguiente paso"
-            description="Solo lo esencial para que tu atención dental sea simple y clara."
-          />
-          <div className={styles.quickActionGrid}>
-            <button className={styles.quickActionButton} type="button" onClick={() => navigate("/patient/book")}>Agendar cita</button>
-            <button className={styles.quickActionButton} type="button" onClick={() => navigate("/patient/appointments")}>Ver citas</button>
-            <button className={styles.quickActionButton} type="button" onClick={() => navigate("/patient/services")}>Ver detalles clínica</button>
-            <button className={styles.quickActionButton} type="button" onClick={() => navigate("/patient/profile")}>Actualizar perfil</button>
-          </div>
-        </article>
-
-        <article className={styles.surfaceCard}>
-          <DashboardSectionHeader
-            eyebrow="Consejo de cuidado"
-            title="Recordatorio diario de salud bucal"
-            description="Los hábitos pequeños generan una gran diferencia en tu sonrisa."
-          />
-          <p className={styles.careTipText}>
-            Cepilla tus dientes durante dos minutos, usa hilo dental una vez al día y bebe agua después de cada comida.
-          </p>
-        </article>
-
-        <article className={styles.surfaceCard}>
-          <DashboardSectionHeader
             eyebrow="Historial reciente"
             title="Tus últimas visitas completadas"
             description="Una vista rápida de la actividad reciente de tus tratamientos."
