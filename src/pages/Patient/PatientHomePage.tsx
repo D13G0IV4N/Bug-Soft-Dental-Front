@@ -56,12 +56,11 @@ function getStatusLabel(status?: string) {
   return "Programada";
 }
 
-const quickActions = [
-  { label: "Agendar cita", hint: "Nueva consulta", to: "/patient/book" },
-  { label: "Mis citas", hint: "Próximas y pasadas", to: "/patient/appointments" },
-  { label: "Ver historial", hint: "Tratamientos previos", to: "/patient/appointments" },
-  { label: "Mi perfil", hint: "Datos personales", to: "/patient/profile" },
-];
+interface ReminderItem {
+  title: string;
+  detail: string;
+  tone?: "pending" | "ok" | "info";
+}
 
 export default function PatientHomePage() {
   const navigate = useNavigate();
@@ -138,6 +137,60 @@ export default function PatientHomePage() {
 
   const canReschedule = Boolean(nextAppointment && ["scheduled", "pending", "confirmed"].includes((nextAppointment.status ?? "").toLowerCase()));
 
+  const reminders = useMemo<ReminderItem[]>(() => {
+    if (!nextAppointment) {
+      return [
+        {
+          title: "Sin citas próximas",
+          detail: "Aún no hay una visita programada. Agenda tu próximo control para mantener tu seguimiento al día.",
+          tone: "info",
+        },
+      ];
+    }
+
+    const notes = nextAppointment.internal_notes?.trim() || nextAppointment.notes?.trim() || "";
+    const status = (nextAppointment.status ?? "scheduled").toLowerCase();
+    const startAt = getAppointmentDate(nextAppointment.start_at);
+    const minutesAway = startAt ? Math.max(0, Math.round((startAt.getTime() - Date.now()) / (1000 * 60))) : null;
+
+    const list: ReminderItem[] = [];
+
+    if (status === "pending") {
+      list.push({
+        title: "Confirmación pendiente",
+        detail: "Tu cita aún está pendiente de confirmación. Revisa tu estado antes del día de atención.",
+        tone: "pending",
+      });
+    }
+
+    if (!nextAppointment.service?.name && !nextAppointment.service_name) {
+      list.push({
+        title: "Servicio por confirmar",
+        detail: "El tipo de servicio todavía no está definido. Consulta el detalle de la cita para validar la atención.",
+        tone: "pending",
+      });
+    }
+
+    if (minutesAway !== null) {
+      const hoursAway = Math.floor(minutesAway / 60);
+      if (hoursAway <= 24) {
+        list.push({
+          title: "Llega con anticipación",
+          detail: "Procura llegar 10 minutos antes para registro y preparación.",
+          tone: "ok",
+        });
+      }
+    }
+
+    list.push({
+      title: "Preparación",
+      detail: notes || "Ten a la mano estudios previos o indicaciones de tu odontólogo para agilizar tu consulta.",
+      tone: "info",
+    });
+
+    return list.slice(0, 3);
+  }, [nextAppointment]);
+
   return (
     <section className={styles.dashboardRoot}>
       <header className={styles.mobileGreetingHeader}>
@@ -212,17 +265,17 @@ export default function PatientHomePage() {
 
       <article className={styles.surfaceCard}>
         <div className={styles.quickActionsHeader}>
-          <p className={styles.sectionEyebrow}>Accesos rápidos</p>
-          <h3 className={styles.sectionTitle}>¿Qué necesitas hacer?</h3>
+          <p className={styles.sectionEyebrow}>Recordatorios y preparación</p>
+          <h3 className={styles.sectionTitle}>Antes de tu próxima visita</h3>
         </div>
-        <div className={styles.quickActionGrid}>
-          {quickActions.map((action) => (
-            <button key={action.label} className={styles.quickActionButton} type="button" onClick={() => navigate(action.to)}>
-              <span>{action.label}</span>
-              <small>{action.hint}</small>
-            </button>
+        <ul className={styles.reminderList}>
+          {reminders.map((reminder) => (
+            <li key={reminder.title} className={`${styles.reminderItem} ${reminder.tone ? styles[`reminderItem_${reminder.tone}`] : ""}`}>
+              <p className={styles.reminderTitle}>{reminder.title}</p>
+              <p className={styles.reminderDetail}>{reminder.detail}</p>
+            </li>
           ))}
-        </div>
+        </ul>
       </article>
 
       <article className={styles.surfaceCard}>
