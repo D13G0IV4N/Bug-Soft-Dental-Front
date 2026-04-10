@@ -864,24 +864,29 @@ export default function PatientProfilePage() {
       ) : (
         <div className={styles.profileLayout}>
           <article className={styles.profileIdentityCard}>
-            <header className={styles.profileIdentityTop}>
+            <div className={styles.profileIdentityTop}>
               <span className={styles.profileAvatar} aria-hidden="true">
                 {profileData.nombre?.trim()?.charAt(0).toUpperCase() || "P"}
               </span>
               <div className={styles.profileIdentityMain}>
                 <p className={styles.sectionEyebrow}>Resumen de cuenta</p>
                 <h3 className={styles.sectionTitle}>{profileData.nombre || "Paciente"}</h3>
-                <p className={styles.sectionDescription}>{profileData.correo || "Correo no registrado"}</p>
+                <p className={styles.sectionDescription}>Paciente activo · Portal dental</p>
               </div>
-            </header>
+            </div>
+
             <dl className={styles.profileSummaryList}>
-              <div className={styles.profileSummaryItem}>
-                <dt>Teléfono</dt>
-                <dd>{profileData.telefono || "No registrado"}</dd>
+              <div className={`${styles.profileSummaryItem} ${styles.profileSummaryItemWide}`}>
+                <dt>Correo</dt>
+                <dd>{profileData.correo || "No registrado"}</dd>
               </div>
               <div className={styles.profileSummaryItem}>
                 <dt>Clínica</dt>
                 <dd>{profileData.clinica}</dd>
+              </div>
+              <div className={styles.profileSummaryItem}>
+                <dt>Teléfono</dt>
+                <dd>{profileData.telefono || "No registrado"}</dd>
               </div>
               <div className={styles.profileSummaryItem}>
                 <dt>Rol</dt>
@@ -891,118 +896,132 @@ export default function PatientProfilePage() {
           </article>
 
           <div className={styles.profileContentGrid}>
-            <article className={styles.surfaceCard}>
-              <header className={styles.sectionHeader}>
-                <p className={styles.sectionEyebrow}>Datos personales</p>
-                <h3 className={styles.sectionTitle}>Información de contacto</h3>
-                <p className={styles.sectionDescription}>Puedes editar únicamente tus datos personales permitidos.</p>
-              </header>
+            <form className={styles.profileForm} onSubmit={handleSaveProfile}>
+              <details className={styles.profileSection} open>
+                <summary className={styles.profileSectionSummary}>
+                  <span className={styles.sectionEyebrow}>Datos personales</span>
+                  <span className={styles.profileSectionTitle}>Información personal</span>
+                </summary>
+                <div className={styles.profileSectionBody}>
+                  {profileError && <p className={styles.formError}>{profileError}</p>}
+                  {profileFeedback && <p className={styles.formSuccess}>{profileFeedback}</p>}
+                  <div className={styles.profileFieldsGrid}>
+                    <label className={styles.profileField} htmlFor="profile-name">
+                      Nombre completo
+                      <input
+                        id="profile-name"
+                        value={profileForm.nombre}
+                        onChange={(event) => setProfileForm((prev) => ({ ...prev, nombre: event.target.value }))}
+                        placeholder="Tu nombre completo"
+                        autoComplete="name"
+                      />
+                    </label>
 
-              {profileError && <p className={styles.formError}>{profileError}</p>}
-              {profileFeedback && <p className={styles.formSuccess}>{profileFeedback}</p>}
+                    <label className={styles.profileField} htmlFor="profile-phone">
+                      Teléfono
+                      <input
+                        id="profile-phone"
+                        value={profileForm.telefono}
+                        onChange={(event) =>
+                          setProfileForm((prev) => ({ ...prev, telefono: normalizePhone(event.target.value) }))
+                        }
+                        placeholder="Ej. +52 55 1234 5678"
+                        autoComplete="tel"
+                      />
+                    </label>
 
-              <form className={styles.profileForm} onSubmit={handleSaveProfile}>
-                <div className={styles.profileFieldsGrid}>
-                  <label className={styles.profileField} htmlFor="profile-name">
-                    Nombre completo
-                    <input
-                      id="profile-name"
-                      value={profileForm.nombre}
-                      onChange={(event) => setProfileForm((prev) => ({ ...prev, nombre: event.target.value }))}
-                      placeholder="Tu nombre completo"
-                      autoComplete="name"
-                    />
-                  </label>
-
-                  <label className={styles.profileField} htmlFor="profile-phone">
-                    Teléfono
-                    <input
-                      id="profile-phone"
-                      value={profileForm.telefono}
-                      onChange={(event) =>
-                        setProfileForm((prev) => ({ ...prev, telefono: normalizePhone(event.target.value) }))
-                      }
-                      placeholder="Ej. +52 55 1234 5678"
-                      autoComplete="tel"
-                    />
-                  </label>
+                    <label className={`${styles.profileField} ${styles.profileFieldWide}`} htmlFor="profile-email">
+                      Correo electrónico
+                      <input
+                        id="profile-email"
+                        value={profileForm.correo}
+                        placeholder="tu.correo@ejemplo.com"
+                        autoComplete="email"
+                        disabled
+                        aria-readonly="true"
+                      />
+                    </label>
+                  </div>
+                  <p className={styles.fieldHint}>
+                    El correo no se puede editar desde esta sección. Si necesitas cambiarlo, contacta a la clínica.
+                  </p>
                 </div>
+              </details>
 
-                <label className={styles.profileField} htmlFor="profile-email">
-                  Correo electrónico
-                  <input
-                    id="profile-email"
-                    value={profileForm.correo}
-                    placeholder="tu.correo@ejemplo.com"
-                    autoComplete="email"
-                    disabled
-                    aria-readonly="true"
-                  />
-                </label>
+              <details className={styles.profileSection} open>
+                <summary className={styles.profileSectionSummary}>
+                  <span className={styles.sectionEyebrow}>Información adicional</span>
+                  <span className={styles.profileSectionTitle}>Datos clínicos y notas</span>
+                </summary>
+                <div className={styles.profileSectionBody}>
+                  <div className={styles.profileFieldsGridSecondary}>
+                    <label className={styles.profileField} htmlFor="profile-address">
+                      Dirección
+                      <span className={styles.fieldTag}>Opcional</span>
+                      <input
+                        id="profile-address"
+                        value={profileForm.direccion}
+                        onChange={(event) => setProfileForm((prev) => ({ ...prev, direccion: event.target.value }))}
+                        placeholder="Tu dirección"
+                        autoComplete="street-address"
+                      />
+                    </label>
 
-                <p className={styles.fieldHint}>
-                  El correo no se puede editar desde esta sección. Si necesitas cambiarlo, contacta a la clínica.
-                </p>
+                    <label className={styles.profileField} htmlFor="profile-allergies">
+                      Alergias
+                      <span className={styles.fieldTag}>Opcional</span>
+                      <input
+                        id="profile-allergies"
+                        value={profileForm.alergias}
+                        onChange={(event) => setProfileForm((prev) => ({ ...prev, alergias: event.target.value }))}
+                        placeholder="Ej. Penicilina"
+                      />
+                    </label>
+                  </div>
 
-                <div className={styles.profileFieldsGridSecondary}>
-                  <label className={styles.profileField} htmlFor="profile-address">
-                    Dirección
+                  <label className={styles.profileField} htmlFor="profile-notes">
+                    Notas
                     <span className={styles.fieldTag}>Opcional</span>
-                    <input
-                      id="profile-address"
-                      value={profileForm.direccion}
-                      onChange={(event) => setProfileForm((prev) => ({ ...prev, direccion: event.target.value }))}
-                      placeholder="Tu dirección"
-                      autoComplete="street-address"
+                    <textarea
+                      id="profile-notes"
+                      value={profileForm.notas}
+                      onChange={(event) => setProfileForm((prev) => ({ ...prev, notas: event.target.value }))}
+                      placeholder="Información adicional relevante para tu atención."
+                      rows={4}
                     />
                   </label>
 
-                  <label className={styles.profileField} htmlFor="profile-allergies">
-                    Alergias
-                    <span className={styles.fieldTag}>Opcional</span>
-                    <input
-                      id="profile-allergies"
-                      value={profileForm.alergias}
-                      onChange={(event) => setProfileForm((prev) => ({ ...prev, alergias: event.target.value }))}
-                      placeholder="Ej. Penicilina"
-                    />
-                  </label>
+                  <div className={styles.profileActions}>
+                    <button
+                      className={`${styles.secondaryAction} ${styles.profileSecondaryAction}`}
+                      type="button"
+                      onClick={handleResetChanges}
+                    >
+                      Restablecer cambios
+                    </button>
+                    <button
+                      className={`${styles.primaryAction} ${styles.profilePrimaryAction}`}
+                      type="submit"
+                      disabled={savingProfile || !hasProfileChanges}
+                    >
+                      {savingProfile ? "Guardando..." : "Guardar cambios"}
+                    </button>
+                  </div>
                 </div>
+              </details>
+            </form>
 
-                <label className={styles.profileField} htmlFor="profile-notes">
-                  Notas
-                  <span className={styles.fieldTag}>Opcional</span>
-                  <textarea
-                    id="profile-notes"
-                    value={profileForm.notas}
-                    onChange={(event) => setProfileForm((prev) => ({ ...prev, notas: event.target.value }))}
-                    placeholder="Información adicional relevante para tu atención."
-                    rows={4}
-                  />
-                </label>
-
-                <div className={styles.profileActions}>
-                  <button className={`${styles.secondaryAction} ${styles.profileSecondaryAction}`} type="button" onClick={handleResetChanges}>
-                    Restablecer cambios
-                  </button>
-                  <button className={`${styles.primaryAction} ${styles.profilePrimaryAction}`} type="submit" disabled={savingProfile || !hasProfileChanges}>
-                    {savingProfile ? "Guardando..." : "Guardar cambios"}
-                  </button>
-                </div>
-              </form>
-            </article>
-
-            <article className={styles.surfaceCard}>
+            <article className={`${styles.surfaceCard} ${styles.securityCard}`}>
               <header className={styles.sectionHeader}>
                 <p className={styles.sectionEyebrow}>Seguridad</p>
                 <h3 className={styles.sectionTitle}>Cambiar contraseña</h3>
-                <p className={styles.sectionDescription}>Actualiza tu contraseña para proteger el acceso a tu cuenta.</p>
+                <p className={styles.sectionDescription}>Área dedicada para proteger el acceso a tu cuenta.</p>
               </header>
 
               {passwordError && <p className={styles.formError}>{passwordError}</p>}
               {passwordFeedback && <p className={styles.formSuccess}>{passwordFeedback}</p>}
 
-              <form className={styles.profileForm} onSubmit={handleChangePassword}>
+              <form className={styles.passwordForm} onSubmit={handleChangePassword}>
                 <label className={styles.profileField} htmlFor="current-password">
                   Contraseña actual
                   <input
@@ -1014,27 +1033,29 @@ export default function PatientProfilePage() {
                   />
                 </label>
 
-                <label className={styles.profileField} htmlFor="new-password">
-                  Nueva contraseña
-                  <input
-                    id="new-password"
-                    type="password"
-                    autoComplete="new-password"
-                    value={passwordForm.nueva}
-                    onChange={(event) => setPasswordForm((prev) => ({ ...prev, nueva: event.target.value }))}
-                  />
-                </label>
+                <div className={styles.passwordGrid}>
+                  <label className={styles.profileField} htmlFor="new-password">
+                    Nueva contraseña
+                    <input
+                      id="new-password"
+                      type="password"
+                      autoComplete="new-password"
+                      value={passwordForm.nueva}
+                      onChange={(event) => setPasswordForm((prev) => ({ ...prev, nueva: event.target.value }))}
+                    />
+                  </label>
 
-                <label className={styles.profileField} htmlFor="confirm-password">
-                  Confirmar nueva contraseña
-                  <input
-                    id="confirm-password"
-                    type="password"
-                    autoComplete="new-password"
-                    value={passwordForm.confirmacion}
-                    onChange={(event) => setPasswordForm((prev) => ({ ...prev, confirmacion: event.target.value }))}
-                  />
-                </label>
+                  <label className={styles.profileField} htmlFor="confirm-password">
+                    Confirmar nueva contraseña
+                    <input
+                      id="confirm-password"
+                      type="password"
+                      autoComplete="new-password"
+                      value={passwordForm.confirmacion}
+                      onChange={(event) => setPasswordForm((prev) => ({ ...prev, confirmacion: event.target.value }))}
+                    />
+                  </label>
+                </div>
 
                 <div className={styles.profileActions}>
                   <button
@@ -1060,7 +1081,7 @@ export default function PatientProfilePage() {
                 <p className={styles.sectionEyebrow}>Herramientas de cuenta</p>
                 <h3 className={styles.sectionTitle}>Documentos y reportes</h3>
                 <p className={styles.sectionDescription}>
-                  Descarga tu resumen de citas en PDF para conservarlo o compartirlo cuando lo necesites.
+                  Exporta tu historial y accede rápido al PDF guardado.
                 </p>
               </header>
               <div className={styles.profileToolBox}>
