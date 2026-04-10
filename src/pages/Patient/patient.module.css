@@ -614,61 +614,62 @@
 
 .profileRoot {
   display: grid;
-  gap: 0.9rem;
+  gap: 0.8rem;
 }
 
 .profileLayout {
   display: grid;
-  gap: 0.85rem;
+  gap: 0.75rem;
 }
 
 .profileRoot .welcomeHero {
-  padding: 1rem 1.05rem;
-  border-radius: 20px;
+  padding: 0.95rem 1rem;
+  border-radius: 18px;
+  background: linear-gradient(130deg, #ffffff 0%, #f5f9ff 48%, #ecf4ff 100%);
 }
 
 .profileRoot .welcomeTitle {
   margin-top: 0.15rem;
-  font-size: clamp(1.2rem, 3.8vw, 1.56rem);
+  font-size: clamp(1.12rem, 3.8vw, 1.52rem);
 }
 
 .profileRoot .welcomeDescription {
-  margin-top: 0.35rem;
-  font-size: 0.86rem;
+  margin-top: 0.3rem;
+  font-size: 0.84rem;
 }
 
 .profileIdentityCard {
-  border-radius: 22px;
-  border: 1px solid #ccdcfb;
-  background: linear-gradient(155deg, #fafdff 0%, #eef5ff 56%, #f6fbff 100%);
-  box-shadow: 0 14px 24px rgba(14, 63, 162, 0.08);
-  padding: 1rem;
+  border-radius: 18px;
+  border: 1px solid #cedefe;
+  background: linear-gradient(150deg, #fbfdff 0%, #eff6ff 46%, #e9f2ff 100%);
+  box-shadow: 0 12px 22px rgba(14, 63, 162, 0.1);
+  padding: 0.95rem;
   display: grid;
-  gap: 0.9rem;
+  gap: 0.72rem;
 }
 
 .profileIdentityTop {
   display: flex;
-  align-items: flex-start;
-  gap: 0.9rem;
+  align-items: center;
+  gap: 0.72rem;
 }
 
 .profileAvatar {
-  width: 3.3rem;
-  height: 3.3rem;
-  border-radius: 16px;
+  width: 2.9rem;
+  height: 2.9rem;
+  border-radius: 14px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font: 700 1.3rem/1 "Plus Jakarta Sans", "Inter", "Segoe UI", sans-serif;
+  font: 700 1.1rem/1 "Plus Jakarta Sans", "Inter", "Segoe UI", sans-serif;
   color: #fff;
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-deep) 100%);
-  box-shadow: 0 10px 20px rgba(19, 72, 192, 0.25);
+  box-shadow: 0 10px 16px rgba(19, 72, 192, 0.2);
 }
 
 .profileIdentityMain {
   display: grid;
-  gap: 0.2rem;
+  gap: 0.14rem;
   min-width: 0;
 }
 
@@ -677,22 +678,26 @@
   padding: 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.58rem;
+  gap: 0.5rem;
 }
 
 .profileSummaryItem {
-  border-radius: 13px;
+  border-radius: 12px;
   border: 1px solid #dbe8ff;
-  background: rgba(255, 255, 255, 0.82);
-  padding: 0.62rem 0.7rem;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.58rem 0.66rem;
   display: grid;
-  gap: 0.18rem;
+  gap: 0.14rem;
+}
+
+.profileSummaryItemWide {
+  grid-column: 1 / -1;
 }
 
 .profileSummaryItem dt {
   margin: 0;
   color: #58709a;
-  font: 650 0.7rem/1.25 "Inter", "Segoe UI", sans-serif;
+  font: 650 0.67rem/1.22 "Inter", "Segoe UI", sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -700,64 +705,110 @@
 .profileSummaryItem dd {
   margin: 0;
   color: #193564;
-  font: 700 0.88rem/1.32 "Inter", "Segoe UI", sans-serif;
-}
-
-.profileSummaryItem:last-child {
-  grid-column: 1 / -1;
+  font: 700 0.82rem/1.3 "Inter", "Segoe UI", sans-serif;
+  overflow-wrap: anywhere;
 }
 
 .profileToolBox {
-  border-radius: 16px;
+  border-radius: 14px;
   border: 1px solid #d8e6ff;
   background: linear-gradient(180deg, #fcfeff 0%, #f4f8ff 100%);
-  padding: 0.82rem;
+  padding: 0.78rem;
   display: grid;
-  gap: 0.56rem;
-}
-
-.profileToolTitle {
-  margin: 0;
-  color: #1c3f7f;
-  font: 700 0.93rem/1.3 "Inter", "Segoe UI", sans-serif;
-}
-
-.profileToolText {
-  margin: 0;
-  color: #4f6993;
-  font: 500 0.84rem/1.45 "Inter", "Segoe UI", sans-serif;
+  gap: 0.52rem;
 }
 
 .profileContentGrid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 0.85rem;
+  gap: 0.75rem;
   align-items: start;
 }
 
 .profileFieldsGrid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0.74rem;
+  gap: 0.64rem;
 }
 
 .profileFieldsGridSecondary {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0.74rem;
+  gap: 0.64rem;
 }
 
 .profileForm {
-  margin-top: 0.82rem;
   display: grid;
-  gap: 0.74rem;
+  gap: 0.62rem;
+}
+
+.profileSection {
+  border-radius: 16px;
+  border: 1px solid #d4e3ff;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  overflow: clip;
+}
+
+.profileSectionSummary {
+  list-style: none;
+  padding: 0.85rem 0.88rem;
+  display: grid;
+  gap: 0.18rem;
+  cursor: pointer;
+  position: relative;
+}
+
+.profileSectionSummary::-webkit-details-marker {
+  display: none;
+}
+
+.profileSectionSummary::after {
+  content: "▾";
+  position: absolute;
+  right: 0.95rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #5070a5;
+  font-size: 0.9rem;
+  transition: transform 160ms ease;
+}
+
+.profileSection[open] .profileSectionSummary::after {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.profileSectionTitle {
+  color: #17376e;
+  font: 700 0.98rem/1.24 "Plus Jakarta Sans", "Inter", "Segoe UI", sans-serif;
+}
+
+.profileSectionBody {
+  border-top: 1px solid #dce8ff;
+  padding: 0.82rem 0.88rem 0.88rem;
+  display: grid;
+  gap: 0.64rem;
+}
+
+.profileFieldWide {
+  grid-column: 1 / -1;
+}
+
+.passwordForm {
+  margin-top: 0.8rem;
+  display: grid;
+  gap: 0.64rem;
+}
+
+.passwordGrid {
+  display: grid;
+  gap: 0.64rem;
 }
 
 .profileField {
   display: grid;
-  gap: 0.34rem;
+  gap: 0.32rem;
   color: #2d497c;
-  font: 650 0.82rem/1.2 "Inter", "Segoe UI", sans-serif;
+  font: 650 0.8rem/1.18 "Inter", "Segoe UI", sans-serif;
 }
 
 .fieldTag {
@@ -772,26 +823,26 @@
 }
 
 .profileField input {
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid #c4d8ff;
   background: #f8fbff;
   color: #11346c;
-  min-height: 2.95rem;
-  padding: 0.82rem 0.84rem;
-  font: 550 0.93rem/1.3 "Inter", "Segoe UI", sans-serif;
+  min-height: 2.74rem;
+  padding: 0.73rem 0.78rem;
+  font: 550 0.9rem/1.28 "Inter", "Segoe UI", sans-serif;
   transition: 160ms ease;
 }
 
 .profileField textarea {
-  border-radius: 14px;
+  border-radius: 12px;
   border: 1px solid #c4d8ff;
   background: #f8fbff;
   color: #11346c;
-  padding: 0.82rem 0.84rem;
-  font: 550 0.9rem/1.45 "Inter", "Segoe UI", sans-serif;
+  padding: 0.73rem 0.78rem;
+  font: 550 0.88rem/1.42 "Inter", "Segoe UI", sans-serif;
   transition: 160ms ease;
   resize: vertical;
-  min-height: 110px;
+  min-height: 100px;
 }
 
 .profileField input:focus-visible {
@@ -816,37 +867,43 @@
 .fieldHint {
   margin: 0;
   color: #4f6993;
-  font: 500 0.8rem/1.42 "Inter", "Segoe UI", sans-serif;
+  font: 500 0.76rem/1.36 "Inter", "Segoe UI", sans-serif;
 }
 
 .profileActions {
-  margin-top: 0.4rem;
+  margin-top: 0.2rem;
   display: flex;
-  justify-content: stretch;
-  flex-wrap: wrap;
-  gap: 0.52rem;
+  justify-content: flex-end;
+  flex-wrap: wrap-reverse;
+  gap: 0.48rem;
 }
 
 .profilePrimaryAction,
 .profileSecondaryAction {
-  min-height: 2.9rem;
+  min-height: 2.72rem;
   margin-top: 0;
+  min-width: 8.7rem;
 }
 
 .profilePrimaryAction {
-  box-shadow: 0 11px 20px rgba(28, 76, 186, 0.22);
+  box-shadow: 0 10px 16px rgba(28, 76, 186, 0.2);
 }
 
 .profileSecondaryAction {
   background: #f5f8ff;
 }
 
+.securityCard {
+  border: 1px solid #cedefe;
+  background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+}
+
 .profileToolsCard {
-  border: 1px solid #d9e7ff;
+  border: 1px solid #d4e4ff;
 }
 
 .profileToolsCard .sectionHeader {
-  margin-bottom: 0.86rem;
+  margin-bottom: 0.76rem;
 }
 
 .secondaryAction {
@@ -872,10 +929,10 @@
 
 .formError,
 .formSuccess {
-  margin: 0.9rem 0 0;
-  border-radius: 12px;
-  padding: 0.65rem 0.75rem;
-  font: 600 0.84rem/1.42 "Inter", "Segoe UI", sans-serif;
+  margin: 0;
+  border-radius: 10px;
+  padding: 0.58rem 0.68rem;
+  font: 600 0.8rem/1.38 "Inter", "Segoe UI", sans-serif;
 }
 
 .formError {
@@ -894,6 +951,10 @@
   .profileFieldsGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .passwordGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 680px) {
@@ -901,8 +962,13 @@
     grid-template-columns: 1fr;
   }
 
+  .passwordGrid {
+    grid-template-columns: 1fr;
+  }
+
   .profileActions {
     flex-direction: column-reverse;
+    justify-content: stretch;
   }
 
   .secondaryAction,
@@ -912,6 +978,10 @@
 
   .profileSummaryList {
     grid-template-columns: 1fr;
+  }
+
+  .profileSummaryItemWide {
+    grid-column: auto;
   }
 }
 
