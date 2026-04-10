@@ -167,7 +167,42 @@ async function downloadPdfForWeb(blob: Blob, filename: string) {
   }, 1200);
 }
 
-async function downloadPdfForNativeAndroid(blob: Blob, filename: string) {
+type NativePdfSaveResult = {
+  savedUri: string;
+  shareSucceeded: boolean;
+};
+
+async function shareSavedPdfOnAndroid(bridge: CapacitorBridge, savedUri: string) {
+  const share = bridge.Plugins?.Share;
+  if (!share?.share) return false;
+
+  if (share.canShare) {
+    const { value } = await share.canShare();
+    if (!value) return false;
+  }
+
+  const candidateUrls = [savedUri];
+  const webviewSafeUrl = bridge.convertFileSrc?.(savedUri);
+  if (webviewSafeUrl && webviewSafeUrl !== savedUri) candidateUrls.push(webviewSafeUrl);
+
+  for (const url of candidateUrls) {
+    try {
+      await share.share({
+        title: "Resumen de citas",
+        text: "Tu resumen de citas está listo en PDF.",
+        url,
+        dialogTitle: "Compartir resumen de citas",
+      });
+      return true;
+    } catch {
+      // Try next URI format if available.
+    }
+  }
+
+  return false;
+}
+
+async function downloadPdfForNativeAndroid(blob: Blob, filename: string): Promise<NativePdfSaveResult> {
   const bridge = getCapacitorBridge();
   const filesystem = bridge?.Plugins?.Filesystem;
   if (!bridge || !filesystem?.writeFile) {
@@ -192,30 +227,35 @@ async function downloadPdfForNativeAndroid(blob: Blob, filename: string) {
     }))?.uri ||
     "";
 
-  const share = bridge.Plugins?.Share;
-  if (!share?.share || !storedUri) return;
-
-  if (share.canShare) {
-    const { value } = await share.canShare();
-    if (!value) return;
+  if (!storedUri) {
+    throw new Error("No pudimos obtener la ruta del archivo PDF guardado en Android.");
   }
 
-  const shareableUrl = bridge.convertFileSrc?.(storedUri) || storedUri;
-  await share.share({
-    title: "Resumen de citas",
-    text: "Tu resumen de citas está listo en PDF.",
-    url: shareableUrl,
-    dialogTitle: "Compartir resumen de citas",
-  });
+  const shareSucceeded = await shareSavedPdfOnAndroid(bridge, storedUri);
+  console.info("PDF guardado en Android", { storedUri, shareSucceeded });
+
+  return {
+    savedUri: storedUri,
+    shareSucceeded,
+  };
 }
 
-async function downloadPdfBlob(blob: Blob, filename: string) {
+type PdfDownloadResult = {
+  savedUri?: string;
+  shareSucceeded?: boolean;
+};
+
+async function downloadPdfBlob(blob: Blob, filename: string): Promise<PdfDownloadResult> {
   if (isNativeAndroidPlatform()) {
-    await downloadPdfForNativeAndroid(blob, filename);
-    return;
+    const result = await downloadPdfForNativeAndroid(blob, filename);
+    return {
+      savedUri: result.savedUri,
+      shareSucceeded: result.shareSucceeded,
+    };
   }
 
   await downloadPdfForWeb(blob, filename);
+  return {};
 }
 
 function normalizeStatus(status: string) {
@@ -601,6 +641,7 @@ export default function PatientProfilePage() {
   const [passwordFeedback, setPasswordFeedback] = useState("");
   const [summaryError, setSummaryError] = useState("");
   const [summaryFeedback, setSummaryFeedback] = useState("");
+  const [savedPdfUri, setSavedPdfUri] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -762,24 +803,36 @@ export default function PatientProfilePage() {
   async function generatePdfFromSummaryData(data: unknown) {
     const report = buildAppointmentExportReport(data, profileData);
     const pdfBlob = createStyledAppointmentPdf(report);
-    await downloadPdfBlob(pdfBlob, `resumen-citas-${new Date().toISOString().slice(0, 10)}.pdf`);
+    return downloadPdfBlob(pdfBlob, `resumen-citas-${new Date().toISOString().slice(0, 10)}.pdf`);
   }
 
   async function handleDownloadSummary() {
     setSummaryFeedback("");
     setSummaryError("");
+    setSavedPdfUri("");
 
     try {
       setDownloadingSummary(true);
       const exportResult = await exportPatientAppointmentSummary();
 
-      if (exportResult.kind === "pdf") {
-        await downloadPdfBlob(exportResult.blob, exportResult.filename);
-      } else {
-        await generatePdfFromSummaryData(exportResult.data);
+      const result =
+        exportResult.kind === "pdf"
+          ? await downloadPdfBlob(exportResult.blob, exportResult.filename)
+          : await generatePdfFromSummaryData(exportResult.data);
+
+      const isAndroid = isNativeAndroidPlatform();
+      const hasFallbackUri = Boolean(result.savedUri) && !result.shareSucceeded;
+
+      if (hasFallbackUri && result.savedUri) {
+        const bridge = getCapacitorBridge();
+        setSavedPdfUri(bridge?.convertFileSrc?.(result.savedUri) || result.savedUri);
       }
 
-      setSummaryFeedback("Tu resumen de citas se descargó correctamente.");
+      setSummaryFeedback(
+        isAndroid
+          ? "Tu resumen de citas se guardó correctamente."
+          : "Tu resumen de citas se descargó correctamente."
+      );
     } catch (error) {
       setSummaryError(
         toErrorMessage(error, "No pudimos generar tu resumen de citas en este momento. Inténtalo nuevamente.")
@@ -787,6 +840,11 @@ export default function PatientProfilePage() {
     } finally {
       setDownloadingSummary(false);
     }
+  }
+
+  function handleOpenSavedPdf() {
+    if (!savedPdfUri) return;
+    window.open(savedPdfUri, "_blank", "noopener,noreferrer");
   }
 
   return (
@@ -846,6 +904,11 @@ export default function PatientProfilePage() {
               </button>
               {summaryError && <p className={styles.formError}>{summaryError}</p>}
               {summaryFeedback && <p className={styles.formSuccess}>{summaryFeedback}</p>}
+              {savedPdfUri && (
+                <button className={styles.secondaryAction} type="button" onClick={handleOpenSavedPdf}>
+                  Abrir PDF
+                </button>
+              )}
             </div>
           </article>
 
