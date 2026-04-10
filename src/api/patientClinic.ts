@@ -39,6 +39,13 @@ export interface PatientClinicDetails {
   dentists: PatientClinicDentist[];
 }
 
+function normalizeList(payload: unknown): unknown[] {
+  const source = asRecord(payload);
+  const nested = asRecord(source.data);
+  const list = nested.data ?? source.data ?? payload;
+  return Array.isArray(list) ? list : [];
+}
+
 function asRecord(value: unknown): Record<string, unknown> {
   return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : {};
 }
@@ -157,4 +164,9 @@ export async function getPatientClinicDetails() {
     services: servicesRaw.map(mapService).filter((service): service is PatientClinicService => Boolean(service)),
     dentists: dentistsRaw.map(mapDentist).filter((dentist): dentist is PatientClinicDentist => Boolean(dentist)),
   } satisfies PatientClinicDetails;
+}
+
+export async function getPatientServiceDentists(serviceId: number | string) {
+  const { data } = await api.get(`/pacient/services/${serviceId}/dentists`);
+  return normalizeList(data).map(mapDentist).filter((dentist): dentist is PatientClinicDentist => Boolean(dentist));
 }
