@@ -77,7 +77,9 @@ export default function PatientLayout() {
   const location = useLocation();
   const storedUser = useMemo(() => getStoredUser(), []);
   const clinicName = resolveClinicName(storedUser);
+  const fullName = storedUser?.name?.trim() || "Paciente";
   const firstName = storedUser?.name?.trim()?.split(/\s+/)[0] || "Paciente";
+  const patientInitial = fullName.charAt(0).toUpperCase();
   const [isNavOpen, setIsNavOpen] = useState(false);
 
   useEffect(() => {
@@ -148,7 +150,16 @@ export default function PatientLayout() {
         className={`${styles.mobileNavSheet} ${isNavOpen ? styles.mobileNavSheetOpen : ""}`.trim()}
         aria-label="Menú móvil de paciente"
       >
-        <div className={styles.mobileSheetTopRow}>
+        <div className={styles.mobileSheetHeader}>
+          <div className={styles.mobileSheetProfile}>
+            <span className={styles.mobileSheetAvatar} aria-hidden="true">
+              {patientInitial}
+            </span>
+            <div className={styles.mobileSheetProfileCopy}>
+              <p>{fullName}</p>
+              <small>{clinicName || "Portal de pacientes"}</small>
+            </div>
+          </div>
           <button
             type="button"
             className={styles.mobileSheetMenuButton}
@@ -161,12 +172,9 @@ export default function PatientLayout() {
               <span />
             </span>
           </button>
-
-          <button className={styles.mobileSheetLogoutChip} type="button" onClick={handleLogout}>
-            Salir
-          </button>
         </div>
 
+        <p className={styles.mobileSheetSectionLabel}>Navegación</p>
         <nav className={styles.mobileSheetNav}>
           {patientLinks.map((link) => (
             <NavLink
@@ -182,6 +190,11 @@ export default function PatientLayout() {
           ))}
         </nav>
 
+        <div className={styles.mobileSheetFooter}>
+          <button className={styles.mobileSheetLogoutChip} type="button" onClick={handleLogout}>
+            Cerrar sesión
+          </button>
+        </div>
       </section>
 
       <main className={styles.main} id="patient-main">
