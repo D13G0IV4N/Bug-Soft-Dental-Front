@@ -1269,6 +1269,121 @@
   gap: 0.58rem;
 }
 
+.bookingCalendarHeader {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.35rem;
+}
+
+.bookingCalendarMonthLabel {
+  margin: 0;
+  text-align: center;
+  text-transform: capitalize;
+  color: #1f478b;
+  font: 700 0.84rem/1.2 "Plus Jakarta Sans", "Inter", "Segoe UI", sans-serif;
+}
+
+.bookingCalendarNav {
+  border: 1px solid #bfd5ff;
+  border-radius: 10px;
+  background: #f2f7ff;
+  color: #2958a4;
+  min-height: 2rem;
+  min-width: 2rem;
+  font: 700 0.9rem/1 "Inter", "Segoe UI", sans-serif;
+  cursor: pointer;
+}
+
+.bookingCalendarNav:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.bookingCalendarWeekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.25rem;
+  margin-bottom: 0.26rem;
+}
+
+.bookingCalendarWeekdays span {
+  text-align: center;
+  color: #6882aa;
+  font: 700 0.68rem/1.1 "Inter", "Segoe UI", sans-serif;
+}
+
+.bookingCalendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.25rem;
+}
+
+.bookingCalendarEmpty {
+  min-height: 2.2rem;
+}
+
+.bookingCalendarDay {
+  border: 1px solid #c5dbff;
+  border-radius: 11px;
+  background: #f8fbff;
+  color: #1a457f;
+  min-height: 2.2rem;
+  font: 650 0.78rem/1 "Inter", "Segoe UI", sans-serif;
+  cursor: pointer;
+}
+
+.bookingCalendarDaySelected {
+  border-color: #2d69eb;
+  background: #e9f1ff;
+  color: #133f87;
+  box-shadow: 0 0 0 2px rgba(37, 98, 221, 0.18);
+}
+
+.bookingCalendarDayDisabled {
+  border-style: dashed;
+  border-color: #dce6f8;
+  background: #f6f8fc;
+  color: #9bb0d1;
+  cursor: not-allowed;
+}
+
+.bookingSlotGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.34rem;
+  max-height: 230px;
+  overflow: auto;
+  padding-right: 0.18rem;
+}
+
+.bookingSlotButton {
+  border: 1px solid #bfd5ff;
+  border-radius: 11px;
+  min-height: 2.45rem;
+  background: #f7faff;
+  color: #1c4b90;
+  font: 650 0.78rem/1 "Inter", "Segoe UI", sans-serif;
+  cursor: pointer;
+}
+
+.bookingSlotButton:disabled {
+  border-style: dashed;
+  border-color: #e0e7f6;
+  background: #f7f8fb;
+  color: #97abc9;
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
+.bookingSlotButtonSelected {
+  border-color: #2362dd;
+  background: linear-gradient(180deg, #edf3ff 0%, #e6efff 100%);
+  color: #18458a;
+  box-shadow: 0 0 0 2px rgba(35, 98, 221, 0.18);
+}
+
 .bookingSelectionHint {
   margin: 0.18rem 0 0;
   color: #3c5f97;
@@ -1402,6 +1517,10 @@
 @media (max-width: 760px) {
   .bookingDateTimeGrid {
     grid-template-columns: 1fr;
+  }
+
+  .bookingSlotGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

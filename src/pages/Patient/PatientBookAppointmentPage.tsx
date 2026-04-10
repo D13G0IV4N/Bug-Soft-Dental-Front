@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   createPacientAppointment,
+  getAvailableDentists,
   toErrorMessage,
 } from "../../api/appointments";
 import {
@@ -23,6 +24,16 @@ interface BookingErrors {
   dentist_user_id?: string;
   start_at?: string;
 }
+
+interface DayAvailability {
+  available: string[];
+  unavailable: string[];
+}
+
+const CALENDAR_DAYS_AHEAD = 21;
+const SLOT_INTERVAL_MINUTES = 30;
+const SLOT_START_HOUR = 9;
+const SLOT_END_HOUR = 18;
 
 function formatDateTimeForApi(value: string): string {
   const trimmed = value.trim();
@@ -61,14 +72,70 @@ function getTimePart(value: string): string {
   return time.slice(0, 5);
 }
 
+function toDateInputValue(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function addDays(date: Date, days: number): Date {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+function getSlotCatalog() {
+  const slots: string[] = [];
+  for (let hour = SLOT_START_HOUR; hour < SLOT_END_HOUR; hour += 1) {
+    for (let minute = 0; minute < 60; minute += SLOT_INTERVAL_MINUTES) {
+      slots.push(`${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`);
+    }
+  }
+  return slots;
+}
+
+const SLOT_CATALOG = getSlotCatalog();
+
+function getMonthMatrix(currentMonth: Date) {
+  const year = currentMonth.getFullYear();
+  const month = currentMonth.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const startOffset = (firstDay.getDay() + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const matrix: Array<Date | null> = [];
+
+  for (let index = 0; index < startOffset; index += 1) {
+    matrix.push(null);
+  }
+
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    matrix.push(new Date(year, month, day));
+  }
+
+  while (matrix.length % 7 !== 0) {
+    matrix.push(null);
+  }
+
+  return matrix;
+}
+
 export default function PatientBookAppointmentPage() {
+  const todayDateOnly = useMemo(() => {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  }, []);
+  const maxDate = useMemo(() => addDays(todayDateOnly, CALENDAR_DAYS_AHEAD - 1), [todayDateOnly]);
   const [loadingData, setLoadingData] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [loadingAvailability, setLoadingAvailability] = useState(false);
   const [fetchError, setFetchError] = useState("");
+  const [availabilityError, setAvailabilityError] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [services, setServices] = useState<PatientClinicService[]>([]);
   const [dentists, setDentists] = useState<PatientClinicDentist[]>([]);
+  const [availabilityByDate, setAvailabilityByDate] = useState<Record<string, DayAvailability>>({});
   const [form, setForm] = useState<BookingFormState>({
     service_id: "",
     dentist_user_id: "",
@@ -78,6 +145,7 @@ export default function PatientBookAppointmentPage() {
   });
   const [errors, setErrors] = useState<BookingErrors>({});
   const [showNotes, setShowNotes] = useState(false);
+  const [visibleMonth, setVisibleMonth] = useState<Date>(new Date(todayDateOnly.getFullYear(), todayDateOnly.getMonth(), 1));
 
   useEffect(() => {
     let active = true;
@@ -111,29 +179,13 @@ export default function PatientBookAppointmentPage() {
     setErrors((prev) => ({ ...prev, [field]: undefined }));
   }
 
-  function updateDateTimePart(field: "date" | "time", value: string) {
-    const currentDate = getDatePart(form.start_at);
-    const currentTime = getTimePart(form.start_at);
-
-    const nextDate = field === "date" ? value : currentDate;
-    const nextTime = field === "time" ? value : currentTime;
-
-    if (!nextDate && !nextTime) {
+  function updateDateTime(date: string, time: string) {
+    if (!date || !time) {
       updateField("start_at", "");
       return;
     }
 
-    if (!nextDate) {
-      updateField("start_at", `T${nextTime}`);
-      return;
-    }
-
-    if (!nextTime) {
-      updateField("start_at", `${nextDate}T`);
-      return;
-    }
-
-    updateField("start_at", `${nextDate}T${nextTime}`);
+    updateField("start_at", `${date}T${time}`);
   }
 
   function validate(): boolean {
@@ -141,10 +193,17 @@ export default function PatientBookAppointmentPage() {
 
     if (!form.service_id) nextErrors.service_id = "Selecciona un servicio para continuar.";
     if (!form.dentist_user_id) nextErrors.dentist_user_id = "Selecciona un odontólogo para continuar.";
-    if (!form.start_at) {
+    const selectedDate = getDatePart(form.start_at);
+    const selectedTime = getTimePart(form.start_at);
+    const dayAvailability = selectedDate ? availabilityByDate[selectedDate] : undefined;
+    const isAvailableSlot = Boolean(dayAvailability?.available.includes(selectedTime));
+
+    if (!form.start_at || !selectedDate || !selectedTime) {
       nextErrors.start_at = "Selecciona la fecha y hora de tu cita.";
     } else if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?$/.test(form.start_at)) {
       nextErrors.start_at = "La fecha y hora no tiene un formato válido.";
+    } else if (!isAvailableSlot) {
+      nextErrors.start_at = "La hora elegida ya no está disponible. Selecciona otro horario.";
     }
 
     setErrors(nextErrors);
@@ -186,9 +245,83 @@ export default function PatientBookAppointmentPage() {
   const selectedDentist = dentists.find((dentist) => String(dentist.id) === form.dentist_user_id);
   const selectedDatePart = getDatePart(form.start_at);
   const selectedTimePart = getTimePart(form.start_at);
+  const selectedDayAvailability = selectedDatePart ? availabilityByDate[selectedDatePart] : undefined;
+  const availableTimesForSelectedDate = selectedDayAvailability?.available ?? [];
+  const unavailableTimesForSelectedDate = selectedDayAvailability?.unavailable ?? [];
   const selectionProgress = [form.service_id, form.dentist_user_id, form.start_at].filter(Boolean).length;
   const currentStep = Math.min(5, selectionProgress + 1);
   const summaryReady = Boolean(form.service_id && form.dentist_user_id && form.start_at);
+  const monthMatrix = getMonthMatrix(visibleMonth);
+  const selectedDateAsDate = selectedDatePart ? new Date(`${selectedDatePart}T00:00:00`) : null;
+  const canSeePreviousMonth = visibleMonth.getFullYear() > todayDateOnly.getFullYear()
+    || (visibleMonth.getFullYear() === todayDateOnly.getFullYear() && visibleMonth.getMonth() > todayDateOnly.getMonth());
+  const canSeeNextMonth = visibleMonth.getFullYear() < maxDate.getFullYear()
+    || (visibleMonth.getFullYear() === maxDate.getFullYear() && visibleMonth.getMonth() < maxDate.getMonth());
+
+  useEffect(() => {
+    const serviceId = Number(form.service_id);
+    const dentistId = Number(form.dentist_user_id);
+
+    if (!serviceId || !dentistId) {
+      setAvailabilityByDate({});
+      setAvailabilityError("");
+      setLoadingAvailability(false);
+      return;
+    }
+
+    let active = true;
+
+    void (async () => {
+      setLoadingAvailability(true);
+      setAvailabilityError("");
+
+      try {
+        const dateRange = Array.from({ length: CALENDAR_DAYS_AHEAD }, (_, index) => toDateInputValue(addDays(todayDateOnly, index)));
+        const availabilityEntries = await Promise.all(
+          dateRange.map(async (dateKey) => {
+            const checks = await Promise.all(
+              SLOT_CATALOG.map(async (time) => {
+                const startAt = `${dateKey}T${time}`;
+                try {
+                  const availableDentists = await getAvailableDentists({ service_id: serviceId, start_at: startAt });
+                  const isAvailable = availableDentists.some((dentist) => dentist.id === dentistId);
+                  return { time, isAvailable };
+                } catch {
+                  return { time, isAvailable: false };
+                }
+              })
+            );
+
+            const available = checks.filter((item) => item.isAvailable).map((item) => item.time);
+            const unavailable = checks.filter((item) => !item.isAvailable).map((item) => item.time);
+
+            return [dateKey, { available, unavailable }] as const;
+          })
+        );
+
+        if (!active) return;
+
+        setAvailabilityByDate(Object.fromEntries(availabilityEntries));
+      } catch (error) {
+        if (!active) return;
+        setAvailabilityByDate({});
+        setAvailabilityError(toErrorMessage(error, "No pudimos cargar la disponibilidad en este momento."));
+      } finally {
+        if (active) setLoadingAvailability(false);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [form.service_id, form.dentist_user_id, todayDateOnly]);
+
+  useEffect(() => {
+    if (!selectedDatePart || !selectedTimePart) return;
+    const dayAvailability = availabilityByDate[selectedDatePart];
+    if (!dayAvailability || dayAvailability.available.includes(selectedTimePart)) return;
+    updateField("start_at", "");
+  }, [availabilityByDate, selectedDatePart, selectedTimePart]);
 
   if (loadingData) {
     return (
@@ -252,7 +385,10 @@ export default function PatientBookAppointmentPage() {
                   id="service_id"
                   className={styles.bookingSelect}
                   value={form.service_id}
-                  onChange={(event) => updateField("service_id", event.target.value)}
+                  onChange={(event) => {
+                    updateField("service_id", event.target.value);
+                    updateField("start_at", "");
+                  }}
                 >
                   <option value="">Selecciona un servicio</option>
                   {services.map((service) => (
@@ -279,7 +415,10 @@ export default function PatientBookAppointmentPage() {
                   id="dentist_user_id"
                   className={styles.bookingSelect}
                   value={form.dentist_user_id}
-                  onChange={(event) => updateField("dentist_user_id", event.target.value)}
+                  onChange={(event) => {
+                    updateField("dentist_user_id", event.target.value);
+                    updateField("start_at", "");
+                  }}
                 >
                   <option value="">Selecciona un odontólogo</option>
                   {dentists.map((dentist) => {
@@ -306,27 +445,97 @@ export default function PatientBookAppointmentPage() {
 
               <div className={styles.bookingDateTimeGrid}>
                 <div>
-                  <label className={styles.bookingFieldLabel} htmlFor="booking_date">Fecha</label>
-                  <input
-                    id="booking_date"
-                    className={styles.bookingInput}
-                    type="date"
-                    value={selectedDatePart}
-                    onChange={(event) => updateDateTimePart("date", event.target.value)}
-                  />
+                  <label className={styles.bookingFieldLabel}>Fecha</label>
+                  <div className={styles.bookingCalendarHeader}>
+                    <button
+                      type="button"
+                      className={styles.bookingCalendarNav}
+                      onClick={() => setVisibleMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}
+                      disabled={!canSeePreviousMonth}
+                      aria-label="Mes anterior"
+                    >
+                      ←
+                    </button>
+                    <p className={styles.bookingCalendarMonthLabel}>
+                      {visibleMonth.toLocaleDateString("es-MX", { month: "long", year: "numeric" })}
+                    </p>
+                    <button
+                      type="button"
+                      className={styles.bookingCalendarNav}
+                      onClick={() => setVisibleMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
+                      disabled={!canSeeNextMonth}
+                      aria-label="Mes siguiente"
+                    >
+                      →
+                    </button>
+                  </div>
+                  <div className={styles.bookingCalendarWeekdays} aria-hidden="true">
+                    {["L", "M", "X", "J", "V", "S", "D"].map((weekday) => (
+                      <span key={weekday}>{weekday}</span>
+                    ))}
+                  </div>
+                  <div className={styles.bookingCalendarGrid}>
+                    {monthMatrix.map((dateCell, index) => {
+                      if (!dateCell) {
+                        return <span key={`empty-${index}`} className={styles.bookingCalendarEmpty} />;
+                      }
+
+                      const dateKey = toDateInputValue(dateCell);
+                      const isInRange = dateCell >= todayDateOnly && dateCell <= maxDate;
+                      const hasAvailability = (availabilityByDate[dateKey]?.available.length ?? 0) > 0;
+                      const isSelected = selectedDateAsDate
+                        ? dateCell.getFullYear() === selectedDateAsDate.getFullYear()
+                          && dateCell.getMonth() === selectedDateAsDate.getMonth()
+                          && dateCell.getDate() === selectedDateAsDate.getDate()
+                        : false;
+                      const isDisabled = !isInRange || loadingAvailability || !hasAvailability;
+
+                      return (
+                        <button
+                          key={dateKey}
+                          type="button"
+                          className={`${styles.bookingCalendarDay} ${isSelected ? styles.bookingCalendarDaySelected : ""} ${isDisabled ? styles.bookingCalendarDayDisabled : ""}`.trim()}
+                          disabled={isDisabled}
+                          onClick={() => updateDateTime(dateKey, "")}
+                          title={hasAvailability ? "Día con horarios disponibles" : "Sin horarios disponibles"}
+                        >
+                          {dateCell.getDate()}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
                 <div>
-                  <label className={styles.bookingFieldLabel} htmlFor="booking_time">Hora</label>
-                  <input
-                    id="booking_time"
-                    className={styles.bookingInput}
-                    type="time"
-                    value={selectedTimePart}
-                    onChange={(event) => updateDateTimePart("time", event.target.value)}
-                    step={60}
-                  />
+                  <label className={styles.bookingFieldLabel}>Hora</label>
+                  {!selectedDatePart ? (
+                    <p className={styles.bookingSelectionHint}>Selecciona una fecha con horarios disponibles.</p>
+                  ) : (
+                    <div className={styles.bookingSlotGrid}>
+                      {[...availableTimesForSelectedDate, ...unavailableTimesForSelectedDate].map((time) => {
+                        const isAvailable = availableTimesForSelectedDate.includes(time);
+                        const isSelected = selectedTimePart === time;
+
+                        return (
+                          <button
+                            key={time}
+                            type="button"
+                            className={`${styles.bookingSlotButton} ${isSelected ? styles.bookingSlotButtonSelected : ""}`.trim()}
+                            disabled={!isAvailable}
+                            onClick={() => updateDateTime(selectedDatePart, time)}
+                          >
+                            {time}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                  {selectedDatePart && !loadingAvailability && availableTimesForSelectedDate.length === 0 ? (
+                    <p className={styles.bookingFieldError}>Este día ya no tiene horarios disponibles.</p>
+                  ) : null}
                 </div>
               </div>
+              {loadingAvailability ? <p className={styles.bookingSelectionHint}>Consultando disponibilidad real...</p> : null}
+              {availabilityError ? <p className={styles.bookingFieldError}>{availabilityError}</p> : null}
               {form.start_at ? (
                 <p className={styles.bookingSelectionHint}>
                   Seleccionaste: <strong>{selectedDatePart}</strong> a las <strong>{selectedTimePart}</strong>.
@@ -406,7 +615,7 @@ export default function PatientBookAppointmentPage() {
             {submitError ? <p className={styles.bookingAlertError}>{submitError}</p> : null}
             {successMessage ? <p className={styles.bookingAlertSuccess}>{successMessage}</p> : null}
 
-            <button className={styles.bookingSubmitButton} type="submit" disabled={submitting}>
+            <button className={styles.bookingSubmitButton} type="submit" disabled={submitting || loadingAvailability || !summaryReady}>
               {submitting ? "Confirmando cita..." : "Confirmar cita"}
             </button>
           </form>
