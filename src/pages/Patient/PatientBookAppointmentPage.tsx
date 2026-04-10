@@ -151,6 +151,8 @@ export default function PatientBookAppointmentPage() {
     reason: "",
     internal_notes: "",
   });
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedTime, setSelectedTime] = useState("");
   const [errors, setErrors] = useState<BookingErrors>({});
   const [showNotes, setShowNotes] = useState(false);
   const [visibleMonth, setVisibleMonth] = useState<Date>(new Date(todayDateOnly.getFullYear(), todayDateOnly.getMonth(), 1));
@@ -188,13 +190,25 @@ export default function PatientBookAppointmentPage() {
     setErrors((prev) => ({ ...prev, [field]: undefined }));
   }
 
-  function updateDateTime(date: string, time: string) {
-    if (!date || !time) {
-      updateField("start_at", "");
-      return;
-    }
+  function handleDateSelect(date: string) {
+    setSelectedDate(date);
+    setSelectedTime((prev) => (date === selectedDate ? prev : ""));
+    setSubmitError("");
+    setSuccessMessage("");
+    setErrors((prev) => ({ ...prev, start_at: undefined }));
+  }
 
-    updateField("start_at", `${date}T${time}`);
+  function handleTimeSelect(time: string) {
+    setSelectedTime(time);
+    setSubmitError("");
+    setSuccessMessage("");
+    setErrors((prev) => ({ ...prev, start_at: undefined }));
+  }
+
+  function resetDateTimeSelection() {
+    setSelectedDate("");
+    setSelectedTime("");
+    setForm((prev) => ({ ...prev, start_at: "" }));
   }
 
   function validate(): boolean {
@@ -242,6 +256,8 @@ export default function PatientBookAppointmentPage() {
 
       setSuccessMessage("¡Tu cita fue agendada correctamente! Te enviaremos los detalles de confirmación.");
       setForm({ service_id: "", dentist_user_id: "", start_at: "", reason: "", internal_notes: "" });
+      setSelectedDate("");
+      setSelectedTime("");
       setErrors({});
     } catch (error) {
       setSubmitError(toErrorMessage(error, "No pudimos agendar tu cita por ahora. Intenta nuevamente en unos minutos."));
@@ -252,8 +268,8 @@ export default function PatientBookAppointmentPage() {
 
   const selectedService = services.find((service) => String(service.id) === form.service_id);
   const selectedDentist = dentists.find((dentist) => String(dentist.id) === form.dentist_user_id);
-  const selectedDatePart = getDatePart(form.start_at);
-  const selectedTimePart = getTimePart(form.start_at);
+  const selectedDatePart = selectedDate;
+  const selectedTimePart = selectedTime;
   const selectedDayAvailability = selectedDatePart ? availabilityByDate[selectedDatePart] : undefined;
   const availableTimesForSelectedDate = selectedDayAvailability?.available ?? [];
   const unavailableTimesForSelectedDate = selectedDayAvailability?.unavailable ?? [];
@@ -266,6 +282,11 @@ export default function PatientBookAppointmentPage() {
     || (visibleMonth.getFullYear() === todayDateOnly.getFullYear() && visibleMonth.getMonth() > todayDateOnly.getMonth());
   const canSeeNextMonth = visibleMonth.getFullYear() < maxDate.getFullYear()
     || (visibleMonth.getFullYear() === maxDate.getFullYear() && visibleMonth.getMonth() < maxDate.getMonth());
+
+  useEffect(() => {
+    const nextStartAt = selectedDate && selectedTime ? `${selectedDate}T${selectedTime}` : "";
+    setForm((prev) => (prev.start_at === nextStartAt ? prev : { ...prev, start_at: nextStartAt }));
+  }, [selectedDate, selectedTime]);
 
   useEffect(() => {
     const serviceId = Number(form.service_id);
@@ -302,6 +323,8 @@ export default function PatientBookAppointmentPage() {
     const stillAvailable = dentists.some((dentist) => String(dentist.id) === form.dentist_user_id);
     if (!stillAvailable) {
       setForm((prev) => ({ ...prev, dentist_user_id: "", start_at: "" }));
+      setSelectedDate("");
+      setSelectedTime("");
       setErrors((prev) => ({ ...prev, dentist_user_id: undefined, start_at: undefined }));
       setSubmitError("");
       setSuccessMessage("");
@@ -372,7 +395,7 @@ export default function PatientBookAppointmentPage() {
     if (!selectedDatePart || !selectedTimePart) return;
     const dayAvailability = availabilityByDate[selectedDatePart];
     if (!dayAvailability || dayAvailability.available.includes(selectedTimePart)) return;
-    updateField("start_at", "");
+    setSelectedTime("");
   }, [availabilityByDate, selectedDatePart, selectedTimePart]);
 
   if (loadingData) {
@@ -439,7 +462,7 @@ export default function PatientBookAppointmentPage() {
                   value={form.service_id}
                   onChange={(event) => {
                     updateField("service_id", event.target.value);
-                    updateField("start_at", "");
+                    resetDateTimeSelection();
                   }}
                 >
                   <option value="">Selecciona un servicio</option>
@@ -469,7 +492,7 @@ export default function PatientBookAppointmentPage() {
                   value={form.dentist_user_id}
                   onChange={(event) => {
                     updateField("dentist_user_id", event.target.value);
-                    updateField("start_at", "");
+                    resetDateTimeSelection();
                   }}
                 >
                   <option value="">Selecciona un odontólogo</option>
@@ -548,7 +571,7 @@ export default function PatientBookAppointmentPage() {
                           type="button"
                           className={`${styles.bookingCalendarDay} ${isSelected ? styles.bookingCalendarDaySelected : ""} ${isDisabled ? styles.bookingCalendarDayDisabled : ""}`.trim()}
                           disabled={isDisabled}
-                          onClick={() => updateDateTime(dateKey, "")}
+                          onClick={() => handleDateSelect(dateKey)}
                           title={hasAvailability ? "Día con horarios disponibles" : "Sin horarios disponibles"}
                         >
                           {dateCell.getDate()}
@@ -573,7 +596,7 @@ export default function PatientBookAppointmentPage() {
                             type="button"
                             className={`${styles.bookingSlotButton} ${isSelected ? styles.bookingSlotButtonSelected : ""}`.trim()}
                             disabled={!isAvailable}
-                            onClick={() => updateDateTime(selectedDatePart, time)}
+                            onClick={() => handleTimeSelect(time)}
                           >
                             {time}
                           </button>
