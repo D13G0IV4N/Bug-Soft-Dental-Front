@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   createPacientAppointment,
-  getAvailableDentists,
+  getPacientAppointments,
   toErrorMessage,
 } from "../../api/appointments";
 import {
   getPatientClinicDetails,
+  getPatientServiceDentists,
   type PatientClinicDentist,
   type PatientClinicService,
 } from "../../api/patientClinic";
@@ -72,6 +73,12 @@ function getTimePart(value: string): string {
   return time.slice(0, 5);
 }
 
+function normalizeDateTime(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  return trimmed.includes("T") ? trimmed : trimmed.replace(" ", "T");
+}
+
 function toDateInputValue(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -134,6 +141,7 @@ export default function PatientBookAppointmentPage() {
   const [submitError, setSubmitError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [services, setServices] = useState<PatientClinicService[]>([]);
+  const [allDentists, setAllDentists] = useState<PatientClinicDentist[]>([]);
   const [dentists, setDentists] = useState<PatientClinicDentist[]>([]);
   const [availabilityByDate, setAvailabilityByDate] = useState<Record<string, DayAvailability>>({});
   const [form, setForm] = useState<BookingFormState>({
@@ -157,6 +165,7 @@ export default function PatientBookAppointmentPage() {
         if (!active) return;
 
         setServices(data.services);
+        setAllDentists(data.dentists);
         setDentists(data.dentists);
         setFetchError("");
       } catch (error) {
@@ -260,9 +269,49 @@ export default function PatientBookAppointmentPage() {
 
   useEffect(() => {
     const serviceId = Number(form.service_id);
+
+    if (!serviceId) {
+      setDentists(allDentists);
+      return;
+    }
+
+    let active = true;
+
+    void (async () => {
+      try {
+        const serviceDentists = await getPatientServiceDentists(serviceId);
+        if (!active) return;
+        setDentists(serviceDentists);
+        setAvailabilityError("");
+      } catch (error) {
+        if (!active) return;
+        setDentists([]);
+        setAvailabilityError(
+          toErrorMessage(error, "No pudimos cargar los odontólogos disponibles para este servicio.")
+        );
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [allDentists, form.service_id]);
+
+  useEffect(() => {
+    if (!form.dentist_user_id) return;
+    const stillAvailable = dentists.some((dentist) => String(dentist.id) === form.dentist_user_id);
+    if (!stillAvailable) {
+      setForm((prev) => ({ ...prev, dentist_user_id: "", start_at: "" }));
+      setErrors((prev) => ({ ...prev, dentist_user_id: undefined, start_at: undefined }));
+      setSubmitError("");
+      setSuccessMessage("");
+    }
+  }, [dentists, form.dentist_user_id]);
+
+  useEffect(() => {
     const dentistId = Number(form.dentist_user_id);
 
-    if (!serviceId || !dentistId) {
+    if (!form.service_id || !dentistId) {
       setAvailabilityByDate({});
       setAvailabilityError("");
       setLoadingAvailability(false);
@@ -276,28 +325,26 @@ export default function PatientBookAppointmentPage() {
       setAvailabilityError("");
 
       try {
+        const patientAppointments = await getPacientAppointments();
         const dateRange = Array.from({ length: CALENDAR_DAYS_AHEAD }, (_, index) => toDateInputValue(addDays(todayDateOnly, index)));
-        const availabilityEntries = await Promise.all(
-          dateRange.map(async (dateKey) => {
-            const checks = await Promise.all(
-              SLOT_CATALOG.map(async (time) => {
-                const startAt = `${dateKey}T${time}`;
-                try {
-                  const availableDentists = await getAvailableDentists({ service_id: serviceId, start_at: startAt });
-                  const isAvailable = availableDentists.some((dentist) => dentist.id === dentistId);
-                  return { time, isAvailable };
-                } catch {
-                  return { time, isAvailable: false };
-                }
-              })
-            );
-
-            const available = checks.filter((item) => item.isAvailable).map((item) => item.time);
-            const unavailable = checks.filter((item) => !item.isAvailable).map((item) => item.time);
-
-            return [dateKey, { available, unavailable }] as const;
-          })
+        const dateRangeSet = new Set(dateRange);
+        const blockedByPatient = new Set(
+          patientAppointments
+            .map((appointment) => normalizeDateTime(appointment.start_at))
+            .filter(Boolean)
+            .map((startAt) => {
+              const date = getDatePart(startAt);
+              const time = getTimePart(startAt);
+              return dateRangeSet.has(date) ? `${date}T${time}` : "";
+            })
+            .filter(Boolean)
         );
+
+        const availabilityEntries = dateRange.map((dateKey) => {
+          const available = SLOT_CATALOG.filter((time) => !blockedByPatient.has(`${dateKey}T${time}`));
+          const unavailable = SLOT_CATALOG.filter((time) => blockedByPatient.has(`${dateKey}T${time}`));
+          return [dateKey, { available, unavailable }] as const;
+        });
 
         if (!active) return;
 
@@ -305,7 +352,12 @@ export default function PatientBookAppointmentPage() {
       } catch (error) {
         if (!active) return;
         setAvailabilityByDate({});
-        setAvailabilityError(toErrorMessage(error, "No pudimos cargar la disponibilidad en este momento."));
+        setAvailabilityError(
+          toErrorMessage(
+            error,
+            "No pudimos cargar la disponibilidad con los endpoints de paciente. Revisa permisos/configuración del backend."
+          )
+        );
       } finally {
         if (active) setLoadingAvailability(false);
       }
