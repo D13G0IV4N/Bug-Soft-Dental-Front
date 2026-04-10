@@ -864,52 +864,30 @@ export default function PatientProfilePage() {
       ) : (
         <div className={styles.profileLayout}>
           <article className={styles.profileIdentityCard}>
-            <div className={styles.profileIdentityTop}>
+            <header className={styles.profileIdentityTop}>
               <span className={styles.profileAvatar} aria-hidden="true">
                 {profileData.nombre?.trim()?.charAt(0).toUpperCase() || "P"}
               </span>
               <div className={styles.profileIdentityMain}>
-                <p className={styles.sectionEyebrow}>Cuenta del paciente</p>
+                <p className={styles.sectionEyebrow}>Resumen de cuenta</p>
                 <h3 className={styles.sectionTitle}>{profileData.nombre || "Paciente"}</h3>
                 <p className={styles.sectionDescription}>{profileData.correo || "Correo no registrado"}</p>
               </div>
-            </div>
-            <ul className={styles.profileSummaryList}>
-              <li>
-                <span>Teléfono</span>
-                <strong>{profileData.telefono || "No registrado"}</strong>
-              </li>
-              <li>
-                <span>Clínica</span>
-                <strong>{profileData.clinica}</strong>
-              </li>
-              <li>
-                <span>Rol</span>
-                <strong>{profileData.rol}</strong>
-              </li>
-            </ul>
-
-            <div className={styles.profileToolBox}>
-              <p className={styles.profileToolTitle}>Herramientas de cuenta</p>
-              <p className={styles.profileToolText}>
-                Descarga un reporte en PDF con tu historial y resumen de citas para conservarlo o compartirlo.
-              </p>
-              <button
-                className={styles.primaryAction}
-                type="button"
-                onClick={handleDownloadSummary}
-                disabled={downloadingSummary}
-              >
-                {downloadingSummary ? "Generando PDF..." : "Descargar resumen de citas"}
-              </button>
-              {summaryError && <p className={styles.formError}>{summaryError}</p>}
-              {summaryFeedback && <p className={styles.formSuccess}>{summaryFeedback}</p>}
-              {savedPdfUri && (
-                <button className={styles.secondaryAction} type="button" onClick={handleOpenSavedPdf}>
-                  Abrir PDF
-                </button>
-              )}
-            </div>
+            </header>
+            <dl className={styles.profileSummaryList}>
+              <div className={styles.profileSummaryItem}>
+                <dt>Teléfono</dt>
+                <dd>{profileData.telefono || "No registrado"}</dd>
+              </div>
+              <div className={styles.profileSummaryItem}>
+                <dt>Clínica</dt>
+                <dd>{profileData.clinica}</dd>
+              </div>
+              <div className={styles.profileSummaryItem}>
+                <dt>Rol</dt>
+                <dd>{profileData.rol}</dd>
+              </div>
+            </dl>
           </article>
 
           <div className={styles.profileContentGrid}>
@@ -966,9 +944,10 @@ export default function PatientProfilePage() {
                   El correo no se puede editar desde esta sección. Si necesitas cambiarlo, contacta a la clínica.
                 </p>
 
-                <div className={styles.profileFieldsGrid}>
+                <div className={styles.profileFieldsGridSecondary}>
                   <label className={styles.profileField} htmlFor="profile-address">
                     Dirección
+                    <span className={styles.fieldTag}>Opcional</span>
                     <input
                       id="profile-address"
                       value={profileForm.direccion}
@@ -980,6 +959,7 @@ export default function PatientProfilePage() {
 
                   <label className={styles.profileField} htmlFor="profile-allergies">
                     Alergias
+                    <span className={styles.fieldTag}>Opcional</span>
                     <input
                       id="profile-allergies"
                       value={profileForm.alergias}
@@ -991,6 +971,7 @@ export default function PatientProfilePage() {
 
                 <label className={styles.profileField} htmlFor="profile-notes">
                   Notas
+                  <span className={styles.fieldTag}>Opcional</span>
                   <textarea
                     id="profile-notes"
                     value={profileForm.notas}
@@ -1001,10 +982,10 @@ export default function PatientProfilePage() {
                 </label>
 
                 <div className={styles.profileActions}>
-                  <button className={styles.secondaryAction} type="button" onClick={handleResetChanges}>
+                  <button className={`${styles.secondaryAction} ${styles.profileSecondaryAction}`} type="button" onClick={handleResetChanges}>
                     Restablecer cambios
                   </button>
-                  <button className={styles.primaryAction} type="submit" disabled={savingProfile || !hasProfileChanges}>
+                  <button className={`${styles.primaryAction} ${styles.profilePrimaryAction}`} type="submit" disabled={savingProfile || !hasProfileChanges}>
                     {savingProfile ? "Guardando..." : "Guardar cambios"}
                   </button>
                 </div>
@@ -1057,7 +1038,7 @@ export default function PatientProfilePage() {
 
                 <div className={styles.profileActions}>
                   <button
-                    className={styles.secondaryAction}
+                    className={`${styles.secondaryAction} ${styles.profileSecondaryAction}`}
                     type="button"
                     onClick={() => {
                       setPasswordForm(EMPTY_PASSWORD);
@@ -1067,11 +1048,42 @@ export default function PatientProfilePage() {
                   >
                     Cancelar
                   </button>
-                  <button className={styles.primaryAction} type="submit" disabled={savingPassword}>
+                  <button className={`${styles.primaryAction} ${styles.profilePrimaryAction}`} type="submit" disabled={savingPassword}>
                     {savingPassword ? "Actualizando..." : "Guardar cambios"}
                   </button>
                 </div>
               </form>
+            </article>
+
+            <article className={`${styles.surfaceCard} ${styles.profileToolsCard}`}>
+              <header className={styles.sectionHeader}>
+                <p className={styles.sectionEyebrow}>Herramientas de cuenta</p>
+                <h3 className={styles.sectionTitle}>Documentos y reportes</h3>
+                <p className={styles.sectionDescription}>
+                  Descarga tu resumen de citas en PDF para conservarlo o compartirlo cuando lo necesites.
+                </p>
+              </header>
+              <div className={styles.profileToolBox}>
+                <button
+                  className={`${styles.primaryAction} ${styles.profilePrimaryAction}`}
+                  type="button"
+                  onClick={handleDownloadSummary}
+                  disabled={downloadingSummary}
+                >
+                  {downloadingSummary ? "Generando PDF..." : "Descargar resumen de citas"}
+                </button>
+                {savedPdfUri && (
+                  <button
+                    className={`${styles.secondaryAction} ${styles.profileSecondaryAction}`}
+                    type="button"
+                    onClick={handleOpenSavedPdf}
+                  >
+                    Abrir PDF
+                  </button>
+                )}
+                {summaryError && <p className={styles.formError}>{summaryError}</p>}
+                {summaryFeedback && <p className={styles.formSuccess}>{summaryFeedback}</p>}
+              </div>
             </article>
           </div>
         </div>
