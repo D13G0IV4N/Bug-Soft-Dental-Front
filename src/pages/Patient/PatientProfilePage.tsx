@@ -85,12 +85,137 @@ type AppointmentExportReport = {
   appointments: ReportAppointment[];
 };
 
+type CapacitorFilesystemDirectory = "DOCUMENTS" | "DATA" | "CACHE" | "EXTERNAL" | "EXTERNAL_STORAGE";
+
+type CapacitorBridge = {
+  isNativePlatform?: () => boolean;
+  getPlatform?: () => string;
+  convertFileSrc?: (filePath: string) => string;
+  Plugins?: {
+    Filesystem?: {
+      writeFile: (options: {
+        path: string;
+        data: string;
+        directory?: CapacitorFilesystemDirectory;
+        recursive?: boolean;
+      }) => Promise<{ uri?: string }>;
+      getUri?: (options: {
+        path: string;
+        directory?: CapacitorFilesystemDirectory;
+      }) => Promise<{ uri: string }>;
+    };
+    Share?: {
+      canShare?: () => Promise<{ value: boolean }>;
+      share: (options: { title?: string; text?: string; url?: string; dialogTitle?: string }) => Promise<void>;
+    };
+  };
+};
+
 function asRecord(value: unknown): Record<string, unknown> {
   return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : {};
 }
 
 function toText(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function ensurePdfFilename(filename: string) {
+  const normalized = filename.trim() || `resumen-citas-${new Date().toISOString().slice(0, 10)}.pdf`;
+  return normalized.toLowerCase().endsWith(".pdf") ? normalized : `${normalized}.pdf`;
+}
+
+function getCapacitorBridge(): CapacitorBridge | null {
+  const bridge = (globalThis as { Capacitor?: CapacitorBridge }).Capacitor;
+  return bridge ?? null;
+}
+
+function isNativeAndroidPlatform() {
+  const bridge = getCapacitorBridge();
+  if (!bridge?.isNativePlatform?.()) return false;
+  return bridge.getPlatform?.() === "android";
+}
+
+function blobToBase64(blob: Blob) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("No se pudo procesar el archivo PDF para guardarlo en el dispositivo."));
+    reader.onloadend = () => {
+      const result = typeof reader.result === "string" ? reader.result : "";
+      const [, base64 = ""] = result.split(",");
+      if (!base64) {
+        reject(new Error("No se pudo convertir el PDF para guardarlo en el dispositivo."));
+        return;
+      }
+      resolve(base64);
+    };
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function downloadPdfForWeb(blob: Blob, filename: string) {
+  const fileUrl = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = fileUrl;
+  anchor.download = ensurePdfFilename(filename);
+  anchor.rel = "noopener";
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+
+  window.setTimeout(() => {
+    URL.revokeObjectURL(fileUrl);
+  }, 1200);
+}
+
+async function downloadPdfForNativeAndroid(blob: Blob, filename: string) {
+  const bridge = getCapacitorBridge();
+  const filesystem = bridge?.Plugins?.Filesystem;
+  if (!bridge || !filesystem?.writeFile) {
+    throw new Error("No encontramos el módulo nativo para guardar archivos en Android.");
+  }
+
+  const safeFilename = ensurePdfFilename(filename);
+  const base64Data = await blobToBase64(blob);
+
+  const writeResult = await filesystem.writeFile({
+    path: safeFilename,
+    data: base64Data,
+    directory: "DOCUMENTS",
+    recursive: true,
+  });
+
+  const storedUri =
+    writeResult.uri ||
+    (await filesystem.getUri?.({
+      path: safeFilename,
+      directory: "DOCUMENTS",
+    }))?.uri ||
+    "";
+
+  const share = bridge.Plugins?.Share;
+  if (!share?.share || !storedUri) return;
+
+  if (share.canShare) {
+    const { value } = await share.canShare();
+    if (!value) return;
+  }
+
+  const shareableUrl = bridge.convertFileSrc?.(storedUri) || storedUri;
+  await share.share({
+    title: "Resumen de citas",
+    text: "Tu resumen de citas está listo en PDF.",
+    url: shareableUrl,
+    dialogTitle: "Compartir resumen de citas",
+  });
+}
+
+async function downloadPdfBlob(blob: Blob, filename: string) {
+  if (isNativeAndroidPlatform()) {
+    await downloadPdfForNativeAndroid(blob, filename);
+    return;
+  }
+
+  await downloadPdfForWeb(blob, filename);
 }
 
 function normalizeStatus(status: string) {
@@ -634,21 +759,10 @@ export default function PatientProfilePage() {
     }
   }
 
-  function downloadPdfBlob(blob: Blob, filename: string) {
-    const fileUrl = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = fileUrl;
-    anchor.download = filename.endsWith(".pdf") ? filename : `${filename}.pdf`;
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    URL.revokeObjectURL(fileUrl);
-  }
-
-  function generatePdfFromSummaryData(data: unknown) {
+  async function generatePdfFromSummaryData(data: unknown) {
     const report = buildAppointmentExportReport(data, profileData);
     const pdfBlob = createStyledAppointmentPdf(report);
-    downloadPdfBlob(pdfBlob, `resumen-citas-${new Date().toISOString().slice(0, 10)}.pdf`);
+    await downloadPdfBlob(pdfBlob, `resumen-citas-${new Date().toISOString().slice(0, 10)}.pdf`);
   }
 
   async function handleDownloadSummary() {
@@ -660,9 +774,9 @@ export default function PatientProfilePage() {
       const exportResult = await exportPatientAppointmentSummary();
 
       if (exportResult.kind === "pdf") {
-        downloadPdfBlob(exportResult.blob, exportResult.filename);
+        await downloadPdfBlob(exportResult.blob, exportResult.filename);
       } else {
-        generatePdfFromSummaryData(exportResult.data);
+        await generatePdfFromSummaryData(exportResult.data);
       }
 
       setSummaryFeedback("Tu resumen de citas se descargó correctamente.");
